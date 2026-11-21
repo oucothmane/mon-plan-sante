@@ -1,0 +1,68 @@
+{
+  "kcalMin": 2000,
+  "kcalMax": 4500,
+  "defaultTargets": {
+    "seche": { "on": 2200, "off": 2000 },
+    "maintien": { "on": 2400, "off": 2200 }
+  },
+  "profile": {
+    "age": 32,
+    "heightCm": 182,
+    "sex": "male",
+    "currentWeightKg": 99,
+    "targetWeightKg": 82,
+    "activityFactor": 1.38,
+    "activityOfficeFactor": 1.25,
+    "carbCyclingDeltaKcal": 150,
+    "kcalFloor": 2000,
+    "gymRoundTripMin": 50,
+    "proteinMaxG": 165,
+    "fatOnPerKg": 1.0,
+    "fatOffPerKg": 1.2,
+    "weeklyLossPct": 0.008,
+    "weeklyLossMinKg": 0.5,
+    "weeklyLossMaxKg": 0.8
+  },
+  "fiber": {
+    "per1000Kcal": 14,
+    "minG": 25,
+    "maxG": 45,
+    "boostVeggiesG": 250
+  },
+  "foodCaps": {
+    "pasta": 120,
+    "sweet_potato": 250,
+    "raisins": 50,
+    "honey": 30,
+    "belvita": 75,
+    "olive_oil": 60,
+    "avocado": 100,
+    "walnuts": 35,
+    "peanut_butter": 30,
+    "dark_choc": 25
+  },
+  "mealBases": {
+    "eggs": 170,
+    "veggiesMidi": 200,
+    "veggiesSoir": 200,
+    "whey": 30,
+    "creatine": 5,
+    "dark_choc": 15,
+    "peanut_butter": 20,
+    "walnutsOn": 0,
+    "walnutsOff": 20,
+    "avocadoOn": 70,
+    "avocadoOff": 50,
+    "belvitaGPerBiscuit": 12.5
+  },
+  "cardioTargets": {
+    "seche": { "on": 50, "off": 30 },
+    "maintien": { "on": 50, "off": 0 }
+  },
+  "proteinSwaps": [
+    ["chicken", "Poulet"],
+    ["turkey", "Dinde"],
+    ["cod", "Cabillaud"],
+    ["beef5", "Bœuf 5 %"]
+  ]
+}

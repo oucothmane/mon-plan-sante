@@ -1,0 +1,105 @@
+{
+  "description": "Programme d'entraînement PPL sur 6 jours (1 ON / 1 OFF) + cardio et règles de progression.",
+  "deloadMaxSets": 2,
+  "defaultStepKg": 2.5,
+  "tech": {
+    "drop": {
+      "k": "D",
+      "n": "dropset",
+      "N": "Dropset",
+      "steps": 2,
+      "tip": "Dropset (2 paliers sur la dernière série) : à l’échec (RIR 0), −25/30 % sans repos × 2"
+    },
+    "lp": {
+      "k": "PE",
+      "n": "partielles étirées",
+      "N": "Partielles étirées",
+      "steps": 1,
+      "tip": "Partielles étirées : à l’échec en amplitude complète, enchaîne 3–5 demi-reps propres en bas du mouvement (étirement max)"
+    }
+  },
+  "cycleKeys": [
+    "Push",
+    null,
+    "Pull",
+    null,
+    "Legs",
+    null
+  ],
+  "cardio": {
+    "onMin": 50,
+    "offMinCut": 30,
+    "offMinMaintain": 0
+  },
+  "altExercises": {
+    "avantBras": [
+      { "m": "Avant-bras", "n": "Wrist curl poulie", "short": "Wrist curl", "note": "Enrouler depuis le bout des doigts · alternance fin de séance", "sets": 2, "reps": "12–15", "rir": "RIR 1 (contrôlé)", "rest": 60, "opt": true, "defaultKg": 15 },
+      { "m": "Avant-bras", "n": "Reverse curl poulie (barre EZ)", "short": "Reverse curl", "note": "Brachioradial · prise en pronation · alternance fin de séance", "sets": 2, "reps": "12–15", "rir": "RIR 1 (contrôlé)", "rest": 60, "opt": true, "defaultKg": 10 }
+    ]
+  },
+  "sessions": {
+    "Push": {
+      "day": "J1",
+      "short": "Push",
+      "title": "🔵 Push",
+      "sub": "16 séries · ~45 min",
+      "ex": [
+        { "m": "Pecs", "n": "Développé incliné machine", "note": "Haut des pecs · coudes au niveau du buste en bas", "sets": 3, "reps": "8–12", "rir": "RIR 2 → 1", "rest": 120, "poly": true, "defaultKg": 40 },
+        { "m": "Pecs", "n": "Développé machine convergente", "note": "Milieu des pecs · épaules basses", "sets": 3, "reps": "8–12", "rir": "RIR 2 → 1", "rest": 120, "poly": true, "defaultKg": 50 },
+        { "m": "Pecs", "n": "Pec deck", "note": "Étirement contrôlé, sans aller trop loin derrière", "sets": 2, "reps": "12–15", "rir": "RIR 1 → 0", "rest": 90, "defaultKg": 45 },
+        { "m": "Épaule lat.", "n": "Élévations latérales poulie unilat.", "note": "Repos après les 2 côtés · dernière série dropset 2 paliers (−25/30 %)", "sets": 3, "reps": "12–15", "rir": "RIR 1 → 0 + Dropset", "rest": 90, "tech": "drop", "defaultKg": 5 },
+        { "m": "Triceps", "n": "Extension triceps overhead poulie", "note": "Chef long étiré derrière la tête", "sets": 3, "reps": "12–15", "rir": "RIR 1 → 0", "rest": 90, "defaultKg": 25 },
+        { "m": "Triceps", "n": "Extension triceps corde", "note": "Coudes fixes le long du buste", "sets": 2, "reps": "12–15", "rir": "RIR 1 → 0", "rest": 90, "defaultKg": 30 },
+        { "altKey": "avantBras" }
+      ]
+    },
+    "Pull": {
+      "day": "J3",
+      "short": "Pull",
+      "title": "🟢 Pull",
+      "sub": "16 séries · ~45 min",
+      "ex": [
+        { "m": "Dos", "n": "Tirage vertical prise neutre", "note": "Largeur · poitrine sortie, coudes vers les hanches", "sets": 3, "reps": "8–12", "rir": "RIR 2 → 1", "rest": 120, "poly": true, "defaultKg": 65 },
+        { "m": "Dos", "n": "Rowing machine poitrine appuyée", "note": "Épaisseur · poitrine calée, tire les coudes en arrière", "sets": 3, "reps": "8–12", "rir": "RIR 2 → 1", "rest": 120, "poly": true, "defaultKg": 45 },
+        { "m": "Dos", "n": "Rowing machine prise large", "note": "Haut du dos · coudes ouverts, poitrine sortie", "sets": 2, "reps": "10–12", "rir": "RIR 2 → 1", "rest": 120, "poly": true, "defaultKg": 45 },
+        { "m": "Épaule post.", "n": "Reverse pec deck", "note": "Mouvement contrôlé sans élan", "sets": 3, "reps": "12–15", "rir": "RIR 1 → 0", "rest": 90, "defaultKg": 25 },
+        { "m": "Biceps", "n": "Curl Bayesian poulie", "note": "Coude en arrière du buste (étirement max)", "sets": 3, "reps": "10–12", "rir": "RIR 1 → 0", "rest": 90, "defaultKg": 12.5 },
+        { "m": "Biceps", "n": "Curl Hammer poulie (corde)", "note": "Brachial / biceps · prise neutre, zéro balancement", "sets": 2, "reps": "12–15", "rir": "RIR 1 → 0", "rest": 90, "defaultKg": 15 },
+        { "altKey": "avantBras" }
+      ]
+    },
+    "Legs": {
+      "day": "J5",
+      "short": "Legs",
+      "title": "🟠 Legs",
+      "sub": "16 séries · ~50 min",
+      "ex": [
+        { "m": "Quads", "n": "Presse à cuisses", "note": "Pieds à plat, genoux dans l’axe, fesses collées", "sets": 3, "reps": "8–12", "rir": "RIR 2 → 2", "rest": 150, "poly": true, "defaultKg": 140, "stepKg": 5 },
+        { "m": "Ischios", "n": "RDL haltères", "note": "Sangles OK · dos plat, hanches en arrière", "sets": 3, "reps": "8–12", "rir": "RIR 2 → 2", "rest": 150, "poly": true, "defaultKg": 30, "stepKg": 5 },
+        { "m": "Quads", "n": "Leg extension", "note": "Pause 1 s en haut · mouvement contrôlé", "sets": 3, "reps": "12–15", "rir": "RIR 1 → 0", "rest": 90, "defaultKg": 60 },
+        { "m": "Ischios", "n": "Leg curl assis", "note": "Pause 1 s en étirement", "sets": 2, "reps": "12–15", "rir": "RIR 1 → 0", "rest": 90, "defaultKg": 55 },
+        { "m": "Mollets", "n": "Mollets jambes tendues", "note": "Pause 2 s en bas · dernière série + 3–5 partielles en position étirée", "sets": 3, "reps": "10–15", "rir": "RIR 1 → 0 + Partielles", "rest": 90, "tech": "lp", "defaultKg": 10 },
+        { "m": "Mollets", "n": "Mollets assis machine", "note": "Genoux fléchis · pause 2 s en bas", "sets": 2, "reps": "12–15", "rir": "RIR 1 → 0", "rest": 90, "defaultKg": 40 },
+        { "altKey": "avantBras" }
+      ]
+    }
+  },
+  "recovery": [
+    [
+      { "n": "Étirement psoas", "d": "2 × 45 s/côté" },
+      { "n": "Bird dog", "d": "3 × 15–20" },
+      { "n": "Planche", "d": "3 × 45–60 s" }
+    ],
+    [
+      { "n": "Étirement psoas", "d": "2 × 45 s/côté" },
+      { "n": "Bird dog", "d": "3 × 15–20" },
+      { "n": "Crunch", "d": "3 × 15–20" }
+    ]
+  ],
+  "rules": {
+    "progression": "Double progression : monter de +2,5 à +5 % quand toutes les séries valident le haut de la fourchette au bon RIR.",
+    "dropset": "Dernière série uniquement : à l'échec (RIR 0), 2 paliers dégressifs (−25/30 % sans repos).",
+    "stretchedPartials": "Dernière série uniquement : pause 2 s en bas puis 3–5 demi-reps en position étirée.",
+    "deload": "6 jours : 2 séries par exercice à RIR 4 (poly) / RIR 3 (iso), sans techniques d'intensification."
+  }
+}
