@@ -1884,9 +1884,9 @@
       .join('\n');
   }
 
-  // Coach IA direct (Google Gemini — clé stockée uniquement dans localStorage hors sauvegardes)
+  // Coach IA direct (Google Gemini 4 Hydrogen uniquement — clé stockée uniquement dans localStorage hors sauvegardes)
   const GEMINI_KEY_STORE = 'mon-plan-sante-gemini-key';
-  const GEMINI_MODELS = ['gemini-4-hydrogen', 'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash-lite'];
+  const GEMINI_MODEL = 'gemini-4-hydrogen';
   const GEMINI_SYSTEM_PROMPT = [
     'Tu es un expert nutritionniste du sport et un expert coach en hypertrophie musculaire, strictement fondé sur les preuves scientifiques (evidence-based).',
     'Base exclusivement ton analyse et tes recommandations sur les méta-analyses, essais contrôlés randomisés et consensus scientifiques reconnus (ISSN, ACSM, recherche récente en hypertrophie : bilan énergétique, tendance de poids lissée, maintien de la masse maigre en déficit, tension mécanique proche de l’échec 0–2 RIR, volume hebdomadaire récupérable, amplitude complète et étirement musculaire, gestion de la fatigue systémique, sommeil ≥ 7 h, NEAT / pas quotidiens et cardio Zone 2 sans interférence).',
@@ -2016,8 +2016,8 @@
 
     if ($('aiKeyTitle')) {
       $('aiKeyTitle').textContent = hasKey
-        ? 'Coach IA (Gemini · connecté ✓)'
-        : 'Coach IA (Gemini · ajouter ma clé)';
+        ? 'Coach IA (Gemini 4 · connecté ✓)'
+        : 'Coach IA (Gemini 4 · ajouter ma clé)';
     }
     if ($('geminiKeyInput') && document.activeElement !== $('geminiKeyInput')) {
       $('geminiKeyInput').value = key;
@@ -2044,7 +2044,7 @@
     const btn = $('askAiBtn');
     if (btn) {
       btn.disabled = aiBusy;
-      btn.textContent = aiBusy ? 'Génération…' : hasKey ? 'Générer mon bilan' : 'Configurer Gemini';
+      btn.textContent = aiBusy ? 'Génération…' : hasKey ? 'Générer mon bilan' : 'Configurer Gemini 4';
     }
 
     if ($('aiStatus')) {
@@ -2066,7 +2066,7 @@
           .replace(/^gemini-/i, 'Gemini ')
           .replace(/-/g, ' ')
           .replace(/\b[a-z]/g, (c) => c.toUpperCase())
-      : 'Coach Gemini';
+      : 'Gemini 4 Hydrogen';
     $('aiReplyMeta').textContent = `${modelLab} · ${shortDate(rep.date || today)}`;
     $('aiReplyBody').innerHTML = formatAiHtml(rep.text);
 
@@ -2147,15 +2147,28 @@
     const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     const timerId = ctrl ? setTimeout(() => ctrl.abort(), 15000) : null;
     try {
-      const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
-        headers: { 'x-goog-api-key': raw },
-        signal: ctrl ? ctrl.signal : undefined
-      });
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}`,
+        {
+          headers: { 'x-goog-api-key': raw },
+          signal: ctrl ? ctrl.signal : undefined
+        }
+      );
       if (res.ok) {
-        aiKeyMsg = 'Clé valide et connectée ✓ — clique sur « Générer mon bilan IA ».';
+        aiKeyMsg = 'Clé valide et connectée à Gemini 4 Hydrogen ✓ — clique sur « Générer mon bilan IA ».';
         aiKeyTone = 'ok';
       } else if (res.status === 400 || res.status === 401 || res.status === 403) {
-        aiKeyMsg = 'Clé refusée par Google — vérifie que tu as copié la clé entière (sans espace).';
+        let detail = '';
+        try {
+          const d = await res.json();
+          detail = (d && d.error && d.error.message) || '';
+        } catch (e) {}
+        aiKeyMsg = /location|region|country/i.test(detail)
+          ? 'Gemini 4 Hydrogen n’est pas disponible dans ta zone géographique.'
+          : 'Clé refusée par Google — vérifie que tu as copié la clé entière (sans espace).';
+        aiKeyTone = 'err';
+      } else if (res.status === 404) {
+        aiKeyMsg = 'Clé reconnue, mais Gemini 4 Hydrogen n’est pas disponible sur ce compte.';
         aiKeyTone = 'err';
       } else {
         aiKeyMsg = `Clé enregistrée, mais Google répond HTTP ${res.status}. Réessaie dans 1 minute.`;
@@ -2176,7 +2189,7 @@
 
   async function callGeminiModel(model, promptText, apiKey) {
     const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    const timerId = ctrl ? setTimeout(() => ctrl.abort(), 45000) : null;
+    const timerId = ctrl ? setTimeout(() => ctrl.abort(), 60000) : null;
     try {
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
@@ -2219,32 +2232,6 @@
     }
   }
 
-  async function discoverGeminiFlashModel(apiKey) {
-    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
-      headers: { 'x-goog-api-key': apiKey }
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const models = (data && data.models) || [];
-    const usable = models
-      .filter((m) => {
-        const n = String(m.name || '').replace(/^models\//, '');
-        const methods = m.supportedGenerationMethods || [];
-        return (
-          methods.includes('generateContent') &&
-          /gemini/i.test(n) &&
-          !/(tts|image|live|audio|embedding|vision|transcribe)/i.test(n)
-        );
-      })
-      .map((m) => String(m.name || '').replace(/^models\//, ''));
-    return (
-      usable.find((n) => /gemini-4.*hydrogen/i.test(n)) ||
-      usable.find((n) => /gemini-4/i.test(n)) ||
-      usable.find((n) => /flash/i.test(n)) ||
-      null
-    );
-  }
-
   async function askGeminiCoach() {
     if (aiBusy) return;
     let apiKey = getGeminiKey();
@@ -2262,7 +2249,7 @@
       return;
     }
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-      aiStatusMsg = 'Pas de connexion internet pour contacter Gemini.';
+      aiStatusMsg = 'Pas de connexion internet pour contacter Gemini 4 Hydrogen.';
       renderAiCoach();
       return;
     }
@@ -2296,37 +2283,11 @@
     ].join('\n');
 
     aiBusy = true;
-    aiStatusMsg = 'Analyse de tes données en cours…';
+    aiStatusMsg = 'Analyse avec Gemini 4 Hydrogen en cours…';
     renderAiCoach();
 
     try {
-      let result = null;
-      let lastErr = null;
-      let badKey = false;
-      for (const m of GEMINI_MODELS) {
-        try {
-          result = await callGeminiModel(m, promptText, apiKey);
-          break;
-        } catch (err) {
-          lastErr = err;
-          const isKeyErr =
-            err &&
-            (err.status === 401 ||
-              ((err.status === 400 || err.status === 403) && /api[_ ]?key/i.test(String(err.message || ''))));
-          if (isKeyErr) {
-            badKey = true;
-            break;
-          }
-          if (err && err.name === 'AbortError') break;
-        }
-      }
-      if (!result && !badKey && !(lastErr && lastErr.name === 'AbortError')) {
-        const discovered = await discoverGeminiFlashModel(apiKey);
-        if (discovered && !GEMINI_MODELS.includes(discovered)) {
-          result = await callGeminiModel(discovered, promptText, apiKey);
-        }
-      }
-      if (!result) throw lastErr || new Error('Échec Gemini');
+      const result = await callGeminiModel(GEMINI_MODEL, promptText, apiKey);
 
       const parsed = parseAiReply(result.text);
       st.lastAi = {
@@ -2345,14 +2306,19 @@
       aiStatusMsg = '';
       save();
     } catch (err) {
+      const detail = err && err.message ? String(err.message) : '';
       if (err && err.name === 'AbortError') {
-        aiStatusMsg = 'Délai dépassé, réessaie dans quelques secondes.';
-      } else if (err && (err.status === 400 || err.status === 401 || err.status === 403)) {
+        aiStatusMsg = 'Délai dépassé sur Gemini 4 Hydrogen, réessaie dans quelques secondes.';
+      } else if (err && (err.status === 401 || err.status === 403 || (err.status === 400 && /api[_ ]?key/i.test(detail)))) {
         aiStatusMsg = 'Clé API invalide ou accès refusé. Vérifie ta clé dans Réglages → Coach IA.';
+      } else if (err && err.status === 400 && /location|region|country/i.test(detail)) {
+        aiStatusMsg = 'Gemini 4 Hydrogen n’est pas disponible dans ta zone géographique.';
       } else if (err && err.status === 429) {
-        aiStatusMsg = 'Quota gratuit temporairement atteint, réessaie dans 1 minute.';
+        aiStatusMsg = 'Quota gratuit Gemini 4 Hydrogen temporairement atteint, réessaie dans 1 minute.';
+      } else if (err && err.status === 503) {
+        aiStatusMsg = 'Gemini 4 Hydrogen est temporairement surchargé, réessaie dans quelques secondes.';
       } else {
-        aiStatusMsg = 'Impossible de joindre Gemini pour le moment (vérifie ta connexion ou ta clé).';
+        aiStatusMsg = 'Impossible de joindre Gemini 4 Hydrogen pour le moment (vérifie ta connexion ou ta clé).';
       }
     } finally {
       aiBusy = false;
