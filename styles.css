@@ -2292,6 +2292,19 @@ button.cyc:active,
   font-weight: 600;
 }
 
+.ai-key-status {
+  margin: 0;
+  font-weight: 600;
+}
+
+.ai-key-status.is-ok {
+  color: var(--on);
+}
+
+.ai-key-status.is-err {
+  color: var(--day);
+}
+
 
 
 

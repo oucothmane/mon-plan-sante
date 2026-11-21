@@ -1886,7 +1886,7 @@
 
   // Coach IA direct (Google Gemini — clé stockée uniquement dans localStorage hors sauvegardes)
   const GEMINI_KEY_STORE = 'mon-plan-sante-gemini-key';
-  const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash'];
+  const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-2.5-flash'];
   const GEMINI_SYSTEM_PROMPT = [
     'Tu es un expert nutritionniste du sport et un expert coach en hypertrophie musculaire, strictement fondé sur les preuves scientifiques (evidence-based).',
     'Base exclusivement ton analyse et tes recommandations sur les méta-analyses, essais contrôlés randomisés et consensus scientifiques reconnus (ISSN, ACSM, recherche récente en hypertrophie : bilan énergétique, tendance de poids lissée, maintien de la masse maigre en déficit, tension mécanique proche de l’échec 0–2 RIR, volume hebdomadaire récupérable, amplitude complète et étirement musculaire, gestion de la fatigue systémique, sommeil ≥ 7 h, NEAT / pas quotidiens et cardio Zone 2 sans interférence).',
@@ -1895,6 +1895,9 @@
   ].join('\n');
   let aiBusy = false;
   let aiStatusMsg = '';
+  let aiKeyBusy = false;
+  let aiKeyMsg = '';
+  let aiKeyTone = '';
 
   function getGeminiKey() {
     try {
@@ -2020,11 +2023,28 @@
       $('geminiKeyInput').value = key;
     }
     if ($('clearGeminiKey')) $('clearGeminiKey').hidden = !hasKey;
+    if ($('saveGeminiKeyBtn')) {
+      $('saveGeminiKeyBtn').disabled = aiKeyBusy;
+      $('saveGeminiKeyBtn').textContent = aiKeyBusy ? 'Test en cours…' : 'Enregistrer & tester';
+    }
+    if ($('goAiCoachBtn')) {
+      $('goAiCoachBtn').hidden = !hasKey;
+      $('goAiCoachBtn').disabled = aiBusy;
+      $('goAiCoachBtn').textContent = aiBusy ? 'Génération en cours…' : 'Générer mon bilan IA';
+    }
+    if ($('aiKeyStatus')) {
+      const msg = aiKeyMsg || (hasKey ? 'Clé enregistrée sur ton téléphone ✓ — prête pour ton bilan.' : '');
+      const tone = aiKeyMsg ? aiKeyTone : hasKey ? 'ok' : '';
+      $('aiKeyStatus').hidden = !msg;
+      $('aiKeyStatus').textContent = msg;
+      $('aiKeyStatus').classList.toggle('is-ok', tone === 'ok');
+      $('aiKeyStatus').classList.toggle('is-err', tone === 'err');
+    }
 
     const btn = $('askAiBtn');
     if (btn) {
       btn.disabled = aiBusy;
-      btn.textContent = aiBusy ? 'Analyse…' : hasKey ? 'Demander à l’IA' : 'Configurer Gemini';
+      btn.textContent = aiBusy ? 'Génération…' : hasKey ? 'Générer mon bilan' : 'Configurer Gemini';
     }
 
     if ($('aiStatus')) {
@@ -2096,6 +2116,58 @@
     }
   }
 
+  async function testGeminiKey() {
+    if (aiKeyBusy) return;
+    const raw = $('geminiKeyInput') ? $('geminiKeyInput').value.trim() : getGeminiKey();
+    setGeminiKey(raw);
+    if (raw.length < 10) {
+      aiKeyMsg = 'Colle ta clé complète Google AI Studio (commence par AIza…).';
+      aiKeyTone = 'err';
+      renderAiCoach();
+      return;
+    }
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      aiKeyMsg = 'Clé enregistrée ✓ (connexion internet requise pour tester).';
+      aiKeyTone = 'ok';
+      renderAiCoach();
+      return;
+    }
+
+    aiKeyBusy = true;
+    aiKeyMsg = 'Vérification de ta clé auprès de Google…';
+    aiKeyTone = '';
+    renderAiCoach();
+
+    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timerId = ctrl ? setTimeout(() => ctrl.abort(), 15000) : null;
+    try {
+      const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
+        headers: { 'x-goog-api-key': raw },
+        signal: ctrl ? ctrl.signal : undefined
+      });
+      if (res.ok) {
+        aiKeyMsg = 'Clé valide et connectée ✓ — clique sur « Générer mon bilan IA ».';
+        aiKeyTone = 'ok';
+      } else if (res.status === 400 || res.status === 401 || res.status === 403) {
+        aiKeyMsg = 'Clé refusée par Google — vérifie que tu as copié la clé entière (sans espace).';
+        aiKeyTone = 'err';
+      } else {
+        aiKeyMsg = `Clé enregistrée, mais Google répond HTTP ${res.status}. Réessaie dans 1 minute.`;
+        aiKeyTone = 'err';
+      }
+    } catch (err) {
+      aiKeyMsg =
+        err && err.name === 'AbortError'
+          ? 'Délai dépassé lors du test, réessaie dans quelques secondes.'
+          : 'Clé enregistrée, mais impossible de joindre Google (vérifie ta connexion).';
+      aiKeyTone = 'err';
+    } finally {
+      if (timerId) clearTimeout(timerId);
+      aiKeyBusy = false;
+      renderAiCoach();
+    }
+  }
+
   async function callGeminiModel(model, promptText, apiKey) {
     const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     const timerId = ctrl ? setTimeout(() => ctrl.abort(), 25000) : null;
@@ -2110,8 +2182,7 @@
           },
           body: JSON.stringify({
             systemInstruction: { parts: [{ text: GEMINI_SYSTEM_PROMPT }] },
-            contents: [{ role: 'user', parts: [{ text: promptText }] }],
-            generationConfig: { temperature: 0.3 }
+            contents: [{ role: 'user', parts: [{ text: promptText }] }]
           }),
           signal: ctrl ? ctrl.signal : undefined
         }
@@ -2155,8 +2226,8 @@
       return (
         methods.includes('generateContent') &&
         /gemini/i.test(n) &&
-        /flash/i.test(n) &&
-        !/(tts|image|live|audio|embedding|vision)/i.test(n)
+        /(flash|hydrogen)/i.test(n) &&
+        !/(tts|image|live|audio|embedding|vision|transcribe)/i.test(n)
       );
     });
     return hit ? String(hit.name).replace(/^models\//, '') : null;
@@ -2164,7 +2235,11 @@
 
   async function askGeminiCoach() {
     if (aiBusy) return;
-    const apiKey = getGeminiKey();
+    let apiKey = getGeminiKey();
+    if (apiKey.length < 10 && $('geminiKeyInput') && $('geminiKeyInput').value.trim().length >= 10) {
+      apiKey = $('geminiKeyInput').value.trim();
+      setGeminiKey(apiKey);
+    }
     if (apiKey.length < 10) {
       st.tab = 'reglages';
       if ($('aiKeyFold')) $('aiKeyFold').open = true;
@@ -2209,26 +2284,35 @@
     ].join('\n');
 
     aiBusy = true;
-    aiStatusMsg = '';
+    aiStatusMsg = 'Analyse de tes données en cours…';
     renderAiCoach();
 
     try {
       let result = null;
       let lastErr = null;
-      let all404 = true;
+      let badKey = false;
       for (const m of GEMINI_MODELS) {
         try {
           result = await callGeminiModel(m, promptText, apiKey);
           break;
         } catch (err) {
           lastErr = err;
-          if (err.status !== 404) all404 = false;
-          if (err.status === 400 || err.status === 401 || err.status === 403 || err.name === 'AbortError') break;
+          const isKeyErr =
+            err &&
+            (err.status === 401 ||
+              ((err.status === 400 || err.status === 403) && /api[_ ]?key/i.test(String(err.message || ''))));
+          if (isKeyErr) {
+            badKey = true;
+            break;
+          }
+          if (err && err.name === 'AbortError') break;
         }
       }
-      if (!result && all404) {
+      if (!result && !badKey && !(lastErr && lastErr.name === 'AbortError')) {
         const discovered = await discoverGeminiFlashModel(apiKey);
-        if (discovered) result = await callGeminiModel(discovered, promptText, apiKey);
+        if (discovered && !GEMINI_MODELS.includes(discovered)) {
+          result = await callGeminiModel(discovered, promptText, apiKey);
+        }
       }
       if (!result) throw lastErr || new Error('Échec Gemini');
 
@@ -2477,9 +2561,22 @@
         rep.applied = true;
         syncTodayKcalLog();
       }
+    } else if (t.id === 'saveGeminiKeyBtn') {
+      testGeminiKey();
+      return;
+    } else if (t.id === 'goAiCoachBtn') {
+      if ($('geminiKeyInput') && $('geminiKeyInput').value.trim()) setGeminiKey($('geminiKeyInput').value.trim());
+      st.tab = 'suivi';
+      save();
+      render();
+      window.scrollTo(0, 0);
+      askGeminiCoach();
+      return;
     } else if (t.id === 'clearGeminiKey') {
       setGeminiKey('');
       aiStatusMsg = '';
+      aiKeyMsg = '';
+      aiKeyTone = '';
       if ($('geminiKeyInput')) $('geminiKeyInput').value = '';
       renderAiCoach();
       return;
@@ -2634,6 +2731,14 @@
 
   document.addEventListener('change', (e) => {
     if (!e.target) return;
+    if (e.target.id === 'geminiKeyInput') {
+      setGeminiKey(e.target.value);
+      aiKeyMsg = '';
+      aiKeyTone = '';
+      aiStatusMsg = '';
+      renderAiCoach();
+      return;
+    }
     if (e.target.id === 'dietAdhered' || e.target.id === 'sleepOk') {
       st.profile = Object.assign({}, PROFILE_DEFAULT, st.profile || {});
       st.profile[e.target.id] = !!e.target.checked;
@@ -2681,6 +2786,8 @@
     }
     if (el.id === 'geminiKeyInput') {
       setGeminiKey(el.value);
+      aiKeyMsg = '';
+      aiKeyTone = '';
       aiStatusMsg = '';
       renderAiCoach();
       return;
@@ -2851,6 +2958,15 @@
       if (e.key === 'Enter') {
         e.preventDefault();
         askGeminiCoach();
+      }
+    });
+  }
+
+  if ($('geminiKeyInput')) {
+    $('geminiKeyInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        testGeminiKey();
       }
     });
   }

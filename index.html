@@ -229,7 +229,7 @@
           </div>
           <div class="ai-ask-row">
             <input type="text" id="aiQuestion" autocomplete="off" placeholder="Question optionnelle (ex. faim le soir, fatigue…)">
-            <button type="button" class="apply-btn" id="askAiBtn">Demander à l’IA</button>
+            <button type="button" class="apply-btn" id="askAiBtn">Générer mon bilan</button>
           </div>
           <p class="hint" id="aiStatus" hidden></p>
           <div class="ai-reply" id="aiReply" hidden>
@@ -307,9 +307,14 @@
           <p class="hint">Clé stockée <strong>uniquement sur ton téléphone</strong> (jamais sur GitHub ni dans les sauvegardes). Crée une clé gratuite sur <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>.</p>
           <label class="prof-field">
             <small>Ma clé API Gemini</small>
-            <input type="password" id="geminiKeyInput" autocomplete="off" spellcheck="false" placeholder="Colle ta clé Google AI Studio…">
+            <input type="password" id="geminiKeyInput" autocomplete="off" spellcheck="false" placeholder="Colle ta clé AIza…">
           </label>
-          <button type="button" class="ghost-btn" id="clearGeminiKey" hidden>Supprimer la clé</button>
+          <div class="btn-row">
+            <button type="button" class="ghost-btn" id="saveGeminiKeyBtn">Enregistrer &amp; tester</button>
+            <button type="button" class="ghost-btn" id="clearGeminiKey" hidden>Supprimer</button>
+          </div>
+          <p class="hint ai-key-status" id="aiKeyStatus" hidden></p>
+          <button type="button" class="apply-btn" id="goAiCoachBtn" hidden>Générer mon bilan IA</button>
         </div>
       </details>
 
