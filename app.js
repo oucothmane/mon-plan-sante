@@ -1819,7 +1819,7 @@
       `# Bilan Mon Plan Santé — ${longDate(today)}`,
       '',
       '## Rôle & Règles strictes du Coach IA',
-      'Tu es mon coach nutrition et musculation fondé sur les preuves (précis, bienveillant, zéro jargon technique).',
+      'Agis en **expert nutritionniste du sport** et **expert coach en hypertrophie**, basé uniquement sur les **vraies études scientifiques** (méta-analyses, essais contrôlés, consensus ISSN/ACSM) — zéro bro-science, zéro tendances TikTok/internet ni modes alimentaires.',
       '- Mode de vie : travail de bureau assis toute la journée + musculation 1 jour sur 2 (Carb Cycling : Jour ON / Jour OFF).',
       `- Références choisies par moi : Cut par défaut **${clean(TARGETS.seche.on)} ON / ${clean(TARGETS.seche.off)} OFF** (moy. 2 200 kcal/j) · Maintien **${clean(TARGETS.maintien.on)} ON / ${clean(TARGETS.maintien.off)} OFF** (moy. 2 400 kcal/j).`,
       `- Plancher calorique strict en Cut : ne jamais descendre sous **${clean(p.kcalFloor || 2000)} kcal** en Jour OFF.`,
@@ -1887,6 +1887,12 @@
   // Coach IA direct (Google Gemini — clé stockée uniquement dans localStorage hors sauvegardes)
   const GEMINI_KEY_STORE = 'mon-plan-sante-gemini-key';
   const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash'];
+  const GEMINI_SYSTEM_PROMPT = [
+    'Tu es un expert nutritionniste du sport et un expert coach en hypertrophie musculaire, strictement fondé sur les preuves scientifiques (evidence-based).',
+    'Base exclusivement ton analyse et tes recommandations sur les méta-analyses, essais contrôlés randomisés et consensus scientifiques reconnus (ISSN, ACSM, recherche récente en hypertrophie : bilan énergétique, tendance de poids lissée, maintien de la masse maigre en déficit, tension mécanique proche de l’échec 0–2 RIR, volume hebdomadaire récupérable, amplitude complète et étirement musculaire, gestion de la fatigue systémique, sommeil ≥ 7 h, NEAT / pas quotidiens et cardio Zone 2 sans interférence).',
+    'Rejette catégoriquement la bro-science, les modes internet et les tendances TikTok/réseaux sociaux sans preuve (ex. « mode famine », fenêtre anabolique stricte, diabolisation des glucides le soir ou de l’insuline, détox, perte de gras localisée, « confusion musculaire », volume poubelle, compléments gadgets). Si l’utilisateur pose une question sur un mythe ou une tendance virale, rétablis les faits simplement.',
+    'Style : français clair, direct, concret et bienveillant, sans jargon académique inutile ni blabla. Donne des décisions chiffrées et applicables immédiatement sur ses vrais aliments, son cardio/pas et ses charges, en respectant scrupuleusement le template Markdown demandé et la ligne [[PLAN:...]].'
+  ].join('\n');
   let aiBusy = false;
   let aiStatusMsg = '';
 
@@ -2103,7 +2109,9 @@
             'x-goog-api-key': apiKey
           },
           body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: promptText }] }]
+            systemInstruction: { parts: [{ text: GEMINI_SYSTEM_PROMPT }] },
+            contents: [{ role: 'user', parts: [{ text: promptText }] }],
+            generationConfig: { temperature: 0.3 }
           }),
           signal: ctrl ? ctrl.signal : undefined
         }
