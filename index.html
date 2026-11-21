@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Mon Plan Santé — Repas, Séance, Courses et Poids.">
+  <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Plan Santé">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <title>Mon Plan Santé</title>
+  <script>try{var t=localStorage.getItem('mon-plan-sante-apparence');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=DM+Sans:opsz,wght@9..40,400..700&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app" id="app" data-day="on">
+  <!-- EN-TÊTE COMPACT & ÉPURÉ -->
+  <header class="top">
+    <div class="wrap">
+      <div class="top-bar">
+        <div>
+          <div class="date" id="date">Aujourd'hui</div>
+          <h1 id="screenTitle">Repas</h1>
+        </div>
+        <button type="button" class="phase-pill" id="phaseToggleBtn" title="Changer Cut / Maintien"></button>
+      </div>
+
+      <!-- Carte du cycle (visible uniquement sur Repas et Séance) -->
+      <section class="card today" id="cycBar" aria-label="Mon cycle">
+        <div class="today-top">
+          <div class="today-txt" id="cycleLine">
+            <span class="today-lab" id="todayLab"></span>
+            <strong class="today-name" id="todayName"></strong>
+          </div>
+          <span class="pill" id="todayPill"></span>
+        </div>
+        <div class="strip" id="strip" role="group" aria-label="Jours du cycle"></div>
+        <div class="today-acts" id="todayActs">
+          <button type="button" class="mini-act" id="shiftBtn">Décaler d’un jour</button>
+          <button type="button" class="mini-act" id="changeDayBtn">Changer le jour</button>
+        </div>
+        <button type="button" class="ghost-btn" id="backBtn" hidden></button>
+      </section>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- ==================================================================
+         ONGLET 1 : REPAS (Pesée rapide, Résumé macros & Les 3 repas)
+         ================================================================== -->
+    <section class="view" id="view-repas" aria-label="Repas du jour">
+      <section class="card panel" id="weighCard" aria-label="Pesée du matin" hidden>
+        <div class="field-inline">
+          <label for="wQuick">Poids ce matin (à jeun)</label>
+          <div class="amt-in">
+            <input id="wQuick" type="text" inputmode="decimal" autocomplete="off" placeholder="94,8">
+            <span>kg</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card summary" aria-label="Résumé du jour">
+        <div class="sum-top">
+          <div>
+            <span class="kcal" id="kcal">2 300</span>
+            <span class="kcal-unit" id="kcalTarget">/ 2 300 kcal</span>
+          </div>
+          <span class="eaten-pill" id="kcalDiff">Pile dans la cible ✓</span>
+        </div>
+        <div class="bar" aria-hidden="true">
+          <span id="barP" style="background:var(--mac-p)"></span>
+          <span id="barG" style="background:var(--mac-g)"></span>
+          <span id="barL" style="background:var(--mac-l)"></span>
+        </div>
+        <dl class="macros">
+          <div class="macro"><dt><span class="dot" style="background:var(--mac-p)"></span>Protéines</dt><dd id="mP">160 / 160 g</dd></div>
+          <div class="macro"><dt><span class="dot" style="background:var(--mac-g)"></span>Glucides</dt><dd id="mG">197 / 197 g</dd></div>
+          <div class="macro"><dt><span class="dot" style="background:var(--mac-l)"></span>Lipides</dt><dd id="mL">97 / 97 g</dd></div>
+          <div class="macro"><dt><span class="dot" style="background:var(--on)"></span>Fibres</dt><dd id="mFib">30 / 32 g</dd></div>
+        </dl>
+        <div class="progress">
+          <div class="progress-row">
+            <span id="doneCount">0 / 3 repas mangés</span>
+            <span id="eaten">0 / 2 300 kcal</span>
+          </div>
+          <div class="track"><span id="eatenBar"></span></div>
+        </div>
+        <div class="sum-actions" id="resetQtyRow" hidden>
+          <small class="hint">Grammes personnalisés</small>
+          <button type="button" class="link-btn" id="resetQty">Remettre les grammes auto</button>
+        </div>
+      </section>
+
+      <p class="hint tg-warn" id="floorNote" hidden></p>
+      <p class="hint cardio-note" id="cardioNote" hidden></p>
+      <div class="view" id="meals"></div>
+    </section>
+
+    <!-- ==================================================================
+         ONGLET 2 : SÉANCE (Exercices du jour, Récupération & Carnet de charges)
+         ================================================================== -->
+    <section class="view" id="view-seance" aria-label="Entraînement" hidden>
+      <!-- Jour ON : Séance -->
+      <div class="view" id="sessionBox">
+        <section class="card sess" aria-label="Avancement de la séance">
+          <div class="progress-row">
+            <span>Séries validées<span class="tag warn" id="deloadTag" hidden>Deload</span></span>
+            <b id="setCount">0 / 15</b>
+          </div>
+          <div class="track"><span id="setBar" class="on-bar"></span></div>
+        </section>
+
+        <div class="view" id="exList"></div>
+
+        <section class="card panel" aria-label="Mode deload">
+          <button type="button" class="switch-row" id="deloadBtn" role="switch" aria-checked="false">
+            <span>
+              <strong>Mode deload (8 jours)</strong>
+              <small id="deloadText">2 séries / exercice · RIR 4 poly / RIR 3 iso</small>
+            </span>
+            <span class="switch" aria-hidden="true"><i></i></span>
+          </button>
+        </section>
+      </div>
+
+      <!-- Jour OFF : Récupération active -->
+      <div class="view" id="recoveryBox" hidden>
+        <div class="card list-card" id="recList"></div>
+      </div>
+
+      <!-- Carnet de charges complet (replié) -->
+      <details class="card fold">
+        <summary>
+          <span>Mes charges (Pecs · Dos · Jambes · Épaules)</span>
+          <svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="fold-body" id="loadsSummary"></div>
+      </details>
+    </section>
+
+    <!-- ==================================================================
+         ONGLET 3 : COURSES (4 / 8 / 10 jours & Liste à cocher — cycle 4 ON / 4 OFF)
+         ================================================================== -->
+    <section class="view" id="view-courses" aria-label="Courses" hidden>
+      <div class="seg three" role="group" aria-label="Durée des courses">
+        <button type="button" data-shop="4" aria-pressed="false">4 jours</button>
+        <button type="button" data-shop="8" aria-pressed="true">8 jours (cycle)</button>
+        <button type="button" data-shop="10" aria-pressed="false">10 jours</button>
+      </div>
+
+      <section class="card cart-sum">
+        <div class="cart-top">
+          <span id="cartBasis">Dans le panier</span>
+          <span class="cart-count" id="cartCount">0 / 14</span>
+        </div>
+        <div class="track cart-track"><span id="cartBar"></span></div>
+        <div class="cart-foot" id="cartResetRow" hidden>
+          <span></span>
+          <button type="button" class="link-btn" id="resetCart">Tout décocher</button>
+        </div>
+      </section>
+
+      <div class="view" id="groups"></div>
+    </section>
+
+    <!-- ==================================================================
+         ONGLET 4 : POIDS (Semaine, Tour de taille, Tendance & Courbe)
+         ================================================================== -->
+    <section class="view" id="view-suivi" aria-label="Suivi du poids" hidden>
+      <section class="card panel" aria-label="Mon poids">
+        <div class="panel-head">
+          <div>
+            <h2>Cette semaine</h2>
+            <p class="hint" id="wInfo">Pèse-toi à jeun (lun, mer, ven)</p>
+          </div>
+          <button type="button" class="mini-act" id="stagnateBtn" aria-pressed="false">Je stagne</button>
+        </div>
+        <div class="wk" id="wWeek" role="group" aria-label="Pesées des 7 derniers jours"></div>
+        <p class="hint" id="wHint" hidden></p>
+
+        <div class="field-inline sep">
+          <label for="waistInput">
+            Tour de taille (1×/sem)
+            <small id="waistInfo" class="hint" style="display:block;font-weight:500">Garde-fou contre la fausse stagnation</small>
+          </label>
+          <div class="amt-in">
+            <input id="waistInput" type="text" inputmode="decimal" autocomplete="off" placeholder="95,0">
+            <span>cm</span>
+          </div>
+        </div>
+
+        <div class="result" id="result" hidden>
+          <div class="result-top">
+            <span class="delta" id="delta"></span>
+            <span class="badge" id="resDiag"></span>
+          </div>
+          <label class="adhere-row" id="adhereRow" hidden>
+            <input type="checkbox" id="dietAdhered" checked>
+            <span>Diète respectée à ≥ 90 %</span>
+          </label>
+          <label class="adhere-row" id="sleepRow" hidden>
+            <input type="checkbox" id="sleepOk" checked>
+            <span>Sommeil ≥ 7 h / nuit (testo &amp; cortisol)</span>
+          </label>
+          <p id="resAction"></p>
+          <div class="adj-btns" id="adjBtns" hidden></div>
+        </div>
+
+        <div class="adj-row sep" id="adjBox" hidden>
+          <span class="adj-txt">
+            <strong>Ajustement actif</strong>
+            <small id="adjText"></small>
+          </span>
+          <button type="button" class="link-btn" id="undoAdj">Réinitialiser</button>
+        </div>
+
+        <div class="ai-box sep">
+          <div class="adj-row ai-row">
+            <span class="adj-txt">
+              <strong>Coach IA (Gemini)</strong>
+              <small id="aiHint">Analyse tes chiffres et te dit quoi faire cette semaine.</small>
+            </span>
+            <div class="ai-acts">
+              <button type="button" class="mini-act" data-ai-export="md">.md</button>
+              <button type="button" class="mini-act" data-ai-export="copy">Copier</button>
+            </div>
+          </div>
+          <div class="ai-ask-row">
+            <input type="text" id="aiQuestion" autocomplete="off" placeholder="Question optionnelle (ex. faim le soir, fatigue…)">
+            <button type="button" class="apply-btn" id="askAiBtn">Demander à l’IA</button>
+          </div>
+          <p class="hint" id="aiStatus" hidden></p>
+          <div class="ai-reply" id="aiReply" hidden>
+            <div class="ai-reply-head">
+              <small id="aiReplyMeta"></small>
+              <button type="button" class="link-btn" id="clearAiReply">Effacer</button>
+            </div>
+            <div class="ai-reply-body" id="aiReplyBody"></div>
+            <button type="button" class="apply-btn" id="applyAiTargets" hidden></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card panel" aria-label="Ma courbe de poids">
+        <h2>Évolution</h2>
+        <div class="sub-body" id="wCurve"></div>
+      </section>
+    </section>
+
+    <!-- ==================================================================
+         ONGLET 5 : RÉGLAGES (Objectif, Profil, Apparence, Sauvegarde)
+         ================================================================== -->
+    <section class="view" id="view-reglages" aria-label="Réglages" hidden>
+      <!-- Mon objectif (rythme de perte -> suggestion de l'app -> ton choix final) -->
+      <section class="card panel" aria-label="Mon objectif">
+        <h2>Mon objectif</h2>
+        <div class="seg" role="group" aria-label="Phase du plan">
+          <button type="button" data-phase="seche" aria-pressed="true">Cut</button>
+          <button type="button" data-phase="maintien" aria-pressed="false">Maintien</button>
+        </div>
+        <div class="loss-box" id="lossBox">
+          <div class="loss-head">
+            <small>Perte visée par semaine</small>
+            <span class="loss-in-wrap">
+              <input type="text" inputmode="decimal" autocomplete="off" id="lossRateInput" value="0,8" aria-label="Perte visée en kg par semaine">
+              <i>kg/sem</i>
+            </span>
+          </div>
+          <div class="seg four" role="group" aria-label="Rythme de perte rapide">
+            <button type="button" data-loss="0.25" aria-pressed="false">0,25</button>
+            <button type="button" data-loss="0.5" aria-pressed="false">0,5</button>
+            <button type="button" data-loss="0.75" aria-pressed="false">0,75</button>
+            <button type="button" data-loss="1" aria-pressed="false">1 kg</button>
+          </div>
+        </div>
+        <div class="plan-box">
+          <p class="hint" id="planWeight"></p>
+          <p class="plan-kcal" id="planKcal"></p>
+          <p class="hint" id="planAdvice"></p>
+          <button type="button" class="link-btn" id="applyAdviceBtn" hidden style="align-self:flex-start;margin-top:4px">Appliquer cette suggestion</button>
+        </div>
+        <div class="prof-grid">
+          <label class="prof-field">
+            <small>Mon choix Jour ON (kcal)</small>
+            <input type="text" inputmode="numeric" autocomplete="off" id="myOnKcal" data-mykcal="on" value="2300">
+          </label>
+          <label class="prof-field">
+            <small>Mon choix Jour OFF (kcal)</small>
+            <input type="text" inputmode="numeric" autocomplete="off" id="myOffKcal" data-mykcal="off" value="2000">
+          </label>
+        </div>
+        <button type="button" class="ghost-btn" id="resetCardioBtn" hidden>Réinitialiser le cardio / les pas</button>
+      </section>
+
+      <!-- Coach IA (Gemini — clé stockée uniquement sur ton téléphone) -->
+      <details class="card fold" id="aiKeyFold">
+        <summary>
+          <span id="aiKeyTitle">Coach IA (Gemini · ajouter ma clé)</span>
+          <svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="fold-body">
+          <p class="hint">Clé stockée <strong>uniquement sur ton téléphone</strong> (jamais sur GitHub ni dans les sauvegardes). Crée une clé gratuite sur <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>.</p>
+          <label class="prof-field">
+            <small>Ma clé API Gemini</small>
+            <input type="password" id="geminiKeyInput" autocomplete="off" spellcheck="false" placeholder="Colle ta clé Google AI Studio…">
+          </label>
+          <button type="button" class="ghost-btn" id="clearGeminiKey" hidden>Supprimer la clé</button>
+        </div>
+      </details>
+
+      <!-- Apparence -->
+      <section class="card panel" aria-label="Apparence">
+        <h2>Apparence</h2>
+        <div class="seg three" role="group" aria-label="Thème">
+          <button type="button" data-look="auto">Auto</button>
+          <button type="button" data-look="light">Clair</button>
+          <button type="button" data-look="dark">Sombre</button>
+        </div>
+      </section>
+
+      <!-- Sauvegarde -->
+      <section class="card panel" aria-label="Sauvegarde">
+        <h2>Mes données</h2>
+        <p class="hint" id="bkHint"></p>
+        <div class="btn-row">
+          <button type="button" class="ghost-btn" id="exportBtn">Exporter</button>
+          <button type="button" class="ghost-btn" id="importBtn">Importer</button>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="ghost-btn" data-ai-export="md">Bilan IA (.md)</button>
+          <button type="button" class="ghost-btn" data-ai-export="copy">Copier prompt IA</button>
+        </div>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+      </section>
+
+      <!-- Mon profil (replié) -->
+      <details class="card fold">
+        <summary>
+          <span id="profFoldTitle">Mon profil</span>
+          <svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="fold-body">
+          <div class="prof-grid" id="profGrid"></div>
+          <button type="button" class="ghost-btn" id="resetPlan">Revenir au plan de départ</button>
+        </div>
+      </details>
+
+      <!-- Aliments (replié) -->
+      <details class="card fold">
+        <summary>
+          <span>Valeurs des aliments (pour 100 g)</span>
+          <svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="fold-body">
+          <div class="ref" id="foodRef"></div>
+          <button type="button" class="ghost-btn" id="resetFoods" hidden>Revenir aux valeurs par défaut</button>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <!-- MINUTEUR DE REPOS FLOTTANT -->
+  <div class="timer" id="timer" hidden>
+    <div class="wrap">
+      <div class="timer-box">
+        <div class="timer-row">
+          <div class="timer-txt"><span id="timerLabel" role="status">Repos</span><b id="timerTime">0:00</b></div>
+          <button type="button" class="timer-skip" id="timerSkip">Passer</button>
+        </div>
+        <div class="timer-track"><span id="timerBar"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRE DE NAVIGATION (5 ONGLETS) -->
+  <nav class="tabs" aria-label="Navigation">
+    <div class="wrap">
+      <button type="button" class="tab" data-tab="repas" aria-current="page">
+        <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/></svg></span>Repas
+      </button>
+      <button type="button" class="tab" data-tab="seance">
+        <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12"/></svg></span>Séance
+      </button>
+      <button type="button" class="tab" data-tab="courses">
+        <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2.5l2.2 11h10.6L20.5 8H7"/><circle cx="9.5" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/></svg></span>Courses
+      </button>
+      <button type="button" class="tab" data-tab="suivi">
+        <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M5 15l4.5-4.5 3.5 3 6-6.5"/></svg></span>Poids
+      </button>
+      <button type="button" class="tab" data-tab="reglages">
+        <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg></span>Réglages
+      </button>
+    </div>
+  </nav>
+</div>
+
+<script src="nutritionEngine.js"></script>
+<script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    var hadSW = !!navigator.serviceWorker.controller, reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!hadSW || reloaded) return;
+      reloaded = true;
+      location.reload();
+    });
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(function (reg) {
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') reg.update().catch(function () {});
+      });
+    }).catch(function () {});
+  });
+}
+</script>
+</body>
+</html>
