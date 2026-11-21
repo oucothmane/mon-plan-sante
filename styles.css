@@ -2200,22 +2200,58 @@ button.cyc:active,
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .ai-reply-head small {
   font-size: 11.5px;
   font-weight: 600;
   color: var(--muted);
+  margin-right: auto;
+}
+
+.ai-status-pill {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  background: var(--day-soft);
+  color: var(--day);
+}
+
+.ai-status-pill.is-ok {
+  background: color-mix(in srgb, var(--on) 15%, transparent);
+  color: var(--on);
+}
+
+.ai-status-pill.is-warn {
+  background: color-mix(in srgb, var(--day) 20%, transparent);
+  color: var(--day);
 }
 
 .ai-reply-body {
   font-size: 13.5px;
-  line-height: 1.48;
+  line-height: 1.5;
   color: var(--fg);
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
+}
+
+.ai-reply-body h4 {
+  margin: 4px 0 0;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+  font: 700 13px var(--font-display);
+  letter-spacing: 0.01em;
+  color: var(--day);
+}
+
+.ai-reply-body h4:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
 }
 
 .ai-reply-body p {
@@ -2228,6 +2264,27 @@ button.cyc:active,
   display: flex;
   flex-direction: column;
   gap: 3px;
+}
+
+.plan-advice-main {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.42;
+  color: var(--fg);
+}
+
+.eq-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+
+.eq-row .link-btn {
+  font-size: 12px;
 }
 
 .fold-body a {

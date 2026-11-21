@@ -252,5 +252,25 @@ const NE = require('./nutritionEngine.js');
   });
 }
 
+// Déficit/cardio basé sur ce que l'utilisateur mange réellement (2200 moy) + Maintien 2500/2300
+{
+  const p99 = { ...NE.DEFAULT_PROFILE, currentWeightKg: 99, phase: 'cut', weeklyLossTargetKg: 0.75, actualAvgIntakeKcal: 2200 };
+  const t = NE.calculateTargets(p99);
+  assert.strictEqual(t.effectiveIntakeKcal, 2200);
+  assert.strictEqual(t.foodDeficit, t.tdee - 2200);
+  assert.strictEqual(t.missingCardioKcal, Math.max(0, t.requiredDailyDeficit - (t.tdee - 2200)));
+
+  const maint82On = NE.buildMealPlan({ ...NE.DEFAULT_PROFILE, currentWeightKg: 82, phase: 'maintain' }, 'ON', { overrideKcal: 2500 });
+  const errM = Math.abs(maint82On.totals.kcal - 2500) / 2500;
+  assert(errM <= 0.03, `Maintien 2500 ON kcal error ${(errM * 100).toFixed(2)}% > 3% (got ${Math.round(maint82On.totals.kcal)})`);
+  console.log('Actual intake cardio + Maintien 2500 OK:', {
+    foodDeficit: t.foodDeficit,
+    missingCardioKcal: t.missingCardioKcal,
+    extraSteps: t.recommendedExtraSteps,
+    maint2500: Math.round(maint82On.totals.kcal)
+  });
+}
+
+
 
 

@@ -147,6 +147,11 @@
     let transitionSteps = 0;
     let transitionZone2 = 0;
 
+    const hasActualIntake =
+      p.actualAvgIntakeKcal != null &&
+      isFinite(Number(p.actualAvgIntakeKcal)) &&
+      Number(p.actualAvgIntakeKcal) >= 1500;
+
     if (p.phase === 'cut') {
       weeklyLossKg = cutLossTarget;
       requiredDailyDeficit = Math.round(weeklyLossKg * 1100); // 7 700 kcal / kg ÷ 7 j
@@ -154,8 +159,9 @@
       kcalOff = Math.max(floor, Math.round(rawAvgKcal - delta));
       kcalOn = kcalOff + 2 * delta;
       actualAvgKcal = Math.round((kcalOn + kcalOff) / 2);
-      foodDeficit = Math.max(0, tdee - actualAvgKcal);
-      missingCardioKcal = Math.max(0, requiredDailyDeficit - foodDeficit);
+      const intakeForDeficit = hasActualIntake ? Math.round(Number(p.actualAvgIntakeKcal)) : actualAvgKcal;
+      foodDeficit = Math.max(0, tdee - intakeForDeficit);
+      missingCardioKcal = Math.max(0, requiredDailyDeficit - (tdee - intakeForDeficit));
     } else if (p.phase === 'transition') {
       // Atterrissage progressif vers le maintien
       const cutOff = Math.max(floor, Math.round(tdee - cutLossTarget * 1100 - delta));
@@ -208,6 +214,7 @@
       kcalOff,
       kcalOn,
       actualAvgKcal,
+      effectiveIntakeKcal: hasActualIntake ? Math.round(Number(p.actualAvgIntakeKcal)) : actualAvgKcal,
       foodDeficit,
       missingCardioKcal,
       recommendedExtraSteps,
@@ -284,15 +291,17 @@
     if (walnutsG > 0) addMacro('walnuts', walnutsG);
     addMacro('avocado', avocadoG);
 
-    // Étape 2 : Glucides restants (plafonds stricts : riz/pâtes 120 g, patate douce 250 g)
+    // Étape 2 : Glucides restants (plafonds sèche 120 g / 250 g ; élargis en maintien > 2 350 kcal)
     const grainId = usePasta ? 'pasta' : 'rice';
     const grainCarbRate = (getFood(grainId, foodOverrides).g || 77) / 100;
+    const riceCap = dayKcal > 2350 ? 160 : 120;
+    const spCap = dayKcal > 2350 ? 350 : 250;
     const remG = Math.max(0, carbsG - usedG);
-    const riceG = Math.min(120, roundTo5((remG * 0.6) / grainCarbRate));
+    const riceG = Math.min(riceCap, roundTo5((remG * 0.6) / grainCarbRate));
     addMacro(grainId, riceG);
 
     const remG2 = Math.max(0, carbsG - usedG);
-    const sweetPotatoG = Math.min(250, roundTo5(remG2 / 0.2));
+    const sweetPotatoG = Math.min(spCap, roundTo5(remG2 / 0.2));
     addMacro('sweet_potato', sweetPotatoG);
 
     let raisinsG = 0;

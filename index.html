@@ -224,12 +224,8 @@
           <div class="adj-row ai-row">
             <span class="adj-txt">
               <strong>Coach IA (Gemini)</strong>
-              <small id="aiHint">Analyse tes chiffres et te dit quoi faire cette semaine.</small>
+              <small id="aiHint">Analyse ton poids, tes kcal et te dit quoi ajuster.</small>
             </span>
-            <div class="ai-acts">
-              <button type="button" class="mini-act" data-ai-export="md">.md</button>
-              <button type="button" class="mini-act" data-ai-export="copy">Copier</button>
-            </div>
           </div>
           <div class="ai-ask-row">
             <input type="text" id="aiQuestion" autocomplete="off" placeholder="Question optionnelle (ex. faim le soir, fatigue…)">
@@ -238,6 +234,7 @@
           <p class="hint" id="aiStatus" hidden></p>
           <div class="ai-reply" id="aiReply" hidden>
             <div class="ai-reply-head">
+              <span class="ai-status-pill" id="aiStatusPill" hidden></span>
               <small id="aiReplyMeta"></small>
               <button type="button" class="link-btn" id="clearAiReply">Effacer</button>
             </div>
@@ -257,12 +254,22 @@
          ONGLET 5 : RÉGLAGES (Objectif, Profil, Apparence, Sauvegarde)
          ================================================================== -->
     <section class="view" id="view-reglages" aria-label="Réglages" hidden>
-      <!-- Mon objectif (rythme de perte -> suggestion de l'app -> ton choix final) -->
+      <!-- Mon objectif (tes cibles ON/OFF + perte/semaine + cardio calculé sur tes kcal + petite suggestion équation) -->
       <section class="card panel" aria-label="Mon objectif">
         <h2>Mon objectif</h2>
         <div class="seg" role="group" aria-label="Phase du plan">
           <button type="button" data-phase="seche" aria-pressed="true">Cut</button>
           <button type="button" data-phase="maintien" aria-pressed="false">Maintien</button>
+        </div>
+        <div class="prof-grid">
+          <label class="prof-field">
+            <small>Mon choix Jour ON (kcal)</small>
+            <input type="text" inputmode="numeric" autocomplete="off" id="myOnKcal" data-mykcal="on" value="2300">
+          </label>
+          <label class="prof-field">
+            <small>Mon choix Jour OFF (kcal)</small>
+            <input type="text" inputmode="numeric" autocomplete="off" id="myOffKcal" data-mykcal="off" value="2100">
+          </label>
         </div>
         <div class="loss-box" id="lossBox">
           <div class="loss-head">
@@ -281,19 +288,11 @@
         </div>
         <div class="plan-box">
           <p class="hint" id="planWeight"></p>
-          <p class="plan-kcal" id="planKcal"></p>
-          <p class="hint" id="planAdvice"></p>
-          <button type="button" class="link-btn" id="applyAdviceBtn" hidden style="align-self:flex-start;margin-top:4px">Appliquer cette suggestion</button>
-        </div>
-        <div class="prof-grid">
-          <label class="prof-field">
-            <small>Mon choix Jour ON (kcal)</small>
-            <input type="text" inputmode="numeric" autocomplete="off" id="myOnKcal" data-mykcal="on" value="2300">
-          </label>
-          <label class="prof-field">
-            <small>Mon choix Jour OFF (kcal)</small>
-            <input type="text" inputmode="numeric" autocomplete="off" id="myOffKcal" data-mykcal="off" value="2000">
-          </label>
+          <p class="plan-advice-main" id="planAdvice"></p>
+          <div class="eq-row">
+            <small class="hint" id="planKcal"></small>
+            <button type="button" class="link-btn" id="applyAdviceBtn" hidden>Utiliser</button>
+          </div>
         </div>
         <button type="button" class="ghost-btn" id="resetCardioBtn" hidden>Réinitialiser le cardio / les pas</button>
       </section>
@@ -331,10 +330,6 @@
         <div class="btn-row">
           <button type="button" class="ghost-btn" id="exportBtn">Exporter</button>
           <button type="button" class="ghost-btn" id="importBtn">Importer</button>
-        </div>
-        <div class="btn-row">
-          <button type="button" class="ghost-btn" data-ai-export="md">Bilan IA (.md)</button>
-          <button type="button" class="ghost-btn" data-ai-export="copy">Copier prompt IA</button>
         </div>
         <input type="file" id="importFile" accept="application/json,.json" hidden>
       </section>

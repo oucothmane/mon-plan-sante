@@ -102,7 +102,7 @@
   const FOODS_DEFAULT = NE.FOOD_DB;
 
   const CAPS = { rice: 120, pasta: 120, sweet_potato: 250, raisins: 55, honey: 35 };
-  const TARGETS = { seche: { on: 2300, off: 2000 }, maintien: { on: 3010, off: 2710 }, diet_break: { on: 3010, off: 2710 } };
+  const TARGETS = { seche: { on: 2300, off: 2100 }, maintien: { on: 2500, off: 2300 } };
   const KCAL_MIN = 1500;
   const KCAL_MAX = 4500;
   const PROTS = [
@@ -537,17 +537,6 @@
 
   const enginePhase = (ph) => (ph === 'seche' ? 'cut' : 'maintain');
 
-  function engineProfile(phase) {
-    return Object.assign({}, profile(), {
-      currentWeightKg: currentWeight(),
-      phase: enginePhase(phase || st.phase)
-    });
-  }
-
-  function calcNutrition(phase) {
-    return NE.calculateTargets(engineProfile(phase));
-  }
-
   function customTarget(ph, d) {
     const v = Number(((st.targets || {})[ph] || {})[d]);
     return isFinite(v) && v >= KCAL_MIN && v <= KCAL_MAX ? Math.round(v) : null;
@@ -556,9 +545,21 @@
   const tgt = (ph, d) => {
     const c = customTarget(ph, d);
     if (c !== null) return c;
-    const t = calcNutrition(ph);
-    return d === 'on' ? t.kcalOn : t.kcalOff;
+    return (TARGETS[ph] || TARGETS.seche)[d];
   };
+
+  function engineProfile(phase) {
+    const ph = phase || st.phase;
+    return Object.assign({}, profile(), {
+      currentWeightKg: currentWeight(),
+      phase: enginePhase(ph),
+      actualAvgIntakeKcal: Math.round((tgt(ph, 'on') + tgt(ph, 'off')) / 2)
+    });
+  }
+
+  function calcNutrition(phase) {
+    return NE.calculateTargets(engineProfile(phase));
+  }
 
   function syncTodayKcalLog() {
     st.eatenLog = st.eatenLog || {};
@@ -668,7 +669,7 @@
   }
 
   function buildDay(phase, day) {
-    const overrideKcal = customTarget(phase, day);
+    const overrideKcal = tgt(phase, day);
     const plan = NE.buildMealPlan(engineProfile(phase), day, {
       foodOverrides: st.foods,
       swaps: st.swap,
@@ -905,7 +906,7 @@
       } else if (st.phase === 'seche' && P.N.missingCardioKcal > 0) {
         const lossTxt = String(Math.round(P.N.weeklyLossKg * 100) / 100).replace('.', ',');
         parts.push(
-          `Plancher 2 000 kcal actif : +${fmt(P.N.recommendedExtraSteps)} pas/j (ou ${P.N.recommendedZone2MinPerDay} min cardio léger) pour tenir −${lossTxt} kg/sem`
+          `À ${fmt(P.N.effectiveIntakeKcal)} kcal/j en moyenne : +${fmt(P.N.recommendedExtraSteps)} pas/j (ou ${P.N.recommendedZone2MinPerDay} min cardio léger/j) pour tenir −${lossTxt} kg/sem`
         );
       }
       if (p.extraDailySteps > 0) parts.push(`Palier actif : +${fmt(p.extraDailySteps)} pas/j`);
@@ -1345,11 +1346,11 @@
 
     if ($('aiHint')) {
       if (!ok || ev.status === 'wait') {
-        $('aiHint').textContent = 'Pas encore assez de recul auto : exporte le .md pour un avis IA.';
+        $('aiHint').textContent = 'Pas encore assez de recul auto : demande au Coach IA un bilan complet.';
       } else if (ev.status === 'stagnating' || ev.status === 'recomp' || ev.status === 'sleep' || ev.status === 'drift') {
-        $('aiHint').textContent = 'Cas délicat : envoie ce .md à l’IA pour un plan sur mesure.';
+        $('aiHint').textContent = 'Cas délicat : demande au Coach IA quoi ajuster (kcal et cardio).';
       } else {
-        $('aiHint').textContent = 'Exporte tes chiffres + un prompt prêt à m’envoyer.';
+        $('aiHint').textContent = 'Analyse ton poids, tes kcal et te dit quoi ajuster.';
       }
     }
   }
@@ -1586,25 +1587,26 @@
       });
     }
 
-    const myOn = customTarget(st.phase, 'on');
-    const myOff = customTarget(st.phase, 'off');
-    const effOn = myOn !== null ? myOn : N.kcalOn;
-    const effOff = myOff !== null ? myOff : N.kcalOff;
+    const effOn = tgt(st.phase, 'on');
+    const effOff = tgt(st.phase, 'off');
+    const defTgt = TARGETS[st.phase] || TARGETS.seche;
+    const avgChoice = Math.round((effOn + effOff) / 2);
 
     const onIn = $('myOnKcal');
     const offIn = $('myOffKcal');
     if (document.activeElement !== onIn) onIn.value = String(effOn);
     if (document.activeElement !== offIn) offIn.value = String(effOff);
-    onIn.classList.toggle('is-custom', myOn !== null && myOn !== N.kcalOn);
-    offIn.classList.toggle('is-custom', myOff !== null && myOff !== N.kcalOff);
+    onIn.classList.toggle('is-custom', effOn !== defTgt.on);
+    offIn.classList.toggle('is-custom', effOff !== defTgt.off);
     $('applyAdviceBtn').hidden = effOn === N.kcalOn && effOff === N.kcalOff;
 
     const ad = adaptiveInfo();
     $('profFoldTitle').textContent = `Mon profil (${fmt1(sw)} → ${fmt1(p.targetWeightKg)} kg · ${p.heightCm} cm · ${p.age} ans)`;
     $('planWeight').textContent =
-      (W.c ? `Moyenne semaine : ${fmt1(rw.weightKg)} kg` : `Poids actuel : ${fmt1(rw.weightKg)} kg`) +
-      (ad.ready ? ` · Maintien réel ~${fmt(ad.adaptiveTdee)} kcal/j` : ' · Bureau + muscu');
-    $('planKcal').textContent = `Suggestion : ${fmt(N.kcalOn)} kcal ON · ${fmt(N.kcalOff)} kcal OFF`;
+      (W.c ? `Moyenne ${fmt1(rw.weightKg)} kg` : `Poids ${fmt1(rw.weightKg)} kg`) +
+      ` · Tes repas : moy. ${fmt(avgChoice)} kcal/j` +
+      (ad.ready ? ` · Maintien réel ~${fmt(ad.adaptiveTdee)}` : '');
+    $('planKcal').textContent = `Équation : ${fmt(N.kcalOn)} ON · ${fmt(N.kcalOff)} OFF (moy. ${fmt(N.actualAvgKcal)})`;
 
     const ev = NE.evaluateStagnation(ep, W.r1, W.r0, !!p.stagnating, {
       waistDeltaCm: wa.delta,
@@ -1617,16 +1619,20 @@
       if (ev.status === 'stagnating' || ev.status === 'recomp' || ev.status === 'sleep' || ev.status === 'target_reached' || ev.status === 'fast') {
         advice = ev.message;
       } else if (N.missingCardioKcal > 0) {
-        advice = `Plancher 2 000 kcal actif : pour −${lossTxt} kg/sem, ajoute ~+${fmt(N.recommendedExtraSteps)} pas/j (ou ${N.recommendedZone2MinPerDay} min cardio léger/j).`;
+        if (avgChoice > N.tdee) {
+          advice = `À ${fmt(avgChoice)} kcal/j (au-dessus du maintien estimé ~${fmt(N.tdee)}), baisse tes repas ou ajoute ~+${fmt(N.recommendedExtraSteps)} pas/j pour viser −${lossTxt} kg/sem.`;
+        } else {
+          advice = `À ${fmt(avgChoice)} kcal/j (déficit repas −${fmt(N.foodDeficit)} kcal/j sur ~${fmt(N.tdee)}), ajoute ~+${fmt(N.recommendedExtraSteps)} pas/j (ou ${N.recommendedZone2MinPerDay} min cardio léger/j) pour tenir −${lossTxt} kg/sem.`;
+        }
         if (N.isAggressiveLoss) advice += ` Rythme élevé (max conseillé ~${fmt1(N.maxSafeLossKg)} kg/sem).`;
       } else {
-        advice = `Déficit −${fmt(N.requiredDailyDeficit)} kcal/j (−${lossTxt} kg/sem) · Prot ${N.proteinG} g · Lip ${N.fatG} g.`;
+        advice = `À ${fmt(avgChoice)} kcal/j (déficit repas −${fmt(N.foodDeficit)} kcal/j sur ~${fmt(N.tdee)}) : pas besoin de cardio extra pour −${lossTxt} kg/sem · Prot ${N.proteinG} g · Lip ${N.fatG} g.`;
         if (N.isAggressiveLoss) advice += ` Rythme élevé (max conseillé ~${fmt1(N.maxSafeLossKg)} kg/sem).`;
       }
     } else if (ev.status === 'drift') {
       advice = ev.message;
     } else {
-      advice = `Maintien bureau + muscu autour de ${fmt(ad.ready ? ad.adaptiveTdee : N.tdee)} kcal/j · Prot ${N.proteinG} g · Lip ${N.fatG} g.`;
+      advice = `Maintien actif à ${fmt(avgChoice)} kcal/j (estimation bureau + muscu ~${fmt(ad.ready ? ad.adaptiveTdee : N.tdee)} kcal/j) · Prot ${N.proteinG} g · Lip ${N.fatG} g.`;
     }
     $('planAdvice').textContent = advice;
     $('resetCardioBtn').hidden = !(p.extraDailySteps || p.extraWeeklyZone2Sessions);
@@ -1727,7 +1733,10 @@
     const N = NE.calculateTargets(ep);
     const effOn = tgt(st.phase, 'on');
     const effOff = tgt(st.phase, 'off');
-    const isCustomChoice = effOn !== N.kcalOn || effOff !== N.kcalOff;
+    const avgChoice = Math.round((effOn + effOff) / 2);
+    const onPlan = buildDay(st.phase, 'on');
+    const offPlan = buildDay(st.phase, 'off');
+    const planAvgKcal = Math.round((onPlan.tot.kcal + offPlan.tot.kcal) / 2);
     const ev = NE.evaluateStagnation(ep, W.r1, W.r0, !!p.stagnating, {
       waistDeltaCm: wa.delta,
       sleepUnder7h: p.sleepOk === false,
@@ -1744,6 +1753,14 @@
 
     const ad = adaptiveInfo();
     const t0 = dayNo(today);
+    const trendPts = NE.computeWeightTrend(
+      Object.keys(st.weights || {})
+        .filter((d) => isFinite(st.weights[d]) && dayNo(d) <= t0 && t0 - dayNo(d) <= 55)
+        .sort()
+        .map((d) => ({ d, n: dayNo(d), v: st.weights[d] }))
+    );
+    const latestTrendKg = trendPts.length >= 2 ? trendPts[trendPts.length - 1].trendKg : null;
+
     const logDates = Array.from(
       new Set([
         ...Object.keys(st.weights || {}),
@@ -1767,8 +1784,7 @@
           .join('\n')
       : '| — | Aucune pesée enregistrée | — | — | — |';
 
-    const formatDayPlan = (dayKey, label) => {
-      const P = buildDay(st.phase, dayKey);
+    const formatDayPlan = (P, label) => {
       const t = P.tot;
       const head = `### ${label} — ${clean(t.kcal)} / ${clean(P.target)} kcal (P ${Math.round(t.p)}/${P.N.proteinG} g · G ${Math.round(t.g)}/${P.targetCarbs} g · L ${Math.round(t.l)}/${P.N.fatG} g · Fibres ${Math.round(t.fib)}/${P.fiberTargetG} g)`;
       const mealsTxt = P.meals
@@ -1793,129 +1809,79 @@
         return `${k} : ${fmtKg(cur)} kg${deltaTxt}`;
       });
 
+    const ti = cycleIdx();
+    const cycTxt =
+      ti === null
+        ? 'Non configuré'
+        : `Jour ${ti + 1}/${CYCLE.length} (${CYCLE[ti] ? SESSIONS[CYCLE[ti]].title : 'Repos OFF'})`;
+
     return [
       `# Bilan Mon Plan Santé — ${longDate(today)}`,
       '',
-      '## Prompt pour mon coach IA',
-      'Analyse mes données ci-dessous et dis-moi concrètement quoi faire cette semaine.',
-      'Règles strictes à respecter :',
-      '- Mode de vie : travail de bureau assis toute la journée (sédentaire) + musculation 1 jour sur 2 (Carb Cycling : Jour ON / Jour OFF).',
-      `- Plancher calorique strict : ne jamais descendre sous **${clean(p.kcalFloor || 2000)} kcal** en Jour OFF.`,
+      '## Rôle & Règles strictes du Coach IA',
+      'Tu es mon coach nutrition et musculation fondé sur les preuves (précis, bienveillant, zéro jargon technique).',
+      '- Mode de vie : travail de bureau assis toute la journée + musculation 1 jour sur 2 (Carb Cycling : Jour ON / Jour OFF).',
+      `- Références choisies par moi : Cut par défaut **${clean(TARGETS.seche.on)} ON / ${clean(TARGETS.seche.off)} OFF** (moy. 2 200 kcal/j) · Maintien **${clean(TARGETS.maintien.on)} ON / ${clean(TARGETS.maintien.off)} OFF** (moy. 2 400 kcal/j).`,
+      `- Plancher calorique strict en Cut : ne jamais descendre sous **${clean(p.kcalFloor || 2000)} kcal** en Jour OFF.`,
       '- Protéines : **maximum 160 g/jour**.',
-      '- **Détection Transition** : compare mon poids de départ, mon poids actuel et mon poids final. Si je suis proche ou à mon poids final (≤ 1,5 kg restants), considère que je suis en **transition vers le Maintien** : dis-moi exactement quoi ajouter (ex. +X g de riz cru/j, réduire le cardio extra) pendant 1 à 2 semaines avant le Maintien complet.',
-      '- **Détection Stagnation** : si ma moyenne stagne (avec tour de taille stable et sommeil ≥ 7 h), dis-moi exactement s’il faut baisser les quantités (en grammes, uniquement si Jour OFF > 2 000 kcal) OU ajouter des pas / cardio Zone 2 (si je suis au plancher 2 000 kcal).',
-      '- Réponds de façon simple et directe, sans jargon technique, en me donnant :',
-      '  1. Ton avis sur ma moyenne de poids (rythme OK, zone de transition, vraie stagnation, rétention d’eau ou fatigue).',
-      '  2. Les valeurs exactes à mettre dans « Mon choix Jour ON » et « Mon choix Jour OFF ».',
-      '  3. Les ajustements précis sur mes repas (en grammes d’aliments) et/ou mon cardio/pas.',
-      '  4. Si je reste en Cut ou passe en Maintien, et si un deload est utile.',
+      '- **Cas 1 — Tout va bien (`STATUT=ok`)** : rythme conforme, pas assez de recul (< 2 sem.), ou tour de taille en baisse (fausse stagnation / eau) → garde les mêmes calories et le même cardio (`STEPS_DELTA=0;ZONE2_DELTA=0`), rassure et résume.',
+      '- **Cas 2 — Stagnation confirmée (`STATUT=stagnation`)** : ≥ 2 semaines sous la perte visée AVEC diète ≥ 90 %, sommeil ≥ 7 h et tour de taille stable → si Jour OFF > 2 000 kcal, tu peux baisser légèrement les glucides (sans jamais descendre sous 2 000 OFF) OU ajouter des pas ; si Jour OFF = 2 000 kcal, ne baisse plus les repas et ajoute `+2 500 pas/j` (max +5 000) ou `+1 séance Zone 2` (30–35 min jour OFF, max 3/sem).',
+      '- **Cas 3 — Zone de transition (`STATUT=transition`)** : en Cut à ≤ 1,5 kg du poids objectif final (ou atteint) → prépare la remontée progressive vers le Maintien (ajoute des glucides précis en grammes, réduis le cardio extra avec `STEPS_DELTA` / `ZONE2_DELTA` négatifs si actif).',
+      '- **Cas 4 — Fatigue / perte trop rapide / sommeil < 7 h (`STATUT=fatigue`)** : sommeil < 7 h, perte > 1 %/semaine, baisse de charges ou plancher + cardio max → remonte un peu les glucides, priorise 7–8 h de sommeil, propose un deload 8 j ou une pause Maintien.',
       '',
       '---',
       '',
-      '## 1. Profil & Progression',
-      `- **Date** : ${today}`,
+      '## 1. Profil, Poids & Progression',
+      `- **Date** : ${today} · **Cycle** : ${cycTxt}`,
       `- **Phase active** : ${phaseLab}`,
       `- **Poids de départ** : ${fmt1(sw)} kg`,
       `- **Poids actuel (moyenne 7 j)** : ${fmt1(rw.weightKg)} kg (${totalLost > 0 ? `−${fmt1(totalLost)} kg depuis le départ` : totalLost < 0 ? `+${fmt1(-totalLost)} kg depuis le départ` : 'stable depuis le départ'})`,
+      latestTrendKg != null ? `- **Tendance lissée (EWMA)** : ${fmt1(latestTrendKg)} kg` : null,
       `- **Poids objectif final** : ${fmt1(p.targetWeightKg)} kg (${remToGoal > 0 ? `reste ${fmt1(remToGoal)} kg` : 'objectif atteint !'})`,
-      inTransitionZone ? '- **Zone détectée** : **Transition proche/atteinte (≤ 1,5 kg du poids final)** — prépare la remontée progressive vers le Maintien.' : null,
+      inTransitionZone ? '- **Alerte transition** : ≤ 1,5 kg du poids final — évaluer la transition vers le Maintien.' : null,
       `- **Taille / Âge** : ${p.heightCm} cm · ${p.age} ans`,
-      st.phase === 'seche' ? `- **Perte visée** : −${lossTxt} kg/semaine (déficit visé : −${clean(N.requiredDailyDeficit)} kcal/j)` : null,
-      `- **Mon choix final actif** : **${clean(effOn)} kcal ON** · **${clean(effOff)} kcal OFF** (${isCustomChoice ? 'personnalisé' : 'identique à la suggestion'})`,
-      `- **Suggestion de l’app** : ${clean(N.kcalOn)} kcal ON · ${clean(N.kcalOff)} kcal OFF (Maintien théorique : ${clean(N.tdee)} kcal/j)`,
+      '',
+      '## 2. Calories réellement mangées, Équation & Cardio',
+      `- **Cibles actives choisies** : **${clean(effOn)} kcal ON** · **${clean(effOff)} kcal OFF** (**moy. ${clean(avgChoice)} kcal/j**)`,
+      Math.abs(planAvgKcal - avgChoice) >= 20
+        ? `- **Total réel dans mes assiettes (avec mes grammes perso)** : ${clean(onPlan.tot.kcal)} ON · ${clean(offPlan.tot.kcal)} OFF (moy. ${clean(planAvgKcal)} kcal/j)`
+        : null,
+      ad.avgIntakeKcal != null
+        ? `- **Moyenne réellement validée (3/3 repas cochés)** : **${clean(ad.avgIntakeKcal)} kcal/j** sur ${ad.loggedDays} jour${ad.loggedDays > 1 ? 's' : ''} complet${ad.loggedDays > 1 ? 's' : ''}`
+        : '- **Moyenne validée (3/3 repas)** : pas encore de journée complète cochée',
+      `- **Suggestion équation (référence)** : ${clean(N.kcalOn)} ON · ${clean(N.kcalOff)} OFF (moy. ${clean(N.actualAvgKcal)} · Maintien théorique ${clean(N.tdee)} kcal/j)`,
       ad.ready
-        ? `- **Maintien réel mesuré (adaptatif)** : **~${clean(ad.adaptiveTdee)} kcal/j** (basé sur ${ad.loggedDays} j complets à ~${clean(ad.avgIntakeKcal)} kcal/j)`
+        ? `- **Maintien réel mesuré (adaptatif)** : **~${clean(ad.adaptiveTdee)} kcal/j** (confiance : ${ad.confidence})`
         : null,
-      N.missingCardioKcal > 0
-        ? `- **Déficit cardio manquant (plancher 2 000 kcal)** : ${clean(N.missingCardioKcal)} kcal/j (~+${clean(N.recommendedExtraSteps)} pas/j ou ${N.recommendedZone2MinPerDay} min cardio léger/j)`
+      st.phase === 'seche'
+        ? `- **Perte visée & déficit réel sur ce que je mange** : −${lossTxt} kg/sem (besoin −${clean(N.requiredDailyDeficit)} kcal/j) · déficit apporté par mes repas à ${clean(N.effectiveIntakeKcal)} kcal/j : **−${clean(N.foodDeficit)} kcal/j** · cardio manquant estimé : **${clean(N.missingCardioKcal)} kcal/j** (~+${clean(N.recommendedExtraSteps)} pas/j ou ${N.recommendedZone2MinPerDay} min Zone 2/j)`
         : null,
-      `- **Cardio extra déjà actif** : +${clean(p.extraDailySteps || 0)} pas/j · +${p.extraWeeklyZone2Sessions || 0} séance(s) Zone 2/sem`,
-      `- **Diète respectée ≥ 90 %** : ${p.dietAdhered === false ? 'Non' : 'Oui'} · **Sommeil ≥ 7 h** : ${p.sleepOk === false ? 'Non' : 'Oui'} · **Stagnation signalée** : ${p.stagnating ? 'Oui' : 'Non'}`,
+      `- **Cardio extra déjà actif dans l’app** : +${clean(p.extraDailySteps || 0)} pas/j · +${p.extraWeeklyZone2Sessions || 0} séance(s) Zone 2/sem`,
+      `- **Garde-fous** : Diète ≥ 90 % : ${p.dietAdhered === false ? 'Non' : 'Oui'} · Sommeil ≥ 7 h : ${p.sleepOk === false ? 'Non' : 'Oui'} · « Je stagne » activé : ${p.stagnating ? 'Oui' : 'Non'}`,
       '',
-      '## 2. Moyennes de poids & Diagnostic auto',
-      `- **Moyenne cette semaine (J0 à J−6)** : ${W.c ? `${fmt1(W.c.avg)} kg (${W.c.n} pesée${W.c.n > 1 ? 's' : ''})` : 'Pas encore de pesée cette semaine'}`,
-      `- **Moyenne semaine −1 (J−7 à J−13)** : ${W.p1 ? `${fmt1(W.p1.avg)} kg (${W.p1.n} pesée${W.p1.n > 1 ? 's' : ''})` : 'Non renseignée'}`,
-      `- **Moyenne semaine −2 (J−14 à J−20)** : ${w2 ? `${fmt1(w2.avg)} kg (${w2.n} pesée${w2.n > 1 ? 's' : ''})` : 'Non renseignée'}`,
-      `- **Évolution hebdo** : ${W.r1 != null ? signKg(W.r1) + (W.est ? ' (estimée sur 7 j)' : '') : 'Insuffisant pour calculer'}${W.r0 != null ? ` · Semaine précédente : ${signKg(W.r0)}` : ''}`,
+      '## 3. Moyennes hebdo, Tour de taille & Historique 21 jours',
+      `- **Semaine actuelle (J0 à J−6)** : ${W.c ? `${fmt1(W.c.avg)} kg (${W.c.n} pesée${W.c.n > 1 ? 's' : ''})` : 'Aucune pesée'}`,
+      `- **Semaine −1 (J−7 à J−13)** : ${W.p1 ? `${fmt1(W.p1.avg)} kg (${W.p1.n} pesée${W.p1.n > 1 ? 's' : ''})` : 'Non renseignée'}`,
+      `- **Semaine −2 (J−14 à J−20)** : ${w2 ? `${fmt1(w2.avg)} kg (${w2.n} pesée${w2.n > 1 ? 's' : ''})` : 'Non renseignée'}`,
+      `- **Évolution hebdo** : ${W.r1 != null ? signKg(W.r1) + (W.est ? ' (estimée sur 7 j)' : '') : 'Insuffisant'}${W.r0 != null ? ` · Semaine précédente : ${signKg(W.r0)}` : ''}`,
       `- **Tour de taille** : ${wa.latest != null ? `${fmt1(wa.latest)} cm` + (wa.delta != null ? ` (${wa.delta > 0 ? '+' : wa.delta < 0 ? '−' : '±'}${fmt1(Math.abs(wa.delta))} cm depuis le ${shortDate(wa.prevD)})` : '') : 'Non mesuré'}`,
-      `- **Diagnostic de l’app** : **${ev.title}** — ${ev.message}`,
+      `- **Diagnostic auto de l’app** : **${ev.title}** — ${ev.message}`,
       '',
-      '### Pesées & calories des 21 derniers jours',
-      '| Date | Poids (kg) | Repas | Kcal | Tour de taille (cm) |',
+      '| Date | Poids (kg) | Repas | Kcal validées | Tour de taille (cm) |',
       '|---|---:|---:|---:|---:|',
       logRows,
       '',
-      '## 3. Mes repas actuels',
-      formatDayPlan('on', 'Jour ON'),
+      '## 4. Mes repas actuels',
+      formatDayPlan(onPlan, 'Jour ON'),
       '',
-      formatDayPlan('off', 'Jour OFF'),
+      formatDayPlan(offPlan, 'Jour OFF'),
       '',
-      '## 4. Entraînement',
+      '## 5. Entraînement & Charges',
       `- **Deload actif** : ${deloadOn() ? `Oui (jusqu’au ${shortDate(fromNo(dayNo(st.deloadUntil) - 1))})` : 'Non'}`,
       `- **Charges enregistrées** : ${loadEntries.length ? loadEntries.join(' · ') : 'Charges par défaut'}`
     ]
       .filter((line) => line !== null)
       .join('\n');
-  }
-
-  async function doExportAiMd() {
-    const md = buildAiReportMd();
-    const name = `bilan-plan-sante-${today}.md`;
-    for (const mime of ['text/markdown', 'text/plain']) {
-      try {
-        const file = new File([md], name, { type: mime });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: name });
-          return;
-        }
-      } catch (e) {
-        if (e && e.name === 'AbortError') return;
-      }
-    }
-    try {
-      const url = URL.createObjectURL(new Blob([md], { type: 'text/markdown;charset=utf-8' }));
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = name;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch (e) {
-      alert('Export Markdown impossible.');
-    }
-  }
-
-  async function doCopyAiMd(btn) {
-    const md = buildAiReportMd();
-    let ok = false;
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(md);
-        ok = true;
-      }
-    } catch (e) {}
-    if (!ok) {
-      try {
-        const ta = document.createElement('textarea');
-        ta.value = md;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        ok = document.execCommand('copy');
-        ta.remove();
-      } catch (e) {}
-    }
-    if (ok && btn) {
-      const orig = btn.textContent;
-      btn.textContent = 'Copié ✓';
-      setTimeout(() => {
-        if (btn.textContent === 'Copié ✓') btn.textContent = orig;
-      }, 2000);
-    } else if (!ok) {
-      doExportAiMd();
-    }
   }
 
   // Coach IA direct (Google Gemini — clé stockée uniquement dans localStorage hors sauvegardes)
@@ -1950,33 +1916,38 @@
   }
 
   function formatAiHtml(text) {
-    const lines = String(text || '').replace(/\r/g, '').split('\n');
+    const cleaned = String(text || '')
+      .trim()
+      .replace(/^```(?:md|markdown)?\s*\n?/i, '')
+      .replace(/\n?```\s*$/i, '')
+      .trim();
+    const lines = cleaned.replace(/\r/g, '').split('\n');
     const out = [];
     let inList = false;
     const inline = (s) => escHtml(s).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 
     lines.forEach((raw) => {
       const l = raw.trim();
-      if (!l) {
+      if (!l || /^---+$/.test(l)) {
         if (inList) {
           out.push('</ul>');
           inList = false;
         }
         return;
       }
-      if (/^[-•*]\s+/.test(l)) {
+      if (/^[-•*]\s+/.test(l) || /^\d+\.\s+/.test(l)) {
         if (!inList) {
           out.push('<ul>');
           inList = true;
         }
-        out.push(`<li>${inline(l.replace(/^[-•*]\s+/, ''))}</li>`);
+        out.push(`<li>${inline(l.replace(/^(?:[-•*]|\d+\.)\s+/, ''))}</li>`);
       } else {
         if (inList) {
           out.push('</ul>');
           inList = false;
         }
         if (/^#{1,4}\s+/.test(l)) {
-          out.push(`<p><strong>${inline(l.replace(/^#{1,4}\s+/, ''))}</strong></p>`);
+          out.push(`<h4>${inline(l.replace(/^#{1,4}\s+/, ''))}</h4>`);
         } else {
           out.push(`<p>${inline(l)}</p>`);
         }
@@ -1987,16 +1958,27 @@
   }
 
   function parseAiReply(rawText) {
-    const raw = String(rawText || '').trim();
+    const raw = String(rawText || '')
+      .trim()
+      .replace(/^```(?:md|markdown)?\s*\n?/i, '')
+      .replace(/\n?```\s*$/i, '')
+      .trim();
+    let statut = null;
     let on = null;
     let off = null;
     let phase = null;
-    const m = raw.match(/\[\[CIBLES:([^\]]+)\]\]/i);
+    let stepsDelta = 0;
+    let zone2Delta = 0;
+    const m = raw.match(/\[\[(?:PLAN|CIBLES):([^\]]+)\]\]/i);
     if (m) {
       const body = m[1];
+      const stM = body.match(/STATUT\s*=\s*(ok|stagnation|transition|fatigue)/i);
+      const phM = body.match(/PHASE\s*=\s*(seche|maintien)/i);
       const onM = body.match(/ON\s*=\s*(\d{4})/i);
       const offM = body.match(/OFF\s*=\s*(\d{4})/i);
-      const phM = body.match(/PHASE\s*=\s*(seche|maintien)/i);
+      const sdM = body.match(/STEPS_DELTA\s*=\s*([+-]?\d+)/i);
+      const z2M = body.match(/ZONE2_DELTA\s*=\s*([+-]?\d+)/i);
+      if (stM) statut = stM[1].toLowerCase();
       if (phM) phase = phM[1].toLowerCase();
       const targetPhase = phase || st.phase;
       const floor = targetPhase === 'seche' ? profile().kcalFloor || 2000 : KCAL_MIN;
@@ -2006,9 +1988,17 @@
         on = Math.round(onV);
         off = Math.round(offV);
       }
+      if (sdM) {
+        const sv = Number(sdM[1]);
+        if (isFinite(sv)) stepsDelta = Math.max(-5000, Math.min(5000, Math.round(sv / 500) * 500));
+      }
+      if (z2M) {
+        const zv = Number(z2M[1]);
+        if (isFinite(zv)) zone2Delta = Math.max(-3, Math.min(2, Math.round(zv)));
+      }
     }
-    const text = raw.replace(/\[\[CIBLES:[^\]]+\]\]/gi, '').trim();
-    return { text, on, off, phase };
+    const text = raw.replace(/\[\[(?:PLAN|CIBLES):[^\]]+\]\]/gi, '').trim();
+    return { text, statut, on, off, phase, stepsDelta, zone2Delta };
   }
 
   function renderAiCoach() {
@@ -2048,20 +2038,55 @@
     $('aiReplyMeta').textContent = `Coach Gemini · ${shortDate(rep.date || today)}`;
     $('aiReplyBody').innerHTML = formatAiHtml(rep.text);
 
+    const pill = $('aiStatusPill');
+    if (pill) {
+      const META = {
+        ok: ['Tout va bien ✓', 'is-ok'],
+        stagnation: ['Ajustement conseillé', 'is-warn'],
+        transition: ['Zone de transition', 'is-warn'],
+        fatigue: ['Attention fatigue', 'is-warn']
+      };
+      const m = rep.statut && META[rep.statut];
+      pill.hidden = !m;
+      pill.classList.remove('is-ok', 'is-warn');
+      if (m) {
+        pill.textContent = m[0];
+        pill.classList.add(m[1]);
+      }
+    }
+
     const applyBtn = $('applyAiTargets');
-    if (rep.on && rep.off) {
+    if (applyBtn) {
+      const p = profile();
       const targetPhase = rep.phase === 'seche' || rep.phase === 'maintien' ? rep.phase : st.phase;
-      const alreadyApplied =
-        st.phase === targetPhase && tgt(st.phase, 'on') === rep.on && tgt(st.phase, 'off') === rep.off;
-      applyBtn.hidden = false;
-      applyBtn.disabled = alreadyApplied;
-      const phTag =
-        targetPhase !== st.phase ? ` (${targetPhase === 'seche' ? 'Cut' : 'Maintien'})` : '';
-      applyBtn.textContent = alreadyApplied
-        ? 'Cibles appliquées ✓'
-        : `Appliquer${phTag} : ${fmt(rep.on)} ON · ${fmt(rep.off)} OFF`;
-    } else {
-      applyBtn.hidden = true;
+      const phaseChanged = targetPhase !== st.phase;
+      const kcalChanged = !!(rep.on && rep.off && (tgt(targetPhase, 'on') !== rep.on || tgt(targetPhase, 'off') !== rep.off));
+      const curSteps = p.extraDailySteps || 0;
+      const nextSteps = Math.max(0, curSteps + (rep.stepsDelta || 0));
+      const stepsDiff = nextSteps - curSteps;
+      const curZ2 = p.extraWeeklyZone2Sessions || 0;
+      const nextZ2 = Math.max(0, curZ2 + (rep.zone2Delta || 0));
+      const z2Diff = nextZ2 - curZ2;
+      const hasChanges = phaseChanged || kcalChanged || stepsDiff !== 0 || z2Diff !== 0;
+
+      if (rep.applied) {
+        applyBtn.hidden = false;
+        applyBtn.disabled = true;
+        applyBtn.textContent = 'Plan appliqué ✓';
+      } else if (hasChanges) {
+        const parts = [];
+        if (kcalChanged) parts.push(`${fmt(rep.on)}/${fmt(rep.off)} kcal`);
+        if (stepsDiff !== 0) parts.push(`${stepsDiff > 0 ? '+' : '−'}${fmt(Math.abs(stepsDiff))} pas/j`);
+        if (z2Diff !== 0) parts.push(`${z2Diff > 0 ? '+' : '−'}${Math.abs(z2Diff)} Zone 2/sem`);
+        const phTag = phaseChanged ? ` (${targetPhase === 'seche' ? 'Cut' : 'Maintien'})` : '';
+        applyBtn.hidden = false;
+        applyBtn.disabled = false;
+        applyBtn.textContent = parts.length
+          ? `Appliquer${phTag} : ${parts.join(' · ')}`
+          : `Passer en ${targetPhase === 'seche' ? 'Cut' : 'Maintien'}`;
+      } else {
+        applyBtn.hidden = true;
+      }
     }
   }
 
@@ -2152,10 +2177,27 @@
     const promptText = [
       buildAiReportMd(),
       q ? `\n## Question particulière de l'utilisateur\n${q}` : '',
-      '\n## Format de réponse attendu',
-      '- Réponds en français, concis (max ~15 lignes), structuré avec des puces simples et du **gras** sur les chiffres clés, zéro jargon technique.',
-      `- Ne descends JAMAIS sous ${floor} kcal en Jour OFF en phase Cut.`,
-      '- Termine impérativement par une dernière ligne exacte au format : [[CIBLES:ON=XXXX;OFF=YYYY;PHASE=seche]] (en remplaçant XXXX et YYYY par des entiers et PHASE uniquement par seche ou maintien).'
+      '\n## Template Markdown de retour OBLIGATOIRE',
+      'Réponds en français, sans texte d’introduction ni bloc de code ```, en remplissant EXACTEMENT ce template Markdown (concis, concret, zéro jargon technique) :',
+      '',
+      '### Résumé',
+      '1 à 2 phrases directes : verdict clair (tout va bien / stagnation confirmée / fausse stagnation / zone de transition / fatigue) basé sur mon poids, les calories réellement mangées et mon tour de taille.',
+      '',
+      '### Calories (ON / OFF)',
+      '- **Décision** : [Garder / Ajuster] à **XXXX kcal ON** / **YYYY kcal OFF** (moy. **ZZZZ kcal/j**)',
+      '- **Dans l’assiette** : [Aucun changement OU ajustement concret en grammes d’aliments de mes repas, ex. −30 g de riz cru le midi]',
+      '',
+      '### Cardio & Pas',
+      '- **Décision** : [Garder tel quel / Ajouter +2 500 pas/j / Ajouter +1 séance Zone 2 (30–35 min jour OFF) / Réduire de −2 500 pas/j]',
+      '- **Pourquoi** : explication courte liée à mon objectif de perte/semaine et à ce que je mange réellement',
+      '',
+      '### Entraînement & Récup',
+      '- 1 conseil bref et concret (continuer la progression, viser 7–8 h de sommeil ou activer le deload 8 j).',
+      '',
+      `Règle impérative : ne descends JAMAIS sous ${floor} kcal en Jour OFF en phase Cut.`,
+      'Termine IMPÉRATIVEMENT par cette dernière ligne exacte (remplace les valeurs sans texte après) :',
+      '[[PLAN:STATUT=ok;PHASE=seche;ON=2300;OFF=2100;STEPS_DELTA=0;ZONE2_DELTA=0]]',
+      '(STATUT = ok | stagnation | transition | fatigue ; PHASE = seche | maintien ; ON et OFF = entiers kcal ; STEPS_DELTA = changement en pas/j par tranches de 500, ex. 0, +2500 ou -2500 ; ZONE2_DELTA = changement en séances Zone 2/sem, ex. 0, +1 ou -1).'
     ].join('\n');
 
     aiBusy = true;
@@ -2187,9 +2229,13 @@
         date: today,
         model: result.model,
         text: parsed.text,
+        statut: parsed.statut,
         on: parsed.on,
         off: parsed.off,
-        phase: parsed.phase
+        phase: parsed.phase,
+        stepsDelta: parsed.stepsDelta,
+        zone2Delta: parsed.zone2Delta,
+        applied: false
       };
       if ($('aiQuestion')) $('aiQuestion').value = '';
       aiStatusMsg = '';
@@ -2394,12 +2440,6 @@
     } else if (t.id === 'importBtn') {
       $('importFile').click();
       return;
-    } else if (d.aiExport === 'md') {
-      doExportAiMd();
-      return;
-    } else if (d.aiExport === 'copy') {
-      doCopyAiMd(t);
-      return;
     } else if (t.id === 'askAiBtn') {
       askGeminiCoach();
       return;
@@ -2407,10 +2447,27 @@
       delete st.lastAi;
       aiStatusMsg = '';
     } else if (t.id === 'applyAiTargets') {
-      if (st.lastAi && st.lastAi.on && st.lastAi.off) {
-        if (st.lastAi.phase === 'seche' || st.lastAi.phase === 'maintien') st.phase = st.lastAi.phase;
-        st.targets = st.targets || {};
-        st.targets[st.phase] = { on: st.lastAi.on, off: st.lastAi.off };
+      const rep = st.lastAi;
+      if (rep && !rep.applied) {
+        if (rep.phase === 'seche' || rep.phase === 'maintien') st.phase = rep.phase;
+        st.profile = Object.assign({}, PROFILE_DEFAULT, st.profile || {});
+        const floor = st.phase === 'seche' ? st.profile.kcalFloor || 2000 : KCAL_MIN;
+        if (rep.on && rep.off && rep.on >= floor && rep.off >= floor && rep.on <= KCAL_MAX && rep.off <= KCAL_MAX) {
+          st.targets = st.targets || {};
+          st.targets[st.phase] = { on: rep.on, off: rep.off };
+        }
+        if (rep.stepsDelta) {
+          st.profile.extraDailySteps = Math.max(0, (st.profile.extraDailySteps || 0) + rep.stepsDelta);
+        }
+        if (rep.zone2Delta) {
+          st.profile.extraWeeklyZone2Sessions = Math.max(
+            0,
+            (st.profile.extraWeeklyZone2Sessions || 0) + rep.zone2Delta
+          );
+        }
+        st.profile.stagnating = false;
+        rep.applied = true;
+        syncTodayKcalLog();
       }
     } else if (t.id === 'clearGeminiKey') {
       setGeminiKey('');
@@ -2501,32 +2558,23 @@
       st.profile.weeklyLossTargetKg = Number(d.loss);
     } else if (d.stagAct) {
       st.profile = Object.assign({}, PROFILE_DEFAULT, st.profile || {});
-      const hasCustomTgt = customTarget(st.phase, 'on') !== null || customTarget(st.phase, 'off') !== null;
       if (d.stagAct === 'decrease_activity') {
-        if (hasCustomTgt) {
-          const curOff = tgt(st.phase, 'off');
-          const curOn = tgt(st.phase, 'on');
-          const floor = st.phase === 'seche' ? st.profile.kcalFloor || 2000 : KCAL_MIN;
-          const cut = st.phase === 'seche' ? Math.min(120, Math.max(0, curOff - floor)) : 100;
-          st.targets = st.targets || {};
-          st.targets[st.phase] = { on: Math.max(floor, curOn - cut), off: Math.max(floor, curOff - cut) };
-        } else {
-          st.profile.activityFactor = Math.max(1.25, Math.round((st.profile.activityFactor - 0.05) * 100) / 100);
-          buildProfile();
-        }
+        const curOff = tgt(st.phase, 'off');
+        const curOn = tgt(st.phase, 'on');
+        const floor = st.phase === 'seche' ? st.profile.kcalFloor || 2000 : KCAL_MIN;
+        const cut = st.phase === 'seche' ? Math.min(120, Math.max(0, curOff - floor)) : 100;
+        st.targets = st.targets || {};
+        st.targets[st.phase] = { on: Math.max(floor, curOn - cut), off: Math.max(floor, curOff - cut) };
         st.profile.stagnating = false;
+        syncTodayKcalLog();
       } else if (d.stagAct === 'increase_activity') {
-        if (hasCustomTgt) {
-          const curOff = tgt(st.phase, 'off');
-          const curOn = tgt(st.phase, 'on');
-          const add = st.phase === 'seche' ? 120 : 100;
-          st.targets = st.targets || {};
-          st.targets[st.phase] = { on: Math.min(KCAL_MAX, curOn + add), off: Math.min(KCAL_MAX, curOff + add) };
-        } else {
-          st.profile.activityFactor = Math.min(1.7, Math.round((st.profile.activityFactor + 0.05) * 100) / 100);
-          buildProfile();
-        }
+        const curOff = tgt(st.phase, 'off');
+        const curOn = tgt(st.phase, 'on');
+        const add = st.phase === 'seche' ? 120 : 100;
+        st.targets = st.targets || {};
+        st.targets[st.phase] = { on: Math.min(KCAL_MAX, curOn + add), off: Math.min(KCAL_MAX, curOff + add) };
         st.profile.stagnating = false;
+        syncTodayKcalLog();
       } else if (d.stagAct === 'add_steps') {
         st.profile.extraDailySteps = (st.profile.extraDailySteps || 0) + 2500;
         st.profile.stagnating = false;
@@ -2536,9 +2584,13 @@
       } else if (d.stagAct === 'diet_break' || d.stagAct === 'switch_maintain') {
         st.phase = 'maintien';
         st.profile.stagnating = false;
+        syncTodayKcalLog();
       }
     } else if (t.id === 'applyAdviceBtn') {
-      if (st.targets) delete st.targets[st.phase];
+      const N = calcNutrition(st.phase);
+      st.targets = st.targets || {};
+      st.targets[st.phase] = { on: N.kcalOn, off: N.kcalOff };
+      syncTodayKcalLog();
     } else if (t.id === 'resetCardioBtn') {
       st.profile = Object.assign({}, PROFILE_DEFAULT, st.profile || {});
       st.profile.extraDailySteps = 0;
