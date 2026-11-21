@@ -1886,7 +1886,7 @@
 
   // Coach IA direct (Google Gemini — clé stockée uniquement dans localStorage hors sauvegardes)
   const GEMINI_KEY_STORE = 'mon-plan-sante-gemini-key';
-  const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-2.5-flash'];
+  const GEMINI_MODELS = ['gemini-4-hydrogen', 'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash-lite'];
   const GEMINI_SYSTEM_PROMPT = [
     'Tu es un expert nutritionniste du sport et un expert coach en hypertrophie musculaire, strictement fondé sur les preuves scientifiques (evidence-based).',
     'Base exclusivement ton analyse et tes recommandations sur les méta-analyses, essais contrôlés randomisés et consensus scientifiques reconnus (ISSN, ACSM, recherche récente en hypertrophie : bilan énergétique, tendance de poids lissée, maintien de la masse maigre en déficit, tension mécanique proche de l’échec 0–2 RIR, volume hebdomadaire récupérable, amplitude complète et étirement musculaire, gestion de la fatigue systémique, sommeil ≥ 7 h, NEAT / pas quotidiens et cardio Zone 2 sans interférence).',
@@ -2061,7 +2061,13 @@
     }
 
     box.hidden = false;
-    $('aiReplyMeta').textContent = `Coach Gemini · ${shortDate(rep.date || today)}`;
+    const modelLab = rep.model
+      ? String(rep.model)
+          .replace(/^gemini-/i, 'Gemini ')
+          .replace(/-/g, ' ')
+          .replace(/\b[a-z]/g, (c) => c.toUpperCase())
+      : 'Coach Gemini';
+    $('aiReplyMeta').textContent = `${modelLab} · ${shortDate(rep.date || today)}`;
     $('aiReplyBody').innerHTML = formatAiHtml(rep.text);
 
     const pill = $('aiStatusPill');
@@ -2170,7 +2176,7 @@
 
   async function callGeminiModel(model, promptText, apiKey) {
     const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    const timerId = ctrl ? setTimeout(() => ctrl.abort(), 25000) : null;
+    const timerId = ctrl ? setTimeout(() => ctrl.abort(), 45000) : null;
     try {
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
@@ -2220,17 +2226,23 @@
     if (!res.ok) return null;
     const data = await res.json();
     const models = (data && data.models) || [];
-    const hit = models.find((m) => {
-      const n = String(m.name || '').replace(/^models\//, '');
-      const methods = m.supportedGenerationMethods || [];
-      return (
-        methods.includes('generateContent') &&
-        /gemini/i.test(n) &&
-        /(flash|hydrogen)/i.test(n) &&
-        !/(tts|image|live|audio|embedding|vision|transcribe)/i.test(n)
-      );
-    });
-    return hit ? String(hit.name).replace(/^models\//, '') : null;
+    const usable = models
+      .filter((m) => {
+        const n = String(m.name || '').replace(/^models\//, '');
+        const methods = m.supportedGenerationMethods || [];
+        return (
+          methods.includes('generateContent') &&
+          /gemini/i.test(n) &&
+          !/(tts|image|live|audio|embedding|vision|transcribe)/i.test(n)
+        );
+      })
+      .map((m) => String(m.name || '').replace(/^models\//, ''));
+    return (
+      usable.find((n) => /gemini-4.*hydrogen/i.test(n)) ||
+      usable.find((n) => /gemini-4/i.test(n)) ||
+      usable.find((n) => /flash/i.test(n)) ||
+      null
+    );
   }
 
   async function askGeminiCoach() {
