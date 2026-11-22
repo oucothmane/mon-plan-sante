@@ -47,7 +47,7 @@
         { "m": "Pecs", "n": "Développé incliné machine", "note": "Haut des pecs · coudes au niveau du buste en bas", "sets": 3, "reps": "8–12", "rir": "RIR 2 → 1", "rest": 120, "poly": true, "defaultKg": 40 },
         { "m": "Pecs", "n": "Développé machine convergente", "note": "Milieu des pecs · épaules basses", "sets": 3, "reps": "8–12", "rir": "RIR 2 → 1", "rest": 120, "poly": true, "defaultKg": 50 },
         { "m": "Pecs", "n": "Pec deck", "note": "Étirement contrôlé, sans aller trop loin derrière", "sets": 2, "reps": "12–15", "rir": "RIR 1 → 0", "rest": 90, "defaultKg": 45 },
-        { "m": "Épaule lat.", "n": "Élévations latérales poulie unilat.", "note": "Repos après les 2 côtés · dernière série dropset 2 paliers (−25/30 %)", "sets": 3, "reps": "12–15", "rir": "RIR 1 → 0 + Dropset", "rest": 90, "tech": "drop", "defaultKg": 5 },
+        { "m": "Épaule lat.", "n": "Élévations latérales machine", "note": "Dernière série dropset 2 paliers (−25/30 %)", "sets": 3, "reps": "12–15", "rir": "RIR 1 → 0 + Dropset", "rest": 90, "tech": "drop", "defaultKg": 20 },
         { "m": "Triceps", "n": "Extension triceps overhead poulie", "note": "Chef long étiré derrière la tête", "sets": 3, "reps": "12–15", "rir": "RIR 1 → 0", "rest": 90, "defaultKg": 25 },
         { "m": "Triceps", "n": "Extension triceps corde", "note": "Coudes fixes le long du buste", "sets": 2, "reps": "12–15", "rir": "RIR 1 → 0", "rest": 90, "defaultKg": 30 },
         { "altKey": "avantBras" }
