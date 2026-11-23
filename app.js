@@ -92,7 +92,6 @@
     cardio: 'Cardio',
     suivi: 'Poids',
     courses: 'Courses',
-    ia: 'Coach IA',
     profil: 'Profil',
     reglages: 'Réglages',
     donnees: 'Données'
@@ -255,7 +254,7 @@
   // ==========================================================================
 
   const KEY = 'mon-plan-repas-v1';
-  const TABS = ['repas', 'seance', 'cardio', 'suivi', 'courses', 'ia', 'profil', 'reglages', 'donnees'];
+  const TABS = ['repas', 'seance', 'cardio', 'suivi', 'courses', 'profil', 'reglages', 'donnees'];
 
   async function initApp() {
     await loadJsonConfigs();
@@ -314,7 +313,6 @@
     st.eatenLog = st.eatenLog || {};
     st.kcalLog = st.kcalLog || {};
     st.fatigueLog = st.fatigueLog || {};
-    st.aiHistory = Array.isArray(st.aiHistory) ? st.aiHistory : [];
     if (st.shopDays === 7 || st.shopDays === 3) st.shopDays = 8;
     st.profile = Object.assign({}, PROFILE_DEFAULT, st.profile || {});
     delete st.profile.stagnating;
@@ -1201,7 +1199,7 @@
     const estKcal = Math.round(todayMin * C.kcalPerMin);
     const avgMin = Math.round((C.on + C.off) / 2);
     const weeklyMin = Math.round(((C.on + C.off) / 2) * 7);
-    const srcLabel = C.source === 'ai' ? 'Coach IA' : C.source === 'custom' ? 'Perso' : 'Plan';
+    const srcLabel = C.source !== 'base' ? 'Perso' : 'Plan';
     const doneEntry = st.cardioLog && st.cardioLog[today];
     const isDone = !!(doneEntry && (doneEntry === true || doneEntry.done));
     const stat7 = cardioDoneLast7();
@@ -1238,11 +1236,7 @@
     if ($('cardioOffVal')) $('cardioOffVal').textContent = `${C.off} min`;
     if ($('cardioPlanSource')) {
       $('cardioPlanSource').textContent =
-        C.source === 'ai'
-          ? 'Suggéré par le Coach IA'
-          : C.source === 'custom'
-          ? 'Durées personnalisées'
-          : 'Plan par défaut';
+        C.source !== 'base' ? 'Durées personnalisées' : 'Plan par défaut';
     }
 
     const decOn = document.querySelector('[data-cstep="on|-5"]');
@@ -1258,10 +1252,7 @@
       const showReset = C.source !== 'base';
       $('cardioResetRow').hidden = !showReset;
       if (showReset && $('cardioSourceHint')) {
-        $('cardioSourceHint').textContent =
-          C.source === 'ai'
-            ? `Suggéré par le Coach IA (défaut : ${C.baseOn} ON / ${C.baseOff} OFF)`
-            : `Durées perso (défaut : ${C.baseOn} ON / ${C.baseOff} OFF)`;
+        $('cardioSourceHint').textContent = `Durées perso (défaut : ${C.baseOn} ON / ${C.baseOff} OFF)`;
       }
     }
   }
@@ -1469,15 +1460,176 @@
       }
     }
 
-    if ($('aiHint')) {
-      if (!ok || ev.status === 'wait') {
-        $('aiHint').textContent = 'Pas encore assez de recul auto : demande au Coach IA un bilan complet.';
-      } else if (ev.status === 'stagnating' || ev.status === 'recomp' || ev.status === 'sleep' || ev.status === 'drift') {
-        $('aiHint').textContent = 'Cas délicat : demande au Coach IA quoi ajuster (kcal et cardio).';
+    // Calculateur moyenne semaine + aperçu bilan Bevel (.md)
+    const nObj = waAvg.n;
+    const n1Obj = waAvg.n1;
+    const deltaW = waAvg.deltaKg != null ? waAvg.deltaKg : nObj && n1Obj ? Math.round((nObj.avg - n1Obj.avg) * 100) / 100 : null;
+    if ($('wkAvgN')) {
+      $('wkAvgN').textContent = nObj ? `${fmt1(nObj.avg)} kg` : '—';
+      $('wkAvgNSub').textContent = nObj ? `${nObj.n} pesée${nObj.n > 1 ? 's' : ''}` : '0 pesée';
+    }
+    if ($('wkAvgN1')) {
+      $('wkAvgN1').textContent = n1Obj ? `${fmt1(n1Obj.avg)} kg` : '—';
+      $('wkAvgN1Sub').textContent = n1Obj ? `${n1Obj.n} pesée${n1Obj.n > 1 ? 's' : ''}` : '0 pesée';
+    }
+    if ($('wkAvgDelta')) {
+      const dEl = $('wkAvgDelta');
+      dEl.classList.remove('is-ok', 'is-warn');
+      if (deltaW != null) {
+        const sign = deltaW > 0 ? '+' : deltaW < 0 ? '−' : '±';
+        dEl.textContent = `${sign}${fmt1(Math.abs(deltaW))} kg`;
+        if (st.phase === 'seche') {
+          if (deltaW <= -0.2 && deltaW >= -1.0) dEl.classList.add('is-ok');
+          else dEl.classList.add('is-warn');
+        } else if (Math.abs(deltaW) <= 0.3) {
+          dEl.classList.add('is-ok');
+        }
+        $('wkAvgDeltaSub').textContent = 'Sem. N vs N−1';
       } else {
-        $('aiHint').textContent = 'Analyse ton poids, tes kcal et te dit quoi ajuster.';
+        dEl.textContent = '—';
+        $('wkAvgDeltaSub').textContent = 'En attente N−1';
       }
     }
+    if ($('bevelPreview')) {
+      $('bevelPreview').textContent = buildBevelMd();
+    }
+  }
+
+  function buildBevelMd() {
+    const clean = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    const p = profile();
+    const waAvg = st.weeklyAvgs || syncWeeklyAvgs();
+    const wN = waAvg.n;
+    const wN1 = waAvg.n1;
+    const deltaW = waAvg.deltaKg != null ? waAvg.deltaKg : wN && wN1 ? Math.round((wN.avg - wN1.avg) * 100) / 100 : null;
+    const rw = rollingWeight();
+    const wa = waistInfo();
+    const ep = engineProfile(st.phase);
+    const N = NE.calculateTargets(ep);
+    const onPlan = buildDay(st.phase, 'on');
+    const offPlan = buildDay(st.phase, 'off');
+    const effOn = tgt(st.phase, 'on');
+    const effOff = tgt(st.phase, 'off');
+    const avgChoice = Math.round((effOn + effOff) / 2);
+    const C = cardioPlan(st.phase);
+    const s7 = cardioDoneLast7();
+    const ad = adaptiveInfo();
+    const phaseLab = st.phase === 'seche' ? 'Cut' : 'Maintien';
+    const lossTxt = String(Math.round(N.weeklyLossKg * 100) / 100).replace('.', ',');
+
+    const last7Lines = [6, 5, 4, 3, 2, 1, 0]
+      .map((k) => {
+        const d = fromNo(dayNo(today) - k);
+        const wt = st.weights[d];
+        const eatenN = st.eatenLog && st.eatenLog[d] != null ? `${st.eatenLog[d]}/3 repas` : null;
+        const kc = st.kcalLog && isFinite(st.kcalLog[d]) ? `${clean(st.kcalLog[d])} kcal` : null;
+        if (wt == null && !eatenN && !kc) return null;
+        const dt = dateOf(d);
+        const parts = [];
+        if (wt != null) parts.push(`**${fmt1(wt)} kg**`);
+        if (eatenN) parts.push(eatenN);
+        if (kc) parts.push(kc);
+        return `- ${DOW[dt.getDay()]} ${shortDate(d)} : ${parts.join(' · ')}`;
+      })
+      .filter(Boolean);
+
+    const loadLines = [];
+    Object.keys(SESSIONS).forEach((sKey) => {
+      const S = SESSIONS[sKey];
+      const items = [];
+      S.ex.forEach((raw) => {
+        if (!raw || raw.isAlt) return;
+        const kg = st.loads[raw.n];
+        if (kg == null) return;
+        const h = st.hist[raw.n] || [];
+        const last = h.length ? h[h.length - 1] : null;
+        const repsTxt = last && Array.isArray(last.reps) && last.reps.length ? ` (${last.reps.join('/')} reps)` : '';
+        items.push(`${raw.n} ${fmtKg(kg)} kg${repsTxt}`);
+      });
+      if (items.length) loadLines.push(`- **${S.short}** : ${items.join(' · ')}`);
+    });
+
+    return [
+      `# Bilan Semaine — Mon Plan Santé (${shortDate(today)})`,
+      '',
+      '## Profil & Phase',
+      `- **Phase** : ${phaseLab}${st.phase === 'seche' ? ` (cible −${lossTxt} kg/sem)` : ''}`,
+      `- **Objectif poids** : ${fmt1(p.targetWeightKg)} kg · **Profil** : ${p.heightCm} cm, ${p.age} ans`,
+      `- **Garde-fous** : Diète ≥ 90 % : ${p.dietAdhered === false ? 'Non' : 'Oui'} · Sommeil ≥ 7 h : ${p.sleepOk === false ? 'Non' : 'Oui'}`,
+      '',
+      '## Poids & Moyennes',
+      `- **Moyenne Semaine N (7 j)** : ${wN ? `**${fmt1(wN.avg)} kg** (${wN.n} pesée${wN.n > 1 ? 's' : ''})` : 'Aucune pesée'}`,
+      `- **Moyenne Semaine N−1** : ${wN1 ? `**${fmt1(wN1.avg)} kg** (${wN1.n} pesée${wN1.n > 1 ? 's' : ''})` : 'Non renseignée'}`,
+      `- **Écart Sem. N vs N−1** : ${deltaW != null ? `**${deltaW > 0 ? '+' : deltaW < 0 ? '−' : '±'}${fmt1(Math.abs(deltaW))} kg**` : 'Insuffisant'}`,
+      `- **Tour de taille** : ${wa.latest != null ? `${fmt1(wa.latest)} cm${wa.delta != null ? ` (${wa.delta > 0 ? '+' : wa.delta < 0 ? '−' : '±'}${fmt1(Math.abs(wa.delta))} cm)` : ''}` : 'Non mesuré'}`,
+      last7Lines.length ? '' : null,
+      last7Lines.length ? '### Détail des 7 derniers jours' : null,
+      last7Lines.length ? last7Lines.join('\n') : null,
+      '',
+      '## Nutrition & Cardio',
+      `- **Cibles kcal** : **${clean(effOn)} kcal Jour ON** · **${clean(effOff)} kcal Jour OFF** (moy. ${clean(avgChoice)} kcal/j)`,
+      `- **Macros ON** : P ${Math.round(onPlan.tot.p)} g · G ${Math.round(onPlan.tot.g)} g · L ${Math.round(onPlan.tot.l)} g · Fibres ${Math.round(onPlan.tot.fib)} g`,
+      `- **Macros OFF** : P ${Math.round(offPlan.tot.p)} g · G ${Math.round(offPlan.tot.g)} g · L ${Math.round(offPlan.tot.l)} g · Fibres ${Math.round(offPlan.tot.fib)} g`,
+      ad.avgIntakeKcal != null ? `- **Moyenne validée (3/3 repas)** : ${clean(ad.avgIntakeKcal)} kcal/j (${ad.loggedDays} j)` : null,
+      `- **Cardio prévu** : ${C.on} min Jour ON · ${C.off} min Jour OFF`,
+      `- **Cardio validé (7 j)** : ${s7.days} / 7 jours${s7.totalMin > 0 ? ` (${fmt(s7.totalMin)} min)` : ''}`,
+      loadLines.length ? '' : null,
+      loadLines.length ? `## Entraînement (PPL${deloadOn() ? ' · Deload actif' : ''})` : null,
+      loadLines.length ? loadLines.join('\n') : null,
+      '',
+      '> Analyse cette semaine (moyenne de poids, tendance, calories, cardio) et dis-moi si je garde le plan tel quel ou ce que je dois ajuster.'
+    ]
+      .filter((line) => line !== null)
+      .join('\n');
+  }
+
+  async function copyBevelMd() {
+    const md = buildBevelMd();
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(md);
+        showToast('Bilan copié pour Bevel ✓');
+        return;
+      }
+    } catch (e) {}
+    const ta = document.createElement('textarea');
+    ta.value = md;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      showToast('Bilan copié pour Bevel ✓');
+    } catch (e) {
+      alert('Copie impossible : sélectionne le texte dans l’aperçu.');
+    }
+    ta.remove();
+  }
+
+  async function downloadBevelMd() {
+    const md = buildBevelMd();
+    const filename = `bilan-bevel-${today}.md`;
+    try {
+      const file = new File([md], filename, { type: 'text/markdown;charset=utf-8' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: filename });
+        showToast('Bilan .md partagé ✓');
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+    }
+    const url = URL.createObjectURL(new Blob([md], { type: 'text/markdown;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('bilan-bevel.md téléchargé ✓');
   }
 
   function buildWeek() {
@@ -1854,7 +2006,7 @@
       else b.removeAttribute('aria-current');
     });
     if ($('menuBtn')) {
-      $('menuBtn').classList.toggle('is-active', !['repas', 'seance', 'ia'].includes(st.tab));
+      $('menuBtn').classList.toggle('is-active', !['repas', 'seance'].includes(st.tab));
       $('menuBtn').classList.toggle('has-dot', needsBackup());
     }
 
@@ -1871,13 +2023,10 @@
     } else if (st.tab === 'suivi') {
       renderSuivi();
       renderCurve();
-    } else if (st.tab === 'ia') {
-      renderAiCoach();
     } else if (st.tab === 'profil') {
       renderProfile();
     } else if (st.tab === 'reglages') {
       renderFoodRef();
-      renderAiCoach();
     } else if (st.tab === 'donnees') {
       renderBackup();
     }
@@ -1918,814 +2067,6 @@
       done();
     } catch (e) {
       alert('Export impossible.');
-    }
-  }
-
-  function buildAiReportMd() {
-    const clean = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-    const p = profile();
-    const rw = rollingWeight();
-    const waAvg = st.weeklyAvgs || syncWeeklyAvgs();
-    const wN = waAvg.n;
-    const wN1 = waAvg.n1;
-    const wDelta = waAvg.deltaKg != null ? waAvg.deltaKg : wN && wN1 ? Math.round((wN.avg - wN1.avg) * 100) / 100 : null;
-    const W = weekly();
-    const w2 = avgRange(14, 20);
-    const wa = waistInfo();
-    const ep = engineProfile(st.phase);
-    const N = NE.calculateTargets(ep);
-    const effOn = tgt(st.phase, 'on');
-    const effOff = tgt(st.phase, 'off');
-    const avgChoice = Math.round((effOn + effOff) / 2);
-    const onPlan = buildDay(st.phase, 'on');
-    const offPlan = buildDay(st.phase, 'off');
-    const planAvgKcal = Math.round((onPlan.tot.kcal + offPlan.tot.kcal) / 2);
-    const ev = NE.evaluateStagnation(ep, W.r1, W.r0, false, {
-      waistDeltaCm: wa.delta,
-      sleepUnder7h: p.sleepOk === false,
-      effectiveOffKcal: effOff
-    });
-
-    const phaseLab = st.phase === 'seche' ? 'Cut' : 'Maintien';
-    const sw = startWeight();
-    const hasW = hasLoggedWeight();
-    const totalLost = sw != null && hasW ? Math.round((sw - rw.weightKg) * 10) / 10 : null;
-    const remToGoal = hasW ? Math.round((rw.weightKg - p.targetWeightKg) * 10) / 10 : null;
-    const inTransitionZone = st.phase === 'seche' && remToGoal != null && remToGoal <= 1.5;
-    const lossTxt = String(Math.round(N.weeklyLossKg * 100) / 100).replace('.', ',');
-    const signKg = (v) => (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(v).toFixed(2).replace('.', ',') + ' kg/sem';
-
-    const ad = adaptiveInfo();
-    const C = cardioPlan(st.phase);
-    const t0 = dayNo(today);
-    const trendPts = NE.computeWeightTrend(
-      Object.keys(st.weights || {})
-        .filter((d) => isFinite(st.weights[d]) && dayNo(d) <= t0 && t0 - dayNo(d) <= 55)
-        .sort()
-        .map((d) => ({ d, n: dayNo(d), v: st.weights[d] }))
-    );
-    const latestTrendKg = trendPts.length >= 2 ? trendPts[trendPts.length - 1].trendKg : null;
-
-    const logDates = Array.from(
-      new Set([
-        ...Object.keys(st.weights || {}),
-        ...Object.keys(st.waist || {}),
-        ...Object.keys(st.kcalLog || {})
-      ])
-    )
-      .filter((d) => dayNo(d) <= t0 && t0 - dayNo(d) <= 20)
-      .sort()
-      .reverse();
-
-    const logRows = logDates.length
-      ? logDates
-          .map((d) => {
-            const wt = isFinite(st.weights[d]) ? fmt1(st.weights[d]) : '—';
-            const eatenN = st.eatenLog && st.eatenLog[d] != null ? `${st.eatenLog[d]}/3` : '—';
-            const kc = st.kcalLog && isFinite(st.kcalLog[d]) ? `${clean(st.kcalLog[d])}` : '—';
-            const ws = st.waist && isFinite(st.waist[d]) ? fmt1(st.waist[d]) : '—';
-            return `| ${d} | ${wt} | ${eatenN} | ${kc} | ${ws} |`;
-          })
-          .join('\n')
-      : '| — | Aucune pesée enregistrée | — | — | — |';
-
-    const formatDayPlan = (P, label) => {
-      const t = P.tot;
-      const head = `### ${label} — ${clean(t.kcal)} / ${clean(P.target)} kcal (P ${Math.round(t.p)}/${P.targetProt != null ? P.targetProt : P.N.proteinG} g · G ${Math.round(t.g)}/${P.targetCarbs} g · L ${Math.round(t.l)}/${P.targetFat != null ? P.targetFat : P.N.fatG} g · Fibres ${Math.round(t.fib)}/${P.fiberTargetG} g)`;
-      const mealsTxt = P.meals
-        .map((m) => {
-          const items = m.items
-            .filter((i) => i.g > 0)
-            .map((i) => `${food(i.f).n} ${i.g} g${i.custom ? ' (perso)' : ''}`)
-            .join(', ');
-          return `- **${m.name} (${clean(m.kcal)} kcal)** : ${items || '—'}`;
-        })
-        .join('\n');
-      return `${head}\n${mealsTxt}`;
-    };
-
-    const activeNames = activeExNames();
-    const loadEntries = Object.keys(st.loads || {})
-      .filter((k) => activeNames.has(k) && isFinite(num(st.loads[k])))
-      .map((k) => {
-        const cur = num(st.loads[k]);
-        const lt = lastTime(k);
-        const diff = lt ? Math.round((cur - lt.kg) * 100) / 100 : null;
-        const deltaTxt = diff ? ` (${diff > 0 ? '+' : '−'}${fmtKg(Math.abs(diff))} kg)` : '';
-        return `${k} : ${fmtKg(cur)} kg${deltaTxt}`;
-      });
-
-    const ti = cycleIdx();
-    const cycTxt =
-      ti === null
-        ? 'Non configuré'
-        : `Jour ${ti + 1}/${CYCLE.length} (${CYCLE[ti] ? SESSIONS[CYCLE[ti]].title : 'Repos OFF'})`;
-
-    const ruleProf = NE.RULE_CONFIG.profile;
-    const caps = NE.RULE_CONFIG.foodCaps || {};
-    const fibRule = NE.RULE_CONFIG.fiber || {};
-    const capsTxt = Object.keys(caps)
-      .map((id) => {
-        const f = food(id);
-        return f && f.n ? `${f.n} ≤ ${caps[id]} g` : `${id} ≤ ${caps[id]} g`;
-      })
-      .join(', ');
-    const swapsTxt = (PROTS || []).map((x) => x[1]).join(', ');
-    const cycleDays = CYCLE.length || 6;
-    const isOfficeOnly = Number(N.activityFactor) < 1.32;
-    const activityLab = isOfficeOnly
-      ? `Que bureau (sédentaire ×${String(ruleProf.activityOfficeFactor || 1.25).replace('.', ',')} — malade / sans entraînement)`
-      : `Bureau + muscu (×${String(NE.DEFAULT_PROFILE.activityFactor).replace('.', ',')} — musculation 1 jour sur 2)`;
-    const defCut = DEFAULT_TARGETS.seche;
-    const defMaint = DEFAULT_TARGETS.maintien;
-    const floorKcal = Math.max(KCAL_MIN, clean(p.kcalFloor || KCAL_MIN));
-    const cardioRuleTxt = isOfficeOnly
-      ? `- **Cardio (semaine sans salle / Que bureau)** : pas d’aller-retour salle cette semaine (\`CARDIO_ON=0\` ou marche douce). Propose un \`CARDIO_OFF\` adapté (multiples de 5 min) sans forcer le déficit sous ${floorKcal} kcal.`
-      : `- **Cardio (Jour ON fixe = ${C.baseOn} min / Jour OFF ajustable)** : en **Jour ON**, l’aller-retour à pied à la salle représente **${C.baseOn} min** (base fixe). En **Jour OFF**, le plan de base est **${CARDIO_TARGETS.seche.off} min** en Cut et **${CARDIO_TARGETS.maintien.off} min** en Maintien. Propose une durée exacte en **Jour OFF (\`CARDIO_OFF\`, multiples de 5 min)** adaptée à ma phase (${phaseLab}), Semaine N vs N−1 et mes calories (garde \`CARDIO_ON=${C.on}\`).`;
-
-    return [
-      `# Bilan Mon Plan Santé — ${longDate(today)}`,
-      '',
-      '## Rôle & Règles strictes du Coach IA',
-      'Agis en **expert nutritionniste du sport** et **expert coach en hypertrophie**, basé uniquement sur les **vraies études scientifiques** (méta-analyses, essais contrôlés, consensus ISSN/ACSM) — zéro bro-science, zéro tendances TikTok/internet ni modes alimentaires.',
-      `- Mode de vie actif : ${activityLab} (Carb Cycling : Jour ON / Jour OFF).`,
-      `- Plan de base (JSON) : Cut **${clean(defCut.on)} ON / ${clean(defCut.off)} OFF** · Maintien **${clean(defMaint.on)} ON / ${clean(defMaint.off)} OFF** (TDEE théorique BMR×facteur : **${clean(N.tdee)} kcal/j**).`,
-      `- Plancher calorique strict : ne jamais descendre sous **${floorKcal} kcal/j** (ni en Cut, ni en Maintien).`,
-      `- Macros actives : Jour ON **${onPlan.targetProt ?? N.proteinOnG} g P · ${onPlan.targetCarbs} g G · ${onPlan.targetFat ?? N.fatOnG} g L** | Jour OFF **${offPlan.targetProt ?? N.proteinOffG} g P · ${offPlan.targetCarbs} g G · ${offPlan.targetFat ?? N.fatOffG} g L** (base : ${ruleProf.proteinMaxG} g prot max, ${String(ruleProf.fatOnPerKg).replace('.', ',')} / ${String(ruleProf.fatOffPerKg).replace('.', ',')} g/kg poids cible lipides ON/OFF, reste en glucides).`,
-      `- Plafonds aliments / jour (JSON, sans riz) : ${capsTxt || '—'}.`,
-      `- Fibres & protéines interchangeables (JSON) : ${fibRule.per1000Kcal || 14} g fibres / 1 000 kcal (cible ${fibRule.minG || 25}–${fibRule.maxG || 45} g/j${fibRule.boostVeggiesG ? `, boost légumes ${fibRule.boostVeggiesG} g` : ''})${swapsTxt ? ` · Viandes/poissons midi/soir : ${swapsTxt}` : ''}.`,
-      cardioRuleTxt,
-      '- **Cas 1 — Tout va bien (`STATUT=ok`)** : rythme conforme, pas assez de recul (< 2 sem.), ou tour de taille en baisse (fausse stagnation / eau) → garde les mêmes calories et un `CARDIO_OFF` adapté à l’objectif, rassure et résume.',
-      `- **Cas 2 — Stagnation confirmée (\`STATUT=stagnation\`)** : ≥ 2 semaines sous la perte visée (comparaison Semaine N vs Semaine N−1) AVEC diète ≥ 90 %, sommeil ≥ 7 h et tour de taille stable → si Jour OFF > ${floorKcal} kcal : possibilité de diminuer les glucides (sans jamais passer sous ${floorKcal} kcal en Jour OFF) ou d’augmenter \`CARDIO_OFF\` ; si Jour OFF atteint le plancher ${floorKcal} kcal : ne plus baisser les glucides et augmenter \`CARDIO_OFF\`.`,
-      `- **Cas 3 — Zone de transition (\`STATUT=transition\`)** : en Cut à ≤ 1,5 kg du poids objectif final (ou atteint) → prépare la remontée progressive vers le Maintien (ajoute des glucides précis en grammes et réduis \`CARDIO_OFF\` progressivement vers 0${isOfficeOnly ? '' : ` en gardant les ${C.baseOn} min en Jour ON`}).`,
-      `- **Cas 4 — Fatigue / perte trop rapide / sommeil < 7 h (\`STATUT=fatigue\`)** : sommeil < 7 h, perte > 1 %/semaine, baisse de charges ou fatigue excessive → remonte un peu les glucides, baisse \`CARDIO_OFF\`, priorise 7–8 h de sommeil, propose un deload ${cycleDays} j ou une pause Maintien.`,
-      '',
-      '---',
-      '',
-      '## 1. Profil, Poids & Progression',
-      `- **Date** : ${today} · **Cycle** : ${cycTxt}`,
-      `- **Phase active** : ${phaseLab}${st.phase === 'seche' ? ` (cible −${lossTxt} kg/sem)` : ''}`,
-      `- **Poids de départ** : ${sw != null ? `${fmt1(sw)} kg` : 'Non renseigné'}`,
-      hasW
-        ? `- **Poids actuel (moyenne 7 j)** : ${fmt1(rw.weightKg)} kg (${totalLost != null ? (totalLost > 0 ? `−${fmt1(totalLost)} kg depuis le départ` : totalLost < 0 ? `+${fmt1(-totalLost)} kg depuis le départ` : 'stable depuis le départ') : 'suivi démarré'})`
-        : '- **Poids actuel** : Aucune pesée enregistrée',
-      latestTrendKg != null ? `- **Tendance lissée (EWMA)** : ${fmt1(latestTrendKg)} kg` : null,
-      `- **Poids objectif final** : ${fmt1(p.targetWeightKg)} kg (${remToGoal != null ? (remToGoal > 0 ? `reste ${fmt1(remToGoal)} kg` : 'objectif atteint !') : 'en attente de pesée'})`,
-      inTransitionZone ? '- **Alerte transition** : ≤ 1,5 kg du poids final — évaluer la transition vers le Maintien.' : null,
-      `- **Taille / Âge / Activité** : ${p.heightCm} cm · ${p.age} ans · ${activityLab}`,
-      '',
-      '## 2. Calories & Cardio (Jour ON / Jour OFF)',
-      `- **Cibles actives choisies** : **${clean(effOn)} kcal ON** · **${clean(effOff)} kcal OFF** (**moy. ${clean(avgChoice)} kcal/j**)`,
-      Math.abs(planAvgKcal - avgChoice) >= 20
-        ? `- **Total réel dans mes assiettes (avec mes grammes perso)** : ${clean(onPlan.tot.kcal)} ON · ${clean(offPlan.tot.kcal)} OFF (moy. ${clean(planAvgKcal)} kcal/j)`
-        : null,
-      ad.avgIntakeKcal != null
-        ? `- **Moyenne réellement validée (3/3 repas cochés)** : **${clean(ad.avgIntakeKcal)} kcal/j** sur ${ad.loggedDays} jour${ad.loggedDays > 1 ? 's' : ''} complet${ad.loggedDays > 1 ? 's' : ''}`
-        : '- **Moyenne validée (3/3 repas)** : pas encore de journée complète cochée',
-      `- **Repère TDEE théorique (BMR×facteur)** : **${clean(N.tdee)} kcal/j** (repère équation Cut/Maintien : ${clean(N.kcalOn)} ON · ${clean(N.kcalOff)} OFF)`,
-      ad.ready
-        ? `- **Maintien réel mesuré (adaptatif)** : **~${clean(ad.adaptiveTdee)} kcal/j** (confiance : ${ad.confidence})`
-        : null,
-      st.phase === 'seche'
-        ? `- **Perte visée & déficit réel sur ce que je mange** : **−${lossTxt} kg/sem** (besoin −${clean(N.requiredDailyDeficit)} kcal/j) · déficit repas à ${clean(N.effectiveIntakeKcal)} kcal/j : **−${clean(N.foodDeficit)} kcal/j** · cardio manquant estimé : **${clean(N.missingCardioKcal)} kcal/j** (~${fmt1(C.kcalPerMin)} kcal/min en Zone 2)`
-        : null,
-      `- **Durées cardio réglées actuellement** : **${C.on} min Jour ON** (aller-retour salle) · **${C.off} min Jour OFF** (marche / Zone 2) — source : ${C.source === 'ai' ? 'Coach IA' : C.source === 'custom' ? 'Perso' : 'Plan par défaut'}`,
-      `- **Plan cardio de référence** : **${C.baseOn} min Jour ON** · **${C.baseOff} min Jour OFF** (moy. ${Math.round((C.baseOn + C.baseOff) / 2)} min/j)`,
-      `- **Estimation équation cardio pour tenir −${lossTxt} kg/sem** : **${C.autoOn} min Jour ON** · **${C.autoOff} min Jour OFF**`,
-      (() => {
-        const s7 = cardioDoneLast7();
-        return `- **Cardio validé (7 derniers jours)** : ${s7.days} / 7 jours${s7.totalMin > 0 ? ` (${fmt(s7.totalMin)} min au total)` : ''}`;
-      })(),
-      `- **Garde-fous** : Diète ≥ 90 % : ${p.dietAdhered === false ? 'Non' : 'Oui'} · Sommeil ≥ 7 h : ${p.sleepOk === false ? 'Non' : 'Oui'}`,
-      '',
-      '## 3. Moyennes hebdo, Tour de taille & Historique 21 jours',
-      `- **Semaine N (J0 à J−6, stockée)** : ${wN ? `${fmt1(wN.avg)} kg (${wN.n} pesée${wN.n > 1 ? 's' : ''})` : 'Aucune pesée'}`,
-      `- **Semaine N−1 (J−7 à J−13, stockée)** : ${wN1 ? `${fmt1(wN1.avg)} kg (${wN1.n} pesée${wN1.n > 1 ? 's' : ''})` : 'Non renseignée'}`,
-      `- **Écart Semaine N vs N−1** : ${wDelta != null ? signKg(wDelta) : 'Insuffisant'}`,
-      `- **Semaine −2 (J−14 à J−20)** : ${w2 ? `${fmt1(w2.avg)} kg (${w2.n} pesée${w2.n > 1 ? 's' : ''})` : 'Non renseignée'}`,
-      `- **Évolution hebdo** : ${W.r1 != null ? signKg(W.r1) + (W.est ? ' (estimée sur 7 j)' : '') : 'Insuffisant'}${W.r0 != null ? ` · Semaine précédente : ${signKg(W.r0)}` : ''}`,
-      `- **Tour de taille** : ${wa.latest != null ? `${fmt1(wa.latest)} cm` + (wa.delta != null ? ` (${wa.delta > 0 ? '+' : wa.delta < 0 ? '−' : '±'}${fmt1(Math.abs(wa.delta))} cm depuis le ${shortDate(wa.prevD)})` : '') : 'Non mesuré'}`,
-      `- **Diagnostic auto de l’app** : **${ev.title}** — ${ev.message}`,
-      '',
-      '| Date | Poids (kg) | Repas | Kcal validées | Tour de taille (cm) |',
-      '|---|---:|---:|---:|---:|',
-      logRows,
-      '',
-      '## 4. Mes repas actuels',
-      formatDayPlan(onPlan, 'Jour ON'),
-      '',
-      formatDayPlan(offPlan, 'Jour OFF'),
-      '',
-      '## 5. Entraînement & Charges',
-      CYCLE.length ? `- **Split actif (JSON, ${CYCLE.length} j)** : ${CYCLE.map((k) => (k ? SESSIONS[k].short : 'Off')).join(' / ')}` : null,
-      `- **Forme du jour** : ${
-        (st.fatigueLog && st.fatigueLog[today]) === 'tired'
-          ? 'Fatigué'
-          : (st.fatigueLog && st.fatigueLog[today]) === 'good'
-          ? 'En forme'
-          : 'Normal'
-      }`,
-      `- **Deload actif** : ${deloadOn() ? `Oui (jusqu’au ${shortDate(fromNo(dayNo(st.deloadUntil) - 1))})` : 'Non'}`,
-      SPLIT_RULES.progression ? `- **Règle progression (JSON)** : ${SPLIT_RULES.progression}` : null,
-      SPLIT_RULES.deload ? `- **Règle deload (JSON)** : ${SPLIT_RULES.deload}` : null,
-      `- **Charges enregistrées** : ${loadEntries.length ? loadEntries.join(' · ') : 'Charges par défaut'}`
-    ]
-      .filter((line) => line !== null)
-      .join('\n');
-  }
-
-  // Coach IA direct (Google Gemini — clé et modèle stockés uniquement dans localStorage hors sauvegardes)
-  const GEMINI_KEY_STORE = 'mon-plan-sante-gemini-key';
-  const GEMINI_MODEL_STORE = 'mon-plan-sante-gemini-model';
-  const GEMINI_MODELS = [
-    { id: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash', short: '3.8 Flash' },
-    { id: 'gemini-3.6-flash', label: 'Gemini 3.6 Flash', short: '3.6 Flash' },
-    { id: 'gemini-3.5-flash-lite', label: 'Gemini 3.5 Flash-Lite', short: '3.5 Lite' }
-  ];
-  const GEMINI_DEFAULT_MODEL = GEMINI_MODELS[0].id;
-  const GEMINI_SYSTEM_PROMPT = [
-    'Tu es un expert nutritionniste du sport et un expert coach en hypertrophie musculaire, strictement fondé sur les preuves scientifiques (evidence-based).',
-    'Base exclusivement ton analyse et tes recommandations sur les méta-analyses, essais contrôlés randomisés et consensus scientifiques reconnus (ISSN, ACSM, recherche récente en hypertrophie : bilan énergétique, tendance de poids lissée, maintien de la masse maigre en déficit, tension mécanique proche de l’échec 0–2 RIR, volume hebdomadaire récupérable, amplitude complète et étirement musculaire, gestion de la fatigue systémique, sommeil ≥ 7 h, et cardio Zone 2 ON/OFF sans interférence).',
-    'Rejette catégoriquement la bro-science, les modes internet et les tendances TikTok/réseaux sociaux sans preuve (ex. « mode famine », fenêtre anabolique stricte, diabolisation des glucides le soir ou de l’insuline, détox, perte de gras localisée, « confusion musculaire », volume poubelle, compléments gadgets). Si l’utilisateur pose une question sur un mythe ou une tendance virale, rétablis les faits simplement.',
-    'Style : français clair, direct, concret et bienveillant, sans jargon académique inutile ni blabla. Donne des décisions chiffrées et applicables immédiatement sur ses vrais aliments, ses minutes exactes de cardio Jour ON / Jour OFF et ses charges, en respectant scrupuleusement le template Markdown demandé et la ligne [[PLAN:...]].'
-  ].join('\n');
-  let aiBusy = false;
-  let aiStatusMsg = '';
-  let aiKeyBusy = false;
-  let aiKeyMsg = '';
-  let aiKeyTone = '';
-
-  function getGeminiKey() {
-    try {
-      return (localStorage.getItem(GEMINI_KEY_STORE) || '').trim();
-    } catch (e) {
-      return '';
-    }
-  }
-
-  function setGeminiKey(v) {
-    try {
-      const k = String(v || '').trim();
-      if (k) localStorage.setItem(GEMINI_KEY_STORE, k);
-      else localStorage.removeItem(GEMINI_KEY_STORE);
-    } catch (e) {}
-  }
-
-  function getGeminiModel() {
-    try {
-      const saved = (localStorage.getItem(GEMINI_MODEL_STORE) || '').trim();
-      if (GEMINI_MODELS.some((m) => m.id === saved)) return saved;
-    } catch (e) {}
-    return GEMINI_DEFAULT_MODEL;
-  }
-
-  function setGeminiModel(id) {
-    const valid = GEMINI_MODELS.some((m) => m.id === id) ? id : GEMINI_DEFAULT_MODEL;
-    try {
-      localStorage.setItem(GEMINI_MODEL_STORE, valid);
-    } catch (e) {}
-    return valid;
-  }
-
-  function geminiModelInfo(id) {
-    const found = GEMINI_MODELS.find((m) => m.id === id);
-    if (found) return found;
-    const label = id
-      ? String(id)
-          .replace(/^gemini-/i, 'Gemini ')
-          .replace(/-/g, ' ')
-          .replace(/\b[a-z]/g, (c) => c.toUpperCase())
-      : GEMINI_MODELS[0].label;
-    return { id: id || GEMINI_DEFAULT_MODEL, label, short: label.replace(/^Gemini\s+/i, '') };
-  }
-
-  function geminiFallbackOrder() {
-    const current = getGeminiModel();
-    return [current, ...GEMINI_MODELS.map((m) => m.id).filter((id) => id !== current)];
-  }
-
-  function escHtml(s) {
-    return String(s || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
-  function formatAiHtml(text) {
-    const cleaned = String(text || '')
-      .trim()
-      .replace(/^```(?:md|markdown)?\s*\n?/i, '')
-      .replace(/\n?```\s*$/i, '')
-      .trim();
-    const lines = cleaned.replace(/\r/g, '').split('\n');
-    const out = [];
-    let inList = false;
-    const inline = (s) => escHtml(s).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-
-    lines.forEach((raw) => {
-      const l = raw.trim();
-      if (!l || /^---+$/.test(l)) {
-        if (inList) {
-          out.push('</ul>');
-          inList = false;
-        }
-        return;
-      }
-      if (/^[-•*]\s+/.test(l) || /^\d+\.\s+/.test(l)) {
-        if (!inList) {
-          out.push('<ul>');
-          inList = true;
-        }
-        out.push(`<li>${inline(l.replace(/^(?:[-•*]|\d+\.)\s+/, ''))}</li>`);
-      } else {
-        if (inList) {
-          out.push('</ul>');
-          inList = false;
-        }
-        if (/^#{1,4}\s+/.test(l)) {
-          out.push(`<h4>${inline(l.replace(/^#{1,4}\s+/, ''))}</h4>`);
-        } else {
-          out.push(`<p>${inline(l)}</p>`);
-        }
-      }
-    });
-    if (inList) out.push('</ul>');
-    return out.join('');
-  }
-
-  function parseAiReply(rawText) {
-    const raw = String(rawText || '')
-      .trim()
-      .replace(/^```(?:md|markdown)?\s*\n?/i, '')
-      .replace(/\n?```\s*$/i, '')
-      .trim();
-    let statut = null;
-    let on = null;
-    let off = null;
-    let phase = null;
-    let cardioOn = null;
-    let cardioOff = null;
-    const m = raw.match(/\[\[(?:PLAN|CIBLES):([^\]]+)\]\]/i);
-    if (m) {
-      const body = m[1];
-      const stM = body.match(/STATUT\s*=\s*(ok|stagnation|transition|fatigue)/i);
-      const phM = body.match(/PHASE\s*=\s*(seche|maintien)/i);
-      const onM = body.match(/(?:^|[;\s])ON\s*=\s*(\d{4})/i);
-      const offM = body.match(/(?:^|[;\s])OFF\s*=\s*(\d{4})/i);
-      const cOnM = body.match(/CARDIO_ON\s*=\s*(\d+)/i);
-      const cOffM = body.match(/CARDIO_OFF\s*=\s*(\d+)/i);
-      if (stM) statut = stM[1].toLowerCase();
-      if (phM) phase = phM[1].toLowerCase();
-      const targetPhase = phase || st.phase;
-      const floor = targetPhase === 'seche' ? Math.max(KCAL_MIN, profile().kcalFloor || KCAL_MIN) : KCAL_MIN;
-      const onV = onM ? Number(onM[1]) : NaN;
-      const offV = offM ? Number(offM[1]) : NaN;
-      if (isFinite(onV) && isFinite(offV) && onV >= floor && onV <= KCAL_MAX && offV >= floor && offV <= KCAL_MAX) {
-        on = Math.round(onV);
-        off = Math.round(offV);
-      }
-      if (cOnM) {
-        const v = Number(cOnM[1]);
-        if (isFinite(v)) cardioOn = Math.max(0, Math.min(90, Math.round(v / 5) * 5));
-      }
-      if (cOffM) {
-        const v = Number(cOffM[1]);
-        if (isFinite(v)) cardioOff = Math.max(0, Math.min(90, Math.round(v / 5) * 5));
-      }
-    }
-    const text = raw.replace(/\[\[(?:PLAN|CIBLES):[^\]]+\]\]/gi, '').trim();
-    return { text, statut, on, off, phase, cardioOn, cardioOff };
-  }
-
-  function renderAiCoach() {
-    const key = getGeminiKey();
-    const hasKey = key.length >= 10;
-    const activeModel = geminiModelInfo(getGeminiModel());
-
-    if ($('aiModelChip')) {
-      $('aiModelChip').textContent = activeModel.label;
-    }
-    if ($('aiKeyTitle')) {
-      $('aiKeyTitle').textContent = hasKey
-        ? `Coach IA (${activeModel.short} · connecté ✓)`
-        : 'Coach IA (Gemini · ajouter ma clé)';
-    }
-    document
-      .querySelectorAll('[data-aimodel]')
-      .forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.aimodel === activeModel.id)));
-    if ($('geminiKeyInput') && document.activeElement !== $('geminiKeyInput')) {
-      $('geminiKeyInput').value = key;
-    }
-    if ($('clearGeminiKey')) $('clearGeminiKey').hidden = !hasKey;
-    if ($('saveGeminiKeyBtn')) {
-      $('saveGeminiKeyBtn').disabled = aiKeyBusy;
-      $('saveGeminiKeyBtn').textContent = aiKeyBusy ? 'Test en cours…' : 'Enregistrer & tester';
-    }
-    if ($('goAiCoachBtn')) {
-      $('goAiCoachBtn').hidden = !hasKey;
-      $('goAiCoachBtn').disabled = aiBusy;
-      $('goAiCoachBtn').textContent = aiBusy ? 'Génération en cours…' : 'Générer mon bilan IA';
-    }
-    if ($('aiKeyStatus')) {
-      const msg = aiKeyMsg || (hasKey ? 'Clé enregistrée sur ton téléphone ✓ — prête pour ton bilan.' : '');
-      const tone = aiKeyMsg ? aiKeyTone : hasKey ? 'ok' : '';
-      $('aiKeyStatus').hidden = !msg;
-      $('aiKeyStatus').textContent = msg;
-      $('aiKeyStatus').classList.toggle('is-ok', tone === 'ok');
-      $('aiKeyStatus').classList.toggle('is-err', tone === 'err');
-    }
-
-    const btn = $('askAiBtn');
-    if (btn) {
-      btn.disabled = aiBusy;
-      btn.textContent = aiBusy ? 'Génération…' : hasKey ? 'Générer mon bilan' : 'Configurer Gemini';
-    }
-
-    if ($('aiStatus')) {
-      $('aiStatus').hidden = !aiStatusMsg;
-      $('aiStatus').textContent = aiStatusMsg;
-    }
-
-    const rep = st.lastAi;
-    const box = $('aiReply');
-    if (!box) return;
-    if (!rep || !rep.text) {
-      box.hidden = true;
-      return;
-    }
-
-    box.hidden = false;
-    const modelLab = geminiModelInfo(rep.model || activeModel.id).label;
-    $('aiReplyMeta').textContent = `${modelLab} · ${shortDate(rep.date || today)}`;
-    $('aiReplyBody').innerHTML = formatAiHtml(rep.text);
-
-    const pill = $('aiStatusPill');
-    if (pill) {
-      const META = {
-        ok: ['Tout va bien ✓', 'is-ok'],
-        stagnation: ['Ajustement conseillé', 'is-warn'],
-        transition: ['Zone de transition', 'is-warn'],
-        fatigue: ['Attention fatigue', 'is-warn']
-      };
-      const m = rep.statut && META[rep.statut];
-      pill.hidden = !m;
-      pill.classList.remove('is-ok', 'is-warn');
-      if (m) {
-        pill.textContent = m[0];
-        pill.classList.add(m[1]);
-      }
-    }
-
-    const prescEl = $('aiPresc');
-    const targetPhase = rep.phase === 'seche' || rep.phase === 'maintien' ? rep.phase : st.phase;
-    const C = cardioPlan(targetPhase);
-    const hasCardioSpec = rep.cardioOn != null || rep.cardioOff != null;
-    const nextCOn = rep.cardioOn != null ? rep.cardioOn : C.on;
-    const nextCOff = rep.cardioOff != null ? rep.cardioOff : C.off;
-
-    if (prescEl) {
-      const hasKcal = !!(rep.on && rep.off);
-      if (hasKcal || hasCardioSpec) {
-        const onKcal = hasKcal ? rep.on : tgt(targetPhase, 'on');
-        const offKcal = hasKcal ? rep.off : tgt(targetPhase, 'off');
-        prescEl.hidden = false;
-        prescEl.innerHTML =
-          `<div class="ai-presc-tile is-on">` +
-          `<span class="ks-day"><span class="dot" style="background:var(--on)"></span>Jour ON</span>` +
-          `<strong class="ks-val">${fmt(onKcal)}<span> kcal</span></strong>` +
-          (hasCardioSpec ? `<span class="ai-presc-sub">Cardio · ${nextCOn} min</span>` : '') +
-          `</div>` +
-          `<div class="ai-presc-tile is-off">` +
-          `<span class="ks-day"><span class="dot" style="background:var(--off)"></span>Jour OFF</span>` +
-          `<strong class="ks-val">${fmt(offKcal)}<span> kcal</span></strong>` +
-          (hasCardioSpec ? `<span class="ai-presc-sub">Cardio · ${nextCOff} min</span>` : '') +
-          `</div>`;
-      } else {
-        prescEl.hidden = true;
-      }
-    }
-
-    const applyBtn = $('applyAiTargets');
-    if (applyBtn) {
-      const phaseChanged = targetPhase !== st.phase;
-      const kcalChanged = !!(rep.on && rep.off && (tgt(targetPhase, 'on') !== rep.on || tgt(targetPhase, 'off') !== rep.off));
-      const cardioChanged = hasCardioSpec && (nextCOn !== C.on || nextCOff !== C.off || C.source !== 'ai');
-      const hasChanges = phaseChanged || kcalChanged || cardioChanged;
-
-      if (rep.applied) {
-        applyBtn.hidden = false;
-        applyBtn.disabled = true;
-        applyBtn.textContent = 'Plan & Cardio appliqués ✓';
-      } else if (hasChanges) {
-        const phTag = phaseChanged ? ` (${targetPhase === 'seche' ? 'Cut' : 'Maintien'})` : '';
-        applyBtn.hidden = false;
-        applyBtn.disabled = false;
-        applyBtn.textContent =
-          kcalChanged && cardioChanged
-            ? `Appliquer kcal & cardio${phTag}`
-            : cardioChanged
-            ? `Appliquer le cardio${phTag} (${nextCOn} / ${nextCOff} min)`
-            : kcalChanged
-            ? `Appliquer les calories${phTag}`
-            : `Passer en ${targetPhase === 'seche' ? 'Cut' : 'Maintien'}`;
-      } else {
-        applyBtn.hidden = true;
-      }
-    }
-    const histFold = $('aiHistFold');
-    const histList = $('aiHistList');
-    if (histFold && histList) {
-      const hist = Array.isArray(st.aiHistory) ? st.aiHistory : [];
-      histFold.hidden = hist.length === 0;
-      if (hist.length > 0) {
-        $('aiHistTitle').textContent = `Historique des bilans (${hist.length})`;
-        histList.innerHTML = hist
-          .map(
-            (h) => `<div class="ai-hist-item">
-            <div class="ai-hist-head"><b>${shortDate(h.date || today)}</b><span>${escHtml(geminiModelInfo(h.model).short)}</span></div>
-            <div class="ai-hist-body">${formatAiHtml(h.text)}</div>
-          </div>`
-          )
-          .join('');
-      }
-    }
-  }
-
-  async function testGeminiKey() {
-    if (aiKeyBusy) return;
-    const raw = $('geminiKeyInput') ? $('geminiKeyInput').value.trim() : getGeminiKey();
-    setGeminiKey(raw);
-    if (raw.length < 10) {
-      aiKeyMsg = 'Colle ta clé complète Google AI Studio (commence par AIza…).';
-      aiKeyTone = 'err';
-      renderAiCoach();
-      return;
-    }
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-      aiKeyMsg = 'Clé enregistrée ✓ (connexion internet requise pour tester).';
-      aiKeyTone = 'ok';
-      renderAiCoach();
-      return;
-    }
-
-    aiKeyBusy = true;
-    aiKeyMsg = 'Vérification de ta clé auprès de Google…';
-    aiKeyTone = '';
-    renderAiCoach();
-
-    const candidates = geminiFallbackOrder();
-    let handled = false;
-    try {
-      for (let i = 0; i < candidates.length; i++) {
-        const modelId = candidates[i];
-        const info = geminiModelInfo(modelId);
-        const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-        const timerId = ctrl ? setTimeout(() => ctrl.abort(), 15000) : null;
-        try {
-          const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelId)}`,
-            {
-              headers: { 'x-goog-api-key': raw },
-              signal: ctrl ? ctrl.signal : undefined
-            }
-          );
-          if (res.ok) {
-            setGeminiModel(modelId);
-            aiKeyMsg = `Clé valide et connectée à ${info.label} ✓ — clique sur « Générer mon bilan IA ».`;
-            aiKeyTone = 'ok';
-            handled = true;
-            break;
-          } else if (res.status === 400 || res.status === 401 || res.status === 403) {
-            let detail = '';
-            try {
-              const d = await res.json();
-              detail = (d && d.error && d.error.message) || '';
-            } catch (e) {}
-            aiKeyMsg = /location|region|country/i.test(detail)
-              ? 'L’API Gemini n’est pas disponible dans ta zone géographique.'
-              : 'Clé refusée par Google — vérifie que tu as copié la clé entière (sans espace).';
-            aiKeyTone = 'err';
-            handled = true;
-            break;
-          } else if (res.status === 404) {
-            continue;
-          } else {
-            aiKeyMsg = `Clé enregistrée, mais Google répond HTTP ${res.status}. Réessaie dans 1 minute.`;
-            aiKeyTone = 'err';
-            handled = true;
-            break;
-          }
-        } finally {
-          if (timerId) clearTimeout(timerId);
-        }
-      }
-      if (!handled) {
-        aiKeyMsg = 'Clé reconnue, mais aucun modèle Gemini compatible n’est disponible sur ce compte.';
-        aiKeyTone = 'err';
-      }
-    } catch (err) {
-      aiKeyMsg =
-        err && err.name === 'AbortError'
-          ? 'Délai dépassé lors du test, réessaie dans quelques secondes.'
-          : 'Clé enregistrée, mais impossible de joindre Google (vérifie ta connexion).';
-      aiKeyTone = 'err';
-    } finally {
-      aiKeyBusy = false;
-      renderAiCoach();
-    }
-  }
-
-  async function callGeminiModel(model, promptText, apiKey) {
-    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    const timerId = ctrl ? setTimeout(() => ctrl.abort(), 60000) : null;
-    try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': apiKey
-          },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: GEMINI_SYSTEM_PROMPT }] },
-            contents: [{ role: 'user', parts: [{ text: promptText }] }]
-          }),
-          signal: ctrl ? ctrl.signal : undefined
-        }
-      );
-      let data = null;
-      try {
-        data = await res.json();
-      } catch (e) {}
-      if (!res.ok) {
-        const err = new Error((data && data.error && data.error.message) || `HTTP ${res.status}`);
-        err.status = res.status;
-        throw err;
-      }
-      const parts = (((data && data.candidates) || [])[0] || {}).content?.parts || [];
-      const text = parts
-        .filter((pt) => pt && typeof pt.text === 'string' && !pt.thought)
-        .map((pt) => pt.text)
-        .join('\n')
-        .trim();
-      if (!text) {
-        const err = new Error('Réponse vide');
-        err.status = 502;
-        throw err;
-      }
-      return { text, model };
-    } finally {
-      if (timerId) clearTimeout(timerId);
-    }
-  }
-
-  async function askGeminiCoach() {
-    if (aiBusy) return;
-    let apiKey = getGeminiKey();
-    if (apiKey.length < 10 && $('geminiKeyInput') && $('geminiKeyInput').value.trim().length >= 10) {
-      apiKey = $('geminiKeyInput').value.trim();
-      setGeminiKey(apiKey);
-    }
-    if (apiKey.length < 10) {
-      st.tab = 'ia';
-      if ($('aiKeyFold')) $('aiKeyFold').open = true;
-      aiStatusMsg = 'Ajoute d’abord ta clé Gemini gratuite ci-dessous.';
-      save();
-      render();
-      if ($('geminiKeyInput') && $('geminiKeyInput').focus) $('geminiKeyInput').focus();
-      return;
-    }
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-      aiStatusMsg = 'Pas de connexion internet pour contacter Gemini.';
-      renderAiCoach();
-      return;
-    }
-
-    const candidates = geminiFallbackOrder();
-    aiBusy = true;
-    let lastErr = null;
-    let lastModelInfo = geminiModelInfo(candidates[0]);
-    let result = null;
-
-    try {
-      aiStatusMsg = 'Synchronisation des règles JSON…';
-      renderAiCoach();
-      await loadJsonConfigs();
-
-      const q = $('aiQuestion') ? $('aiQuestion').value.trim() : '';
-      const floor = Math.max(KCAL_MIN, profile().kcalFloor || KCAL_MIN);
-      const C = cardioPlan(st.phase);
-      const isOfficeOnly = Number(C.N.activityFactor) < 1.32;
-      const cardioOnDesc = isOfficeOnly ? '0 min (sans salle)' : `${C.on} min aller-retour salle`;
-      const sampleCarb = (food('pasta') && food('pasta').n) || 'féculents';
-      const sampleCarbTxt = sampleCarb.charAt(0).toLowerCase() + sampleCarb.slice(1);
-      const cycleDays = CYCLE.length || 6;
-      const promptText = [
-        buildAiReportMd(),
-        q ? `\n## Question particulière de l'utilisateur\n${q}` : '',
-        '\n## Template Markdown de retour OBLIGATOIRE',
-        'Réponds en français, sans texte d’introduction ni bloc de code ```, en remplissant EXACTEMENT ce template Markdown (concis, concret, zéro jargon technique) :',
-        '',
-        '### Résumé',
-        '1 à 2 phrases directes : verdict clair (tout va bien / stagnation confirmée / fausse stagnation / zone de transition / fatigue) basé sur mon poids, Semaine N vs N−1, ma phase (Cut ou Maintien), mes calories et mon tour de taille.',
-        '',
-        '### Stagnation (Semaine N vs N−1)',
-        '- **Constat** : compare les moyennes stockées Semaine N vs Semaine N−1 (et leur écart), le tour de taille, l’adhérence diète (≥ 90 %) et le sommeil (≥ 7 h) pour confirmer ou écarter une stagnation.',
-        `- **Levier appliqué** : si Jour OFF > ${floor} kcal → possibilité de diminuer les glucides (sans jamais passer sous ${floor} kcal en Jour OFF) ou d’ajuster le cardio Jour OFF ; si Jour OFF atteint le plancher ${floor} kcal → ne plus baisser les glucides et ajuster \`CARDIO_OFF\`.`,
-        '',
-        '### Calories (ON / OFF)',
-        '- **Décision** : [Garder / Ajuster] à **XXXX kcal ON** / **YYYY kcal OFF** (moy. **ZZZZ kcal/j**)',
-        `- **Dans l’assiette** : [Aucun changement OU ajustement concret en grammes d’aliments de mes repas en respectant les plafonds, ex. −30 g de ${sampleCarbTxt} le midi]`,
-        '',
-        `### Cardio (Jour ON · Jour OFF proposé)`,
-        `- **Décision** : **${isOfficeOnly ? 0 : C.on} min Jour ON** (${isOfficeOnly ? 'semaine sans salle' : 'aller-retour salle'}) · **YY min Jour OFF** (marche / Zone 2, à régler dans Réglages → Cardio)`,
-        '- **Pourquoi** : explication courte liée à ma phase, à mon objectif de perte/semaine, à mes calories et à ma récupération musculaire.',
-        '',
-        '### Entraînement & Récup',
-        `- 1 conseil bref et concret (continuer la progression, viser 7–8 h de sommeil ou activer le deload ${cycleDays} j).`,
-        '',
-        `Règle impérative : ne descends JAMAIS sous ${floor} kcal en Jour OFF.`,
-        'Termine IMPÉRATIVEMENT par cette dernière ligne exacte (remplace les valeurs sans texte après) :',
-        `[[PLAN:STATUT=ok;PHASE=${st.phase};ON=${tgt(st.phase, 'on')};OFF=${tgt(st.phase, 'off')};CARDIO_ON=${isOfficeOnly ? 0 : C.on};CARDIO_OFF=${C.off}]]`,
-        `(STATUT = ok | stagnation | transition | fatigue ; PHASE = seche | maintien ; ON et OFF = entiers kcal ; CARDIO_ON = ${isOfficeOnly ? 0 : C.on} (${cardioOnDesc}) ; CARDIO_OFF = durée proposée pour Jour OFF en minutes entières par tranches de 5 min, de 0 à 90).`
-      ].join('\n');
-
-      for (let i = 0; i < candidates.length; i++) {
-        const modelId = candidates[i];
-        const info = geminiModelInfo(modelId);
-        lastModelInfo = info;
-        aiStatusMsg =
-          i === 0
-            ? `Analyse avec ${info.label} en cours…`
-            : `${geminiModelInfo(candidates[i - 1]).short} indisponible, bascule sur ${info.label}…`;
-        renderAiCoach();
-        try {
-          result = await callGeminiModel(modelId, promptText, apiKey);
-          break;
-        } catch (err) {
-          lastErr = err;
-          const detail = err && err.message ? String(err.message) : '';
-          const isAuthOrRegion =
-            err &&
-            (err.status === 401 ||
-              err.status === 403 ||
-              (err.status === 400 && (/api[_ ]?key/i.test(detail) || /location|region|country/i.test(detail))));
-          if (isAuthOrRegion) throw err;
-        }
-      }
-
-      if (!result) throw lastErr || new Error('Aucun modèle disponible');
-
-      const parsed = parseAiReply(result.text);
-      if (st.lastAi && st.lastAi.text) {
-        st.aiHistory = Array.isArray(st.aiHistory) ? st.aiHistory : [];
-        st.aiHistory.unshift({
-          date: st.lastAi.date || today,
-          model: st.lastAi.model,
-          statut: st.lastAi.statut,
-          text: st.lastAi.text
-        });
-        if (st.aiHistory.length > 3) st.aiHistory.length = 3;
-      }
-      st.lastAi = {
-        date: today,
-        model: result.model,
-        text: parsed.text,
-        statut: parsed.statut,
-        on: parsed.on,
-        off: parsed.off,
-        phase: parsed.phase,
-        cardioOn: parsed.cardioOn,
-        cardioOff: parsed.cardioOff,
-        applied: false
-      };
-      if ($('aiQuestion')) $('aiQuestion').value = '';
-      aiStatusMsg = '';
-      save();
-    } catch (err) {
-      const detail = err && err.message ? String(err.message) : '';
-      const lab = lastModelInfo.label;
-      if (err && err.name === 'AbortError') {
-        aiStatusMsg = `Délai dépassé sur ${lab}, réessaie dans quelques secondes.`;
-      } else if (err && (err.status === 401 || err.status === 403 || (err.status === 400 && /api[_ ]?key/i.test(detail)))) {
-        aiStatusMsg = 'Clé API invalide ou accès refusé. Vérifie ta clé dans Réglages → Coach IA.';
-      } else if (err && err.status === 400 && /location|region|country/i.test(detail)) {
-        aiStatusMsg = 'L’API Gemini n’est pas disponible dans ta zone géographique.';
-      } else if (err && err.status === 404) {
-        aiStatusMsg = 'Aucun des modèles Gemini configurés n’est disponible sur ce compte.';
-      } else if (err && err.status === 429) {
-        aiStatusMsg = `Quota gratuit atteint sur les modèles Gemini, réessaie dans 1 minute.`;
-      } else if (err && err.status === 503) {
-        aiStatusMsg = `${lab} est temporairement surchargé, réessaie dans quelques secondes.`;
-      } else {
-        aiStatusMsg = `Impossible de joindre ${lab} pour le moment${err && err.status ? ` (HTTP ${err.status})` : ''} — vérifie ta connexion ou ta clé.`;
-      }
-    } finally {
-      aiBusy = false;
-      renderAiCoach();
     }
   }
 
@@ -2932,15 +2273,6 @@
         if ($('waistHelper')) $('waistHelper').hidden = true;
         showToast(`Tour de taille : ${fmt1(cm)} cm ✓`);
       }
-    } else if (t.id === 'toggleKeyVis') {
-      const inp = $('geminiKeyInput');
-      if (inp) {
-        const show = inp.type === 'password';
-        inp.type = show ? 'text' : 'password';
-        t.setAttribute('aria-pressed', String(show));
-        t.textContent = show ? 'Masquer' : 'Voir';
-      }
-      return;
     } else if (t.id === 'timerAdd') {
       if (timer) {
         timer.end = Math.max(Date.now(), timer.end) + 30000;
@@ -2989,6 +2321,12 @@
     } else if (t.id === 'exportBtn') {
       doExport();
       return;
+    } else if (t.id === 'copyBevelBtn') {
+      copyBevelMd();
+      return;
+    } else if (t.id === 'dlBevelBtn') {
+      downloadBevelMd();
+      return;
     } else if (t.id === 'exportFoodsBtn') {
       const merged = {};
       Object.keys(FOODS_DEFAULT).forEach((id) => {
@@ -3014,58 +2352,6 @@
       return;
     } else if (t.id === 'importBtn') {
       $('importFile').click();
-      return;
-    } else if (t.id === 'askAiBtn') {
-      askGeminiCoach();
-      return;
-    } else if (t.id === 'clearAiReply') {
-      delete st.lastAi;
-      aiStatusMsg = '';
-    } else if (t.id === 'applyAiTargets') {
-      const rep = st.lastAi;
-      if (rep && !rep.applied) {
-        if (rep.phase === 'seche' || rep.phase === 'maintien') st.phase = rep.phase;
-        st.profile = Object.assign({}, PROFILE_DEFAULT, st.profile || {});
-        const floor = st.phase === 'seche' ? Math.max(KCAL_MIN, st.profile.kcalFloor || KCAL_MIN) : KCAL_MIN;
-        if (rep.on && rep.off && rep.on >= floor && rep.off >= floor && rep.on <= KCAL_MAX && rep.off <= KCAL_MAX) {
-          st.targets = st.targets || {};
-          st.targets[st.phase] = { on: rep.on, off: rep.off };
-        }
-        if (rep.cardioOn != null || rep.cardioOff != null) {
-          const C = cardioPlan(st.phase);
-          st.profile.cardioOnMin = rep.cardioOn != null ? rep.cardioOn : C.on;
-          st.profile.cardioOffMin = rep.cardioOff != null ? rep.cardioOff : C.off;
-          st.profile.cardioSource = 'ai';
-        }
-        rep.applied = true;
-        syncTodayKcalLog();
-        showToast('Plan & Cardio appliqués ✓');
-      }
-    } else if (d.aimodel) {
-      const chosen = setGeminiModel(d.aimodel);
-      aiKeyMsg = '';
-      renderAiCoach();
-      showToast(`Modèle : ${geminiModelInfo(chosen).label}`);
-      return;
-    } else if (t.id === 'saveGeminiKeyBtn') {
-      testGeminiKey();
-      return;
-    } else if (t.id === 'goAiCoachBtn') {
-      if ($('geminiKeyInput') && $('geminiKeyInput').value.trim()) setGeminiKey($('geminiKeyInput').value.trim());
-      st.tab = 'ia';
-      save();
-      render();
-      window.scrollTo(0, 0);
-      askGeminiCoach();
-      return;
-    } else if (t.id === 'clearGeminiKey') {
-      setGeminiKey('');
-      aiStatusMsg = '';
-      aiKeyMsg = '';
-      aiKeyTone = '';
-      if ($('geminiKeyInput')) $('geminiKeyInput').value = '';
-      renderAiCoach();
-      showToast('Clé supprimée');
       return;
     } else if (t.id === 'shiftBtn') {
       peek = null;
@@ -3124,15 +2410,6 @@
         st.cardioLog[today] = { done: true, min: mins };
         showToast(`Cardio validé (${mins} min) ✓`);
       }
-    } else if (d.aiprompt) {
-      if ($('aiQuestion')) $('aiQuestion').value = d.aiprompt;
-      if (getGeminiKey()) {
-        askGeminiCoach();
-      } else {
-        if ($('aiKeyFold')) $('aiKeyFold').open = true;
-        if ($('aiQuestion')) $('aiQuestion').focus();
-      }
-      return;
     } else if (t.id === 'cardioResetAutoBtn') {
       st.profile = Object.assign({}, PROFILE_DEFAULT, st.profile || {});
       delete st.profile.cardioOnMin;
@@ -3293,14 +2570,6 @@
 
   document.addEventListener('change', (e) => {
     if (!e.target) return;
-    if (e.target.id === 'geminiKeyInput') {
-      setGeminiKey(e.target.value);
-      aiKeyMsg = '';
-      aiKeyTone = '';
-      aiStatusMsg = '';
-      renderAiCoach();
-      return;
-    }
     if (e.target.id === 'dietAdhered' || e.target.id === 'sleepOk') {
       st.profile = Object.assign({}, PROFILE_DEFAULT, st.profile || {});
       st.profile[e.target.id] = !!e.target.checked;
@@ -3359,14 +2628,6 @@
         recordHist(exName, collectLoggedReps(prefix, nNorm));
       }
       save();
-      return;
-    }
-    if (el.id === 'geminiKeyInput') {
-      setGeminiKey(el.value);
-      aiKeyMsg = '';
-      aiKeyTone = '';
-      aiStatusMsg = '';
-      renderAiCoach();
       return;
     }
     if (el.id === 'waistInput') {
@@ -3566,24 +2827,6 @@
       alert('Fichier non reconnu.');
     }
   });
-
-  if ($('aiQuestion')) {
-    $('aiQuestion').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        askGeminiCoach();
-      }
-    });
-  }
-
-  if ($('geminiKeyInput')) {
-    $('geminiKeyInput').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        testGeminiKey();
-      }
-    });
-  }
 
   render();
   }

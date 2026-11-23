@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Mon Plan Santé — Repas, Séance, Courses, Poids & Coach IA Gemini.">
+  <meta name="description" content="Mon Plan Santé — Repas, Séance, Cardio, Courses & Poids.">
   <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -270,7 +270,7 @@
     </section>
 
     <!-- ==================================================================
-         ONGLET 4 : POIDS (Pesées, Tour de taille, Coach IA & Courbe)
+         MENU : POIDS (Pesées, Moyennes semaine, Export Bevel & Courbe)
          ================================================================== -->
     <section class="view" id="view-suivi" aria-label="Suivi du poids" hidden>
       <!-- Carte 1 : Pesées & Tour de taille -->
@@ -331,87 +331,46 @@
         </div>
       </section>
 
-      <!-- Carte 2 : Courbe d'évolution -->
+      <!-- Carte 2 : Moyenne de la semaine & Export Bevel (.md) -->
+      <section class="card panel" id="bevelCard" aria-label="Moyenne de la semaine et export Bevel">
+        <div class="panel-head">
+          <div>
+            <h2>Moyenne &amp; Bilan Bevel</h2>
+            <p class="hint">Récapitulatif hebdo prêt à coller dans Bevel</p>
+          </div>
+        </div>
+        <div class="wk-stats">
+          <div class="wk-stat">
+            <small>Semaine N</small>
+            <strong id="wkAvgN">—</strong>
+            <span class="hint" id="wkAvgNSub">0 pesée</span>
+          </div>
+          <div class="wk-stat">
+            <small>Semaine N−1</small>
+            <strong id="wkAvgN1">—</strong>
+            <span class="hint" id="wkAvgN1Sub">0 pesée</span>
+          </div>
+          <div class="wk-stat">
+            <small>Écart</small>
+            <strong id="wkAvgDelta">—</strong>
+            <span class="hint" id="wkAvgDeltaSub">N vs N−1</span>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="apply-btn" id="copyBevelBtn">Copier le bilan (.md)</button>
+          <button type="button" class="ghost-btn" id="dlBevelBtn">Télécharger .md</button>
+        </div>
+        <details class="bevel-fold">
+          <summary>Aperçu du bilan Markdown</summary>
+          <pre class="bevel-pre" id="bevelPreview"></pre>
+        </details>
+      </section>
+
+      <!-- Carte 3 : Courbe d'évolution -->
       <section class="card panel" aria-label="Ma courbe de poids">
         <h2>Évolution</h2>
         <div class="sub-body" id="wCurve"></div>
       </section>
-    </section>
-
-    <!-- ==================================================================
-         MENU : COACH IA (Gemini)
-         ================================================================== -->
-    <section class="view" id="view-ia" aria-label="Coach IA Gemini" hidden>
-      <section class="card panel ai-card" aria-label="Coach IA Gemini">
-        <div class="panel-head">
-          <div class="ai-head-txt">
-            <div class="ai-title-row">
-              <h2>Coach IA</h2>
-              <span class="model-chip" id="aiModelChip">Gemini 3.8 Flash</span>
-            </div>
-            <p class="hint" id="aiHint">Analyse ton poids, tes kcal et te dit quoi ajuster.</p>
-          </div>
-        </div>
-        <div class="ai-chips" role="group" aria-label="Questions rapides">
-          <button type="button" class="ai-chip" data-aiprompt="J'ai faim le soir, comment répartir mes repas sans dépasser mes calories ?">Faim le soir</button>
-          <button type="button" class="ai-chip" data-aiprompt="J'ai un écart ou un resto prévu aujourd'hui, comment ajuster la journée ?">Écart / resto</button>
-          <button type="button" class="ai-chip" data-aiprompt="Je me sens fatigué sur mes séances, est-ce le bon moment pour un deload ?">Fatigue / deload ?</button>
-          <button type="button" class="ai-chip" data-aiprompt="Dois-je ajuster mon cardio cette semaine selon mon poids et mes kcal ?">Ajuster le cardio</button>
-        </div>
-        <div class="ai-ask-col">
-          <input type="text" id="aiQuestion" autocomplete="off" placeholder="Question optionnelle (ex. faim le soir, fatigue…)">
-          <button type="button" class="apply-btn ai-cta" id="askAiBtn">Générer mon bilan</button>
-        </div>
-        <p class="hint ai-status-line" id="aiStatus" hidden></p>
-        <div class="ai-reply" id="aiReply" hidden>
-          <div class="ai-reply-head">
-            <span class="ai-status-pill" id="aiStatusPill" hidden></span>
-            <small id="aiReplyMeta"></small>
-            <button type="button" class="link-btn" id="clearAiReply">Effacer</button>
-          </div>
-          <div class="ai-reply-body" id="aiReplyBody"></div>
-          <div class="ai-presc" id="aiPresc" hidden></div>
-          <button type="button" class="apply-btn" id="applyAiTargets" hidden></button>
-        </div>
-      </section>
-
-      <details class="card fold" id="aiKeyFold">
-        <summary>
-          <span id="aiKeyTitle">Configuration Gemini (clé &amp; modèle)</span>
-          <svg class="ic" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-        </summary>
-        <div class="fold-body">
-          <p class="hint">Clé stockée <strong>uniquement sur ton téléphone</strong> (jamais sur GitHub ni dans les sauvegardes). Crée une clé gratuite sur <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>.</p>
-          <div class="prof-field">
-            <small>Modèle IA (repli auto si saturé)</small>
-            <div class="seg three" role="group" aria-label="Modèle Gemini" id="aiModelSeg">
-              <button type="button" data-aimodel="gemini-3.8-flash" aria-pressed="true">3.8 Flash</button>
-              <button type="button" data-aimodel="gemini-3.6-flash" aria-pressed="false">3.6 Flash</button>
-              <button type="button" data-aimodel="gemini-3.5-flash-lite" aria-pressed="false">3.5 Lite</button>
-            </div>
-          </div>
-          <label class="prof-field">
-            <small>Ma clé API Gemini</small>
-            <span class="key-in-wrap">
-              <input type="password" id="geminiKeyInput" autocomplete="off" spellcheck="false" placeholder="Colle ta clé AIza…">
-              <button type="button" class="key-eye" id="toggleKeyVis" aria-label="Afficher la clé" aria-pressed="false">Voir</button>
-            </span>
-          </label>
-          <div class="btn-row">
-            <button type="button" class="ghost-btn" id="saveGeminiKeyBtn">Enregistrer &amp; tester</button>
-            <button type="button" class="ghost-btn is-danger" id="clearGeminiKey" hidden>Supprimer</button>
-          </div>
-          <p class="hint ai-key-status" id="aiKeyStatus" hidden></p>
-        </div>
-      </details>
-
-      <details class="card fold" id="aiHistFold" hidden>
-        <summary>
-          <span id="aiHistTitle">Historique des bilans</span>
-          <svg class="ic" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-        </summary>
-        <div class="fold-body" id="aiHistList"></div>
-      </details>
     </section>
 
     <!-- ==================================================================
@@ -542,7 +501,7 @@
     </div>
   </div>
 
-  <!-- BARRE DE NAVIGATION iOS GLASS (3 ONGLETS : Diet, Séance, Coach IA) -->
+  <!-- BARRE DE NAVIGATION iOS GLASS (2 ONGLETS : Diet, Séance) -->
   <nav class="tabs" aria-label="Navigation">
     <div class="wrap">
       <button type="button" class="tab" data-tab="repas" aria-current="page">
@@ -550,9 +509,6 @@
       </button>
       <button type="button" class="tab" data-tab="seance">
         <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7v10M3 9.5v5M18 7v10M21 9.5v5M6 12h12"/></svg></span>Séance
-      </button>
-      <button type="button" class="tab" data-tab="ia">
-        <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/></svg></span>Coach IA
       </button>
     </div>
   </nav>

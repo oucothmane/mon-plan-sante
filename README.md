@@ -16,7 +16,6 @@ Toute la configuration et les données du plan sont centralisées dans des fichi
 
 - **Workflow choisi** : toutes les modifications durables des cibles, macros, aliments, repas, cardio ou charges se font **directement dans ces 5 fichiers JSON** avec l'assistant puis par commit sur `main` (pas d'écriture automatique vers GitHub depuis l'interface de l'app).
 - **Zéro valeur en dur dans le code** : [`app.js`](app.js), [`nutritionEngine.js`](nutritionEngine.js) et [`index.html`](index.html) doivent toujours lire toutes les règles, cibles, plafonds, fibres, swaps protéines, cardio et règles d'entraînement depuis les 5 JSON.
-- **Coach IA toujours à jour** : avant chaque appel Gemini, l'app recharge les 5 JSON (`loadJsonConfigs`) et génère le prompt et ses exemples dynamiquement à partir des valeurs récentes des JSON.
 - **Zéro riz** nulle part dans le dépôt (féculents de base : pâtes complètes crues + patate douce crue).
 - **Après modification** : vérifier avec `node --check app.js && node --check nutritionEngine.js && node --check sw.js && node nutritionEngine.test.js`. Garder `README.md` comme seul fichier Markdown du dépôt, et incrémenter `CACHE` dans [`sw.js`](sw.js) dès qu'un fichier de code change.
 
