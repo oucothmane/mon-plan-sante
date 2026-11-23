@@ -1,7 +1,7 @@
 // Mon Plan Santé — service worker : l'app marche sans réseau.
 // Pour publier une mise à jour : augmente le numéro de CACHE ci-dessous.
 // L'app ouverte détecte alors la nouvelle version et se recharge toute seule.
-const CACHE = 'plan-repas-v73';
+const CACHE = 'plan-repas-v74';
 const SHELL = [
   './',
   './index.html',
