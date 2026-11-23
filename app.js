@@ -1787,7 +1787,7 @@
       else b.removeAttribute('aria-current');
     });
     if ($('menuBtn')) {
-      $('menuBtn').classList.toggle('is-active', !['repas', 'seance', 'cardio'].includes(st.tab));
+      $('menuBtn').classList.toggle('is-active', !['repas', 'seance', 'ia'].includes(st.tab));
       $('menuBtn').classList.toggle('has-dot', needsBackup());
     }
 

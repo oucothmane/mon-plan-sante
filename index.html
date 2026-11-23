@@ -57,7 +57,7 @@
     </div>
   </header>
 
-  <!-- MENU LISTE EN HAUT (Poids, Courses, Coach IA, Réglages, Données) -->
+  <!-- MENU LISTE EN HAUT (Poids, Courses, Cardio, Profil, Réglages, Données) -->
   <div class="menu-wrap" id="appMenu" hidden>
     <div class="menu-backdrop" id="menuBackdrop" aria-hidden="true"></div>
     <nav class="card menu-sheet" aria-label="Menu principal">
@@ -71,9 +71,9 @@
         <span class="menu-txt"><strong>Courses</strong><small>Liste 4 / 8 / 10 jours</small></span>
         <svg class="ic menu-chev" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
       </button>
-      <button type="button" class="menu-item" data-tab="ia">
-        <span class="menu-ic"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/></svg></span>
-        <span class="menu-txt"><strong>Coach IA</strong><small>Bilan Gemini &amp; conseils</small></span>
+      <button type="button" class="menu-item" data-tab="cardio">
+        <span class="menu-ic"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7-4.5-7-10.2A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 7 3.3c0 5.7-7 10.2-7 10.2z"/></svg></span>
+        <span class="menu-txt"><strong>Cardio</strong><small>Plan Jour ON / OFF</small></span>
         <svg class="ic menu-chev" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
       </button>
       <button type="button" class="menu-item" data-tab="profil">
@@ -520,7 +520,7 @@
     </div>
   </div>
 
-  <!-- BARRE DE NAVIGATION iOS GLASS (3 ONGLETS : Diet, Séance, Cardio) -->
+  <!-- BARRE DE NAVIGATION iOS GLASS (3 ONGLETS : Diet, Séance, Coach IA) -->
   <nav class="tabs" aria-label="Navigation">
     <div class="wrap">
       <button type="button" class="tab" data-tab="repas" aria-current="page">
@@ -529,8 +529,8 @@
       <button type="button" class="tab" data-tab="seance">
         <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7v10M3 9.5v5M18 7v10M21 9.5v5M6 12h12"/></svg></span>Séance
       </button>
-      <button type="button" class="tab" data-tab="cardio">
-        <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7-4.5-7-10.2A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 7 3.3c0 5.7-7 10.2-7 10.2z"/></svg></span>Cardio
+      <button type="button" class="tab" data-tab="ia">
+        <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/></svg></span>Coach IA
       </button>
     </div>
   </nav>
