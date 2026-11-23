@@ -352,14 +352,15 @@
       st.viewIdx = 0;
       st.dayAutoDate = '';
       st.altParity = {};
-      st.log = { date: today, done: {} };
+      st.log = { date: today, done: {}, reps: {} };
     }
     if (TABS.indexOf(st.tab) < 0) st.tab = 'repas';
     if (st.eatenDate !== today) {
       st.eaten = {};
       st.eatenDate = today;
     }
-    if (!st.log || st.log.date !== today) st.log = { date: today, done: {} };
+    if (!st.log || st.log.date !== today) st.log = { date: today, done: {}, reps: {} };
+    st.log.reps = st.log.reps || {};
     if (st.deloadUntil && dayNo(today) >= dayNo(st.deloadUntil)) st.deloadUntil = null;
 
   function cycleIdx() {
@@ -539,13 +540,37 @@
     return NE.estimateAdaptiveTDEE(entries, st.kcalLog || {}, calcNutrition(st.phase).tdee, today);
   }
 
-  function recordHist(name) {
+  function repRangeMax(repsStr) {
+    const nums = String(repsStr || '').match(/\d+/g);
+    if (!nums || !nums.length) return null;
+    return Number(nums[nums.length - 1]);
+  }
+
+  function collectLoggedReps(prefix, nNorm) {
+    const out = [];
+    const repsMap = (st.log && st.log.reps) || {};
+    for (let k = 0; k < nNorm; k++) {
+      const v = Number(repsMap[`${prefix}|${k}`]);
+      if (isFinite(v) && v > 0) out.push(Math.round(v));
+    }
+    return out;
+  }
+
+  function recordHist(name, repsArr) {
     const kg = num(st.loads[name]);
-    if (!isFinite(kg)) return;
+    const hasReps = Array.isArray(repsArr) && repsArr.length > 0;
+    if (!isFinite(kg) && !hasReps) return;
     const h = (st.hist[name] = st.hist[name] || []);
     const last = h[h.length - 1];
-    if (last && last.d === today) last.kg = kg;
-    else h.push({ d: today, kg });
+    if (last && last.d === today) {
+      if (isFinite(kg)) last.kg = kg;
+      if (hasReps) last.reps = repsArr.slice();
+    } else {
+      const entry = { d: today };
+      if (isFinite(kg)) entry.kg = kg;
+      if (hasReps) entry.reps = repsArr.slice();
+      h.push(entry);
+    }
     if (h.length > 60) h.splice(0, h.length - 60);
   }
 
@@ -954,9 +979,31 @@
     }
 
     const curLoad = num(st.loads[e.n]);
-    const progDiff = lt && isFinite(curLoad) && curLoad > lt.kg ? Math.round((curLoad - lt.kg) * 100) / 100 : 0;
+    const ltKg = lt && isFinite(lt.kg) ? lt.kg : null;
+    const progDiff = ltKg != null && isFinite(curLoad) && curLoad > ltKg ? Math.round((curLoad - ltKg) * 100) / 100 : 0;
     const progHtml = progDiff > 0 ? `<span class="ex-prog">+${fmtKg(progDiff)} kg</span>` : '';
-    const lastHtml = lt ? `<p class="ex-last">Dernière fois : ${fmtKg(lt.kg)} kg (${shortDate(lt.d)})${progHtml}</p>` : '';
+    const maxRep = repRangeMax(e.reps);
+    const ltReps = lt && Array.isArray(lt.reps) && lt.reps.length ? lt.reps : null;
+    const readyUp =
+      !dl &&
+      maxRep != null &&
+      ltReps != null &&
+      ltReps.length >= nNorm &&
+      ltReps.slice(0, nNorm).every((r) => r >= maxRep) &&
+      (ltKg == null || !isFinite(curLoad) || curLoad <= ltKg);
+    const readyHtml = readyUp ? `<span class="ex-prog is-ready">↑ +${fmtKg(stepFor(e))} kg prêt</span>` : '';
+    const ltParts = [];
+    if (ltKg != null) ltParts.push(`${fmtKg(ltKg)} kg`);
+    if (ltReps) ltParts.push(ltReps.join(' / ') + ' reps');
+    const lastHtml = lt && ltParts.length
+      ? `<p class="ex-last">Dernière fois : ${ltParts.join(' · ')} (${shortDate(lt.d)})${progHtml}${readyHtml}</p>`
+      : '';
+    const repsMap = (st.log && st.log.reps) || {};
+    const repsInputs = Array.from({ length: nNorm }, (_, k) => {
+      const rKey = `${donePrefix}|${k}`;
+      const val = repsMap[rKey] != null ? repsMap[rKey] : '';
+      return `<input type="text" inputmode="numeric" autocomplete="off" class="rep-in" data-rep="${rKey}" data-repex="${escHtml(e.n)}" data-repprefix="${donePrefix}" data-repnorm="${nNorm}" placeholder="S${k + 1}" value="${val}" aria-label="Répétitions série ${k + 1}">`;
+    }).join('');
     const otherAlt = e.altKey && e.variants && e.variants.length > 1
       ? e.variants[(e.variantIdx + 1) % e.variants.length]
       : null;
@@ -994,6 +1041,10 @@
     )}</button>
           </div>
           <div class="sets" role="group">${sets}</div>
+        </div>
+        <div class="reps-row">
+          <span class="reps-lab">Reps</span>
+          <div class="reps-ins">${repsInputs}</div>
         </div>
         ${footHtml}
         ${all ? `<button type="button" class="link-btn ex-refold" data-unfold="${id}">Replier</button>` : ''}
@@ -1128,6 +1179,21 @@
     };
   }
 
+  function cardioDoneLast7() {
+    const log = st.cardioLog || {};
+    let days = 0;
+    let totalMin = 0;
+    for (let k = 0; k < 7; k++) {
+      const dKey = fromNo(dayNo(today) - k);
+      const entry = log[dKey];
+      if (entry && (entry === true || entry.done)) {
+        days++;
+        totalMin += Number(entry.min) || 0;
+      }
+    }
+    return { days, totalMin };
+  }
+
   function renderCardio() {
     const day = viewDay();
     const C = cardioPlan(st.phase);
@@ -1135,10 +1201,11 @@
     const estKcal = Math.round(todayMin * C.kcalPerMin);
     const avgMin = Math.round((C.on + C.off) / 2);
     const weeklyMin = Math.round(((C.on + C.off) / 2) * 7);
-    const lossTxt = String(Math.round(C.N.weeklyLossKg * 100) / 100).replace('.', ',');
     const srcLabel = C.source === 'ai' ? 'Coach IA' : C.source === 'custom' ? 'Perso' : 'Plan';
+    const doneEntry = st.cardioLog && st.cardioLog[today];
+    const isDone = !!(doneEntry && (doneEntry === true || doneEntry.done));
+    const stat7 = cardioDoneLast7();
 
-    // 1. Affichage dans l'onglet Cardio (Jour ON / Jour OFF)
     if ($('cardioCard')) {
       $('cardioBadge').textContent = `Jour ${day === 'on' ? 'ON' : 'OFF'}`;
       $('cardioSub').textContent =
@@ -1153,10 +1220,22 @@
           ? `≈ ${fmt(estKcal)} kcal · ~${fmt(weeklyMin)} min/sem (${avgMin} min/j)`
           : `~${fmt(weeklyMin)} min/sem · pas de cardio obligatoire aujourd’hui`;
     }
-    if ($('cardioResOn')) $('cardioResOn').textContent = `${C.on} min`;
-    if ($('cardioResOff')) $('cardioResOff').textContent = `${C.off} min`;
-    if ($('cardioResSlotOn')) $('cardioResSlotOn').classList.toggle('is-active', day === 'on');
-    if ($('cardioResSlotOff')) $('cardioResSlotOff').classList.toggle('is-active', day === 'off');
+    if ($('cardioWeekStat')) {
+      $('cardioWeekStat').textContent =
+        stat7.days > 0
+          ? `${stat7.days} / 7 j validés${stat7.totalMin > 0 ? ` · ${fmt(stat7.totalMin)} min` : ''}`
+          : '0 / 7 j validés cette semaine';
+    }
+    if ($('cardioDoneBtn')) {
+      $('cardioDoneBtn').setAttribute('aria-pressed', String(isDone));
+      $('cardioDoneBtn').classList.toggle('is-done', isDone);
+      $('cardioDoneBtn').textContent = isDone ? 'Cardio validé ✓' : 'Marquer fait';
+    }
+    if ($('cardioSettingsBadge')) $('cardioSettingsBadge').textContent = srcLabel;
+    if ($('cardioSlotOn')) $('cardioSlotOn').classList.toggle('is-active', day === 'on');
+    if ($('cardioSlotOff')) $('cardioSlotOff').classList.toggle('is-active', day === 'off');
+    if ($('cardioOnVal')) $('cardioOnVal').textContent = `${C.on} min`;
+    if ($('cardioOffVal')) $('cardioOffVal').textContent = `${C.off} min`;
     if ($('cardioPlanSource')) {
       $('cardioPlanSource').textContent =
         C.source === 'ai'
@@ -1166,31 +1245,19 @@
           : 'Plan par défaut';
     }
 
-    // 2. Réglages cardio dans l'onglet Réglages
-    if ($('cardioSettingsCard')) {
-      $('cardioSettingsBadge').textContent = srcLabel;
-      $('cardioSettingsHint').textContent =
-        st.phase === 'seche'
-          ? `Cut · cible −${lossTxt} kg/sem. Jour ON = aller-retour salle (${CARDIO_TARGETS.seche.on} min).`
-          : `Maintien · Jour ON = aller-retour salle (${CARDIO_TARGETS.seche.on} min), Jour OFF libre.`;
+    const decOn = document.querySelector('[data-cstep="on|-5"]');
+    const incOn = document.querySelector('[data-cstep="on|5"]');
+    const decOff = document.querySelector('[data-cstep="off|-5"]');
+    const incOff = document.querySelector('[data-cstep="off|5"]');
+    if (decOn) decOn.disabled = C.on <= 0;
+    if (incOn) incOn.disabled = C.on >= 90;
+    if (decOff) decOff.disabled = C.off <= 0;
+    if (incOff) incOff.disabled = C.off >= 90;
 
-      $('cardioSlotOn').classList.toggle('is-active', day === 'on');
-      $('cardioSlotOff').classList.toggle('is-active', day === 'off');
-      $('cardioOnVal').textContent = `${C.on} min`;
-      $('cardioOffVal').textContent = `${C.off} min`;
-
-      const decOn = document.querySelector('[data-cstep="on|-5"]');
-      const incOn = document.querySelector('[data-cstep="on|5"]');
-      const decOff = document.querySelector('[data-cstep="off|-5"]');
-      const incOff = document.querySelector('[data-cstep="off|5"]');
-      if (decOn) decOn.disabled = C.on <= 0;
-      if (incOn) incOn.disabled = C.on >= 90;
-      if (decOff) decOff.disabled = C.off <= 0;
-      if (incOff) incOff.disabled = C.off >= 90;
-
+    if ($('cardioResetRow')) {
       const showReset = C.source !== 'base';
       $('cardioResetRow').hidden = !showReset;
-      if (showReset) {
+      if (showReset && $('cardioSourceHint')) {
         $('cardioSourceHint').textContent =
           C.source === 'ai'
             ? `Suggéré par le Coach IA (défaut : ${C.baseOn} ON / ${C.baseOff} OFF)`
@@ -1809,7 +1876,6 @@
     } else if (st.tab === 'profil') {
       renderProfile();
     } else if (st.tab === 'reglages') {
-      renderCardio();
       renderFoodRef();
       renderAiCoach();
     } else if (st.tab === 'donnees') {
@@ -2026,6 +2092,10 @@
       `- **Durées cardio réglées actuellement** : **${C.on} min Jour ON** (aller-retour salle) · **${C.off} min Jour OFF** (marche / Zone 2) — source : ${C.source === 'ai' ? 'Coach IA' : C.source === 'custom' ? 'Perso' : 'Plan par défaut'}`,
       `- **Plan cardio de référence** : **${C.baseOn} min Jour ON** · **${C.baseOff} min Jour OFF** (moy. ${Math.round((C.baseOn + C.baseOff) / 2)} min/j)`,
       `- **Estimation équation cardio pour tenir −${lossTxt} kg/sem** : **${C.autoOn} min Jour ON** · **${C.autoOff} min Jour OFF**`,
+      (() => {
+        const s7 = cardioDoneLast7();
+        return `- **Cardio validé (7 derniers jours)** : ${s7.days} / 7 jours${s7.totalMin > 0 ? ` (${fmt(s7.totalMin)} min au total)` : ''}`;
+      })(),
       `- **Garde-fous** : Diète ≥ 90 % : ${p.dietAdhered === false ? 'Non' : 'Oui'} · Sommeil ≥ 7 h : ${p.sleepOk === false ? 'Non' : 'Oui'}`,
       '',
       '## 3. Moyennes hebdo, Tour de taille & Historique 21 jours',
@@ -3041,6 +3111,28 @@
         st.profile.cardioOffMin = nextOff;
         st.profile.cardioSource = 'custom';
       }
+    } else if (t.id === 'cardioDoneBtn') {
+      st.cardioLog = st.cardioLog || {};
+      const prev = st.cardioLog[today];
+      const wasDone = !!(prev && (prev === true || prev.done));
+      if (wasDone) {
+        delete st.cardioLog[today];
+        showToast('Cardio décoché');
+      } else {
+        const C = cardioPlan(st.phase);
+        const mins = viewDay() === 'on' ? C.on : C.off;
+        st.cardioLog[today] = { done: true, min: mins };
+        showToast(`Cardio validé (${mins} min) ✓`);
+      }
+    } else if (d.aiprompt) {
+      if ($('aiQuestion')) $('aiQuestion').value = d.aiprompt;
+      if (getGeminiKey()) {
+        askGeminiCoach();
+      } else {
+        if ($('aiKeyFold')) $('aiKeyFold').open = true;
+        if ($('aiQuestion')) $('aiQuestion').focus();
+      }
+      return;
     } else if (t.id === 'cardioResetAutoBtn') {
       st.profile = Object.assign({}, PROFILE_DEFAULT, st.profile || {});
       delete st.profile.cardioOnMin;
@@ -3072,11 +3164,13 @@
     } else if (d.setall) {
       const [sKey, slot] = d.setall.split('|');
       const exo = resolveEx(sKey, slot, activeViewIdx());
-      const nSets = setsFor(exo, deloadOn());
+      const dl = deloadOn();
+      const nSets = setsFor(exo, dl);
+      const nNorm = nSets - techSteps(techOf(exo, dl));
       for (let k = 0; k < nSets; k++) {
         st.log.done[`${d.setall}|${k}`] = true;
       }
-      recordHist(exo.n);
+      recordHist(exo.n, collectLoggedReps(d.setall, nNorm));
       startRest(exo.rest, exo.n);
     } else if (d.set) {
       const now = !st.log.done[d.set];
@@ -3084,9 +3178,12 @@
       const p = d.set.split('|');
       const exo = resolveEx(p[0], p[1], activeViewIdx());
       if (now) {
-        recordHist(exo.n);
-        const tech = techOf(exo, deloadOn());
+        const dl = deloadOn();
+        const tech = techOf(exo, dl);
         const tSteps = techSteps(tech);
+        const nNorm = setsFor(exo, dl) - tSteps;
+        const prefix = p.slice(0, -1).join('|');
+        recordHist(exo.n, collectLoggedReps(prefix, nNorm));
         const idx = Number(p[p.length - 1]);
         const beforeTech = !!tech && idx >= exo.sets - tSteps - 1 && idx < exo.sets - 1;
         if (!beforeTech) startRest(exo.rest, exo.n);
@@ -3246,6 +3343,21 @@
       const v = num(el.value);
       if (el.value.trim() === '') delete st.loads[el.dataset.load];
       else if (isFinite(v) && v >= 0) st.loads[el.dataset.load] = v;
+      save();
+      return;
+    }
+    if (el.dataset.rep) {
+      st.log.reps = st.log.reps || {};
+      const raw = el.value.trim();
+      const v = Number(raw);
+      if (raw === '') delete st.log.reps[el.dataset.rep];
+      else if (isFinite(v) && v > 0 && v <= 99) st.log.reps[el.dataset.rep] = Math.round(v);
+      const exName = el.dataset.repex;
+      const prefix = el.dataset.repprefix;
+      const nNorm = Number(el.dataset.repnorm) || 0;
+      if (exName && prefix && nNorm > 0) {
+        recordHist(exName, collectLoggedReps(prefix, nNorm));
+      }
       save();
       return;
     }

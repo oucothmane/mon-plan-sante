@@ -191,7 +191,7 @@
     </section>
 
     <!-- ==================================================================
-         ONGLET 3 : CARDIO (Résultat Jour ON & Jour OFF — réglable dans Réglages)
+         MENU : CARDIO (Cardio du jour, validation & Plan Jour ON / OFF)
          ================================================================== -->
     <section class="view" id="view-cardio" aria-label="Cardio" hidden>
       <section class="card panel cardio-card" id="cardioCard" aria-label="Cardio du jour">
@@ -206,6 +206,10 @@
           <strong class="cardio-min" id="cardioTodayMin">0 min</strong>
           <span class="hint" id="cardioTodayMeta"></span>
         </div>
+        <div class="cardio-foot">
+          <span class="hint" id="cardioWeekStat"></span>
+          <button type="button" class="cardio-done-btn" id="cardioDoneBtn" aria-pressed="false">Marquer fait</button>
+        </div>
       </section>
 
       <section class="card panel" aria-label="Plan cardio ON et OFF">
@@ -214,17 +218,29 @@
             <h2>Plan Jour ON / OFF</h2>
             <p class="hint" id="cardioPlanSource"></p>
           </div>
-          <button type="button" class="link-btn" id="cardioEditBtn">Modifier</button>
+          <span class="pill" id="cardioSettingsBadge">Plan</span>
         </div>
         <div class="cardio-split">
-          <div class="cardio-slot" id="cardioResSlotOn">
+          <div class="cardio-slot" id="cardioSlotOn">
             <small><span class="dot" style="background:var(--on)"></span>Jour ON · Salle A/R</small>
-            <strong class="cardio-res-val" id="cardioResOn">—</strong>
+            <div class="cardio-step">
+              <button type="button" class="step-btn" data-cstep="on|-5" aria-label="Diminuer cardio Jour ON de 5 min">−</button>
+              <b id="cardioOnVal">—</b>
+              <button type="button" class="step-btn" data-cstep="on|5" aria-label="Augmenter cardio Jour ON de 5 min">+</button>
+            </div>
           </div>
-          <div class="cardio-slot" id="cardioResSlotOff">
+          <div class="cardio-slot" id="cardioSlotOff">
             <small><span class="dot" style="background:var(--off)"></span>Jour OFF · Marche / Z2</small>
-            <strong class="cardio-res-val" id="cardioResOff">—</strong>
+            <div class="cardio-step">
+              <button type="button" class="step-btn" data-cstep="off|-5" aria-label="Diminuer cardio Jour OFF de 5 min">−</button>
+              <b id="cardioOffVal">—</b>
+              <button type="button" class="step-btn" data-cstep="off|5" aria-label="Augmenter cardio Jour OFF de 5 min">+</button>
+            </div>
           </div>
+        </div>
+        <div class="cardio-foot" id="cardioResetRow" hidden>
+          <small class="hint" id="cardioSourceHint"></small>
+          <button type="button" class="link-btn" id="cardioResetAutoBtn">Rétablir</button>
         </div>
       </section>
     </section>
@@ -335,6 +351,12 @@
             </div>
             <p class="hint" id="aiHint">Analyse ton poids, tes kcal et te dit quoi ajuster.</p>
           </div>
+        </div>
+        <div class="ai-chips" role="group" aria-label="Questions rapides">
+          <button type="button" class="ai-chip" data-aiprompt="J'ai faim le soir, comment répartir mes repas sans dépasser mes calories ?">Faim le soir</button>
+          <button type="button" class="ai-chip" data-aiprompt="J'ai un écart ou un resto prévu aujourd'hui, comment ajuster la journée ?">Écart / resto</button>
+          <button type="button" class="ai-chip" data-aiprompt="Je me sens fatigué sur mes séances, est-ce le bon moment pour un deload ?">Fatigue / deload ?</button>
+          <button type="button" class="ai-chip" data-aiprompt="Dois-je ajuster mon cardio cette semaine selon mon poids et mes kcal ?">Ajuster le cardio</button>
         </div>
         <div class="ai-ask-col">
           <input type="text" id="aiQuestion" autocomplete="off" placeholder="Question optionnelle (ex. faim le soir, fatigue…)">
