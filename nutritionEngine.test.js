@@ -474,7 +474,7 @@ const NE = require('./nutritionEngine.js');
     assert(sess, `Missing session ${k}`);
     assert.strictEqual(sess.ex.length, 7, `${k} should have 7 exercises, got ${sess.ex.length}`);
     const baseSets = sess.ex.filter((x) => x.sets != null).reduce((sum, x) => sum + x.sets, 0);
-    assert.strictEqual(baseSets, 21, `${k} should have 21 base sets, got ${baseSets}`);
+    assert.strictEqual(baseSets, 20, `${k} should have 20 base sets, got ${baseSets}`);
   });
   console.log('5 JSON sources + Full Body 4-session split.json loaded & verified OK');
 }
