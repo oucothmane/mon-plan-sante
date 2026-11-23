@@ -463,22 +463,19 @@ const NE = require('./nutritionEngine.js');
   assert(mealsJson.phases.cut && mealsJson.phases.maintien, 'meals.json has cut and maintien');
   assert(coursesJson.shopRules && Array.isArray(coursesJson.shopRules.epicerie), 'courses.json has shopRules');
   assert(splitJson.sessions && Array.isArray(splitJson.cycleKeys), 'split.json has sessions and cycleKeys');
-  assert.deepStrictEqual(splitJson.cycleKeys, ['Push', null, 'Pull', null, 'Legs', null], '6-day PPL cycleKeys');
-  assert.deepStrictEqual(Object.keys(splitJson.sessions), ['Push', 'Pull', 'Legs'], 'Only PPL sessions remain');
-  assert(!splitJson.tech.rp && splitJson.rpRestSec == null && !splitJson.rules.restPause, 'No unused rest-pause rules');
-  ['Push', 'Pull', 'Legs'].forEach((k) => {
+  assert.deepStrictEqual(
+    splitJson.cycleKeys,
+    ['S1', null, 'S2', null, 'S3', null, 'S4', null],
+    '8-day Full Body cycleKeys'
+  );
+  assert.deepStrictEqual(Object.keys(splitJson.sessions), ['S1', 'S2', 'S3', 'S4'], '4 Full Body sessions');
+  ['S1', 'S2', 'S3', 'S4'].forEach((k) => {
     const sess = splitJson.sessions[k];
     assert(sess, `Missing session ${k}`);
+    assert.strictEqual(sess.ex.length, 7, `${k} should have 7 exercises, got ${sess.ex.length}`);
     const baseSets = sess.ex.filter((x) => x.sets != null).reduce((sum, x) => sum + x.sets, 0);
-    assert.strictEqual(baseSets, 16, `${k} should have 16 base sets, got ${baseSets}`);
-    assert(sess.ex.some((x) => x.altKey === 'avantBras'), `${k} should include alternating avantBras finisher`);
+    assert.strictEqual(baseSets, 21, `${k} should have 21 base sets, got ${baseSets}`);
   });
-  assert(
-    Array.isArray(splitJson.altExercises && splitJson.altExercises.avantBras) &&
-      splitJson.altExercises.avantBras.length === 2 &&
-      splitJson.altExercises.avantBras.every((x) => x.sets === 2 && x.opt === true),
-    'avantBras altExercises has 2 optional 2-set exercises'
-  );
-  console.log('5 JSON sources + PPL split.json loaded & verified OK');
+  console.log('5 JSON sources + Full Body 4-session split.json loaded & verified OK');
 }
 

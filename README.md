@@ -10,7 +10,7 @@ Toute la configuration et les données du plan sont centralisées dans des fichi
 - **[foods.json](foods.json)** — Base des aliments et valeurs nutritionnelles **pour 100 g** (`kcal`, `P`, `G`, `L`, `Fibres`), exportable depuis *Réglages → Valeurs des aliments*.
 - **[meals.json](meals.json)** — Les **6 repas** du régime (3 repas Jour ON + 3 repas Jour OFF) en Cut et Maintien, sans riz.
 - **[courses.json](courses.json)** — Liste de courses complète sur 8 jours (`4 ON + 4 OFF`), sans riz.
-- **[split.json](split.json)** — Programme d'entraînement PPL sur 6 jours (`J1`–`J6`, 1 ON / 1 OFF), exercices, RIR, techniques d'intensification et deload.
+- **[split.json](split.json)** — Programme d'entraînement Full Body 4 séances sur 8 jours (`J1`–`J8`, 1 ON / 1 OFF), exercices, RIR et deload.
 
 ## Règles de mise à jour (workflow & invariants)
 

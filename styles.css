@@ -496,8 +496,8 @@ h1 {
 
 .strip {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1.3fr) minmax(0, 0.7fr));
-  gap: 5px;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 4px;
 }
 
 .cyc {
