@@ -1,16 +1,16 @@
 {
-  "description": "Programme d'entraînement Full Body 4 séances sur 8 jours (1 ON / 1 OFF) + cardio et règles de progression.",
+  "description": "Programme d'entraînement Full Body A/B/C/D sur 8 jours (1 ON / 1 OFF) + cardio et règles de progression.",
   "deloadMaxSets": 2,
   "defaultStepKg": 2.5,
   "tech": {},
   "cycleKeys": [
-    "S1",
+    "A",
     null,
-    "S2",
+    "B",
     null,
-    "S3",
+    "C",
     null,
-    "S4",
+    "D",
     null
   ],
   "cardio": {
@@ -20,63 +20,63 @@
   },
   "altExercises": {},
   "sessions": {
-    "S1": {
+    "A": {
       "day": "J1",
-      "short": "S1",
-      "title": "🔵 Séance 1",
-      "sub": "20 séries · Épaisseur Dos · Quads · Iso Pecs · Bras · Lombaires",
+      "short": "A",
+      "title": "🔵 Séance A",
+      "sub": "20 séries · Épaisseur Dos · Quads · Pecs · Épaules · Bras · Lombaires",
       "ex": [
         { "m": "Dos", "n": "Rowing barre", "note": "Ou rowing buste penché · épaisseur du dos", "sets": 3, "reps": "8–10", "rir": "RIR 2", "rest": 150, "poly": true, "defaultKg": 50 },
-        { "m": "Quads", "n": "Presse à cuisses", "note": "Ou squat guidé stable · attention valgus", "sets": 3, "reps": "8–12", "rir": "RIR 2", "rest": 150, "poly": true, "defaultKg": 140, "stepKg": 5 },
-        { "m": "Pecs", "n": "Pec deck", "note": "Ou écartés poulie · jusqu’à l’échec propre", "sets": 3, "reps": "12–15", "rir": "RIR 0", "rest": 90, "defaultKg": 45 },
+        { "m": "Quads", "n": "Presse à cuisses", "note": "Pieds à plat, genoux dans l’axe, fesses collées", "sets": 3, "reps": "8–12", "rir": "RIR 2", "rest": 150, "poly": true, "defaultKg": 140, "stepKg": 5 },
+        { "m": "Pecs", "n": "Pec-Deck", "note": "Ou écartés poulie · jusqu’à l’échec propre", "sets": 3, "reps": "12–15", "rir": "RIR 0", "rest": 90, "defaultKg": 45 },
         { "m": "Épaule lat.", "n": "Élévations latérales haltères", "note": "Mouvement contrôlé sans élan", "sets": 3, "reps": "12–15", "rir": "RIR 1", "rest": 90, "defaultKg": 10 },
         { "m": "Biceps", "n": "Curl incliné haltères", "note": "Banc incliné · étirement du chef long", "sets": 3, "reps": "10–12", "rir": "RIR 1", "rest": 90, "defaultKg": 12 },
-        { "m": "Triceps", "n": "Extension triceps poulie haute", "note": "Coudes fixes le long du buste", "sets": 3, "reps": "10–12", "rir": "RIR 1", "rest": 90, "defaultKg": 30 },
+        { "m": "Triceps", "n": "Extensions à la poulie haute", "note": "Coudes fixes le long du buste", "sets": 3, "reps": "10–12", "rir": "RIR 1", "rest": 90, "defaultKg": 30 },
         { "m": "Lombaires", "n": "Banc à lombaires", "note": "Extension contrôlée, sans hyperextension", "sets": 2, "reps": "12–15", "rir": "RIR 2", "rest": 90, "defaultKg": 10 }
       ]
     },
-    "S2": {
+    "B": {
       "day": "J3",
-      "short": "S2",
-      "title": "🟢 Séance 2",
-      "sub": "20 séries · Largeur Dos · Ischios · Poly Pecs · Oiseau · Avant-bras · Mollets",
+      "short": "B",
+      "title": "🟢 Séance B",
+      "sub": "20 séries · Largeur Dos · Ischios · Pecs · Arrière d’épaule · Avant-bras · Mollets",
       "ex": [
         { "m": "Dos", "n": "Tirage vertical", "note": "Ou tractions · largeur, coudes vers les hanches", "sets": 3, "reps": "8–12", "rir": "RIR 2", "rest": 150, "poly": true, "defaultKg": 65 },
         { "m": "Ischios", "n": "Soulevé de terre roumain", "note": "Dos plat, hanches en arrière", "sets": 3, "reps": "8–10", "rir": "RIR 2", "rest": 150, "poly": true, "defaultKg": 60, "stepKg": 5 },
         { "m": "Pecs", "n": "Développé incliné", "note": "Haltères ou machine · haut des pecs", "sets": 3, "reps": "8–10", "rir": "RIR 2", "rest": 150, "poly": true, "defaultKg": 40 },
         { "m": "Épaule post.", "n": "Oiseau", "note": "Arrière d’épaule · mouvement contrôlé sans élan", "sets": 3, "reps": "12–15", "rir": "RIR 0–1", "rest": 90, "defaultKg": 10 },
-        { "m": "Avant-bras", "n": "Reverse curl", "note": "Brachioradial · prise en pronation", "sets": 3, "reps": "10–12", "rir": "RIR 1", "rest": 90, "defaultKg": 15 },
-        { "m": "Avant-bras", "n": "Wrist curls", "note": "Flexions poignets · enrouler depuis les doigts", "sets": 2, "reps": "15–20", "rir": "RIR 0–1", "rest": 60, "defaultKg": 15 },
+        { "m": "Avant-bras", "n": "Reverse Curl", "note": "Brachioradial · prise en pronation", "sets": 3, "reps": "10–12", "rir": "RIR 1", "rest": 90, "defaultKg": 15 },
+        { "m": "Avant-bras", "n": "Wrist Curls", "note": "Flexions poignets · enrouler depuis les doigts", "sets": 2, "reps": "15–20", "rir": "RIR 0–1", "rest": 60, "defaultKg": 15 },
         { "m": "Mollets", "n": "Mollets debout", "note": "Amplitude complète · pause en bas", "sets": 3, "reps": "15–20", "rir": "RIR 0", "rest": 60, "defaultKg": 40 }
       ]
     },
-    "S3": {
+    "C": {
       "day": "J5",
-      "short": "S3",
-      "title": "🟠 Séance 3",
-      "sub": "20 séries · Épaisseur Dos · Ischios · Iso Pecs · Bras · Lombaires",
+      "short": "C",
+      "title": "🟠 Séance C",
+      "sub": "20 séries · Épaisseur Dos · Ischios · Pecs · Épaules · Bras · Lombaires",
       "ex": [
         { "m": "Dos", "n": "Tirage horizontal", "note": "Prise neutre, coudes serrés · épaisseur", "sets": 3, "reps": "8–12", "rir": "RIR 2", "rest": 150, "poly": true, "defaultKg": 55 },
-        { "m": "Ischios", "n": "Leg curl", "note": "Couché ou assis · contrôle en étirement", "sets": 3, "reps": "10–15", "rir": "RIR 0–1", "rest": 90, "defaultKg": 55 },
+        { "m": "Ischios", "n": "Leg Curl", "note": "Couché ou assis · contrôle en étirement", "sets": 3, "reps": "10–15", "rir": "RIR 0–1", "rest": 90, "defaultKg": 55 },
         { "m": "Épaule lat.", "n": "Élévations latérales poulie", "note": "Tension continue à la poulie basse", "sets": 3, "reps": "12–15", "rir": "RIR 1", "rest": 90, "defaultKg": 10 },
         { "m": "Pecs", "n": "Écartés poulie", "note": "Étirement contrôlé · jusqu’à l’échec propre", "sets": 3, "reps": "12–15", "rir": "RIR 0", "rest": 90, "defaultKg": 15 },
         { "m": "Biceps", "n": "Curl pupitre", "note": "Amplitude contrôlée sans à-coup en bas", "sets": 3, "reps": "10–12", "rir": "RIR 1", "rest": 90, "defaultKg": 25 },
-        { "m": "Triceps", "n": "Barre au front haltères", "note": "Coudes stables, étirement contrôlé", "sets": 3, "reps": "10–12", "rir": "RIR 1", "rest": 90, "defaultKg": 12 },
+        { "m": "Triceps", "n": "Barre au front aux haltères", "note": "Coudes stables, étirement contrôlé", "sets": 3, "reps": "10–12", "rir": "RIR 1", "rest": 90, "defaultKg": 12 },
         { "m": "Lombaires", "n": "Banc à lombaires", "note": "Extension contrôlée, sans hyperextension", "sets": 2, "reps": "12–15", "rir": "RIR 2", "rest": 90, "defaultKg": 10 }
       ]
     },
-    "S4": {
+    "D": {
       "day": "J7",
-      "short": "S4",
-      "title": "🟣 Séance 4",
-      "sub": "20 séries · Largeur Dos · Poly Pecs · Quads · Oiseau · Avant-bras · Mollets",
+      "short": "D",
+      "title": "🟣 Séance D",
+      "sub": "20 séries · Largeur Dos · Pecs · Quads · Arrière d’épaule · Avant-bras · Mollets",
       "ex": [
         { "m": "Dos", "n": "Tirage vertical prise serrée pronation", "note": "Largeur · prise serrée en pronation", "sets": 3, "reps": "8–12", "rir": "RIR 2", "rest": 150, "poly": true, "defaultKg": 60 },
         { "m": "Pecs", "n": "Développé couché", "note": "Plat ou incliné léger · épaules basses", "sets": 3, "reps": "8–10", "rir": "RIR 2", "rest": 150, "poly": true, "defaultKg": 60 },
-        { "m": "Quads", "n": "Leg extension", "note": "Mouvement contrôlé, pause en haut", "sets": 3, "reps": "12–15", "rir": "RIR 0–1", "rest": 90, "defaultKg": 60 },
+        { "m": "Quads", "n": "Leg Extension", "note": "Mouvement contrôlé, pause en haut", "sets": 3, "reps": "12–15", "rir": "RIR 0–1", "rest": 90, "defaultKg": 60 },
         { "m": "Épaule post.", "n": "Oiseau", "note": "Arrière d’épaule · mouvement contrôlé sans élan", "sets": 3, "reps": "12–15", "rir": "RIR 0–1", "rest": 90, "defaultKg": 10 },
         { "m": "Biceps", "n": "Curl marteau", "note": "Hammer curl · brachial et avant-bras", "sets": 3, "reps": "10–12", "rir": "RIR 1", "rest": 90, "defaultKg": 14 },
-        { "m": "Avant-bras", "n": "Wrist curls", "note": "Flexions poignets · enrouler depuis les doigts", "sets": 2, "reps": "15–20", "rir": "RIR 0–1", "rest": 60, "defaultKg": 15 },
+        { "m": "Avant-bras", "n": "Wrist Curls", "note": "Flexions poignets · enrouler depuis les doigts", "sets": 2, "reps": "15–20", "rir": "RIR 0–1", "rest": 60, "defaultKg": 15 },
         { "m": "Mollets", "n": "Mollets debout", "note": "Amplitude complète · pause en bas", "sets": 3, "reps": "15–20", "rir": "RIR 0", "rest": 60, "defaultKg": 40 }
       ]
     }

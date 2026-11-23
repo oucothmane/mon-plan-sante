@@ -465,11 +465,11 @@ const NE = require('./nutritionEngine.js');
   assert(splitJson.sessions && Array.isArray(splitJson.cycleKeys), 'split.json has sessions and cycleKeys');
   assert.deepStrictEqual(
     splitJson.cycleKeys,
-    ['S1', null, 'S2', null, 'S3', null, 'S4', null],
+    ['A', null, 'B', null, 'C', null, 'D', null],
     '8-day Full Body cycleKeys'
   );
-  assert.deepStrictEqual(Object.keys(splitJson.sessions), ['S1', 'S2', 'S3', 'S4'], '4 Full Body sessions');
-  ['S1', 'S2', 'S3', 'S4'].forEach((k) => {
+  assert.deepStrictEqual(Object.keys(splitJson.sessions), ['A', 'B', 'C', 'D'], '4 Full Body sessions');
+  ['A', 'B', 'C', 'D'].forEach((k) => {
     const sess = splitJson.sessions[k];
     assert(sess, `Missing session ${k}`);
     assert.strictEqual(sess.ex.length, 7, `${k} should have 7 exercises, got ${sess.ex.length}`);
