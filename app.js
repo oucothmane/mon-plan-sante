@@ -1511,10 +1511,10 @@
         } else if (Math.abs(deltaW) <= 0.3) {
           dEl.classList.add('is-ok');
         }
-        $('wkAvgDeltaSub').textContent = 'Sem. N vs N−1';
+        $('wkAvgDeltaSub').textContent = 'vs sem. dernière';
       } else {
         dEl.textContent = '—';
-        $('wkAvgDeltaSub').textContent = 'En attente N−1';
+        $('wkAvgDeltaSub').textContent = 'En attente';
       }
     }
     if ($('bevelPreview')) {
@@ -1581,10 +1581,10 @@
       '',
       '## Moyennes de poids',
       `- **Phase** : ${phaseLab} · **Objectif** : ${fmt1(p.targetWeightKg)} kg`,
-      `- **Moyenne Semaine N (7 j)** : ${wN ? `**${fmt1(wN.avg)} kg** (${wN.n} pesée${wN.n > 1 ? 's' : ''})` : 'Aucune pesée'}`,
-      `- **Moyenne Semaine N−1** : ${wN1 ? `**${fmt1(wN1.avg)} kg** (${wN1.n} pesée${wN1.n > 1 ? 's' : ''})` : 'Non renseignée'}`,
-      `- **Écart Sem. N vs N−1** : ${deltaW != null ? `**${signKg(deltaW)}**` : 'Insuffisant'}`,
-      w2 ? `- **Moyenne Semaine N−2** : ${fmt1(w2.avg)} kg (${w2.n} pesée${w2.n > 1 ? 's' : ''})` : null,
+      `- **Pesée moyenne cette semaine** : ${wN ? `**${fmt1(wN.avg)} kg** (${wN.n} pesée${wN.n > 1 ? 's' : ''})` : 'Aucune pesée'}`,
+      `- **Pesée moyenne la semaine dernière** : ${wN1 ? `**${fmt1(wN1.avg)} kg** (${wN1.n} pesée${wN1.n > 1 ? 's' : ''})` : 'Non renseignée'}`,
+      `- **Écart** : ${deltaW != null ? `**${signKg(deltaW)}**` : 'Insuffisant'}`,
+      w2 ? `- **Pesée moyenne il y a 2 semaines** : ${fmt1(w2.avg)} kg (${w2.n} pesée${w2.n > 1 ? 's' : ''})` : null,
       last7Weights.length ? `- **Pesées 7 j** : ${last7Weights.join(' · ')}` : null,
       wa.latest != null
         ? `- **Tour de taille** : **${fmt1(wa.latest)} cm**${wa.delta != null ? ` (${wa.delta > 0 ? '+' : wa.delta < 0 ? '−' : '±'}${fmt1(Math.abs(wa.delta))} cm)` : ''}`
