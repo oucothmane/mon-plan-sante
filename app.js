@@ -74,6 +74,12 @@
   const spoon = (x) => String(Math.max(0.5, Math.round(x * 2) / 2)).replace('.', ',');
   const fmtRest = (s) =>
     s >= 60 ? Math.floor(s / 60) + '′' + (s % 60 ? pad(s % 60) : '') : s + ' s';
+  const escHtml = (s) =>
+    String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
 
   const CHECK =
     '<svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -1608,30 +1614,6 @@
     ta.remove();
   }
 
-  async function downloadBevelMd() {
-    const md = buildBevelMd();
-    const filename = `bilan-bevel-${today}.md`;
-    try {
-      const file = new File([md], filename, { type: 'text/markdown;charset=utf-8' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: filename });
-        showToast('Bilan .md partagé ✓');
-        return;
-      }
-    } catch (e) {
-      if (e && e.name === 'AbortError') return;
-    }
-    const url = URL.createObjectURL(new Blob([md], { type: 'text/markdown;charset=utf-8' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    showToast('bilan-bevel.md téléchargé ✓');
-  }
-
   function buildWeek() {
     const days = [6, 5, 4, 3, 2, 1, 0].map((k) => fromNo(dayNo(today) - k));
     if (!days.includes(selectedWeightDay)) selectedWeightDay = today;
@@ -2323,9 +2305,6 @@
       return;
     } else if (t.id === 'copyBevelBtn') {
       copyBevelMd();
-      return;
-    } else if (t.id === 'dlBevelBtn') {
-      downloadBevelMd();
       return;
     } else if (t.id === 'exportFoodsBtn') {
       const merged = {};
