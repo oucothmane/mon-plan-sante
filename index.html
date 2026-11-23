@@ -331,7 +331,17 @@
         </div>
       </section>
 
-      <!-- Carte 2 : Moyenne de la semaine & Export Bevel (.md) -->
+      <!-- Carte 2 : Courbe d'évolution -->
+      <section class="card panel" aria-label="Ma courbe de poids">
+        <h2>Évolution</h2>
+        <div class="sub-body" id="wCurve"></div>
+      </section>
+    </section>
+
+    <!-- ==================================================================
+         ONGLET 3 : BILAN BEVEL (Moyenne semaine & Export Markdown)
+         ================================================================== -->
+    <section class="view" id="view-bevel" aria-label="Bilan Bevel" hidden>
       <section class="card panel" id="bevelCard" aria-label="Moyenne de la semaine et export Bevel">
         <div class="panel-head">
           <div>
@@ -361,12 +371,6 @@
           <summary>Aperçu du bilan Markdown</summary>
           <pre class="bevel-pre" id="bevelPreview"></pre>
         </details>
-      </section>
-
-      <!-- Carte 3 : Courbe d'évolution -->
-      <section class="card panel" aria-label="Ma courbe de poids">
-        <h2>Évolution</h2>
-        <div class="sub-body" id="wCurve"></div>
       </section>
     </section>
 
@@ -498,7 +502,7 @@
     </div>
   </div>
 
-  <!-- BARRE DE NAVIGATION iOS GLASS (2 ONGLETS : Diet, Séance) -->
+  <!-- BARRE DE NAVIGATION iOS GLASS (3 ONGLETS : Diet, Séance, Bevel) -->
   <nav class="tabs" aria-label="Navigation">
     <div class="wrap">
       <button type="button" class="tab" data-tab="repas" aria-current="page">
@@ -506,6 +510,9 @@
       </button>
       <button type="button" class="tab" data-tab="seance">
         <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7v10M3 9.5v5M18 7v10M21 9.5v5M6 12h12"/></svg></span>Séance
+      </button>
+      <button type="button" class="tab" data-tab="bevel">
+        <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span>Bevel
       </button>
     </div>
   </nav>

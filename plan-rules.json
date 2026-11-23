@@ -6,6 +6,7 @@
     "maintien": { "on": 2400, "off": 2200 }
   },
   "profile": {
+    "birthDate": "1994-06-09",
     "age": 32,
     "heightCm": 182,
     "sex": "male",

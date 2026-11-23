@@ -95,6 +95,7 @@
   const TITLES = {
     repas: 'Diet',
     seance: 'Séance',
+    bevel: 'Bilan Bevel',
     cardio: 'Cardio',
     suivi: 'Poids',
     courses: 'Courses',
@@ -260,7 +261,7 @@
   // ==========================================================================
 
   const KEY = 'mon-plan-repas-v1';
-  const TABS = ['repas', 'seance', 'cardio', 'suivi', 'courses', 'profil', 'reglages', 'donnees'];
+  const TABS = ['repas', 'seance', 'bevel', 'cardio', 'suivi', 'courses', 'profil', 'reglages', 'donnees'];
 
   async function initApp() {
     await loadJsonConfigs();
@@ -419,8 +420,26 @@
   syncWeeklyAvgs();
   save();
 
+  function ageFromBirthDate(iso) {
+    const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return null;
+    const now = dateOf(today);
+    const by = Number(m[1]);
+    const bm = Number(m[2]);
+    const bd = Number(m[3]);
+    let age = now.getFullYear() - by;
+    if (now.getMonth() + 1 < bm || (now.getMonth() + 1 === bm && now.getDate() < bd)) age--;
+    return age > 0 && age < 120 ? age : null;
+  }
+
   const food = (id) => NE.getFood(id, st.foods);
-  const profile = () => Object.assign({}, PROFILE_DEFAULT, st.profile || {});
+  const profile = () => {
+    const p = Object.assign({}, PROFILE_DEFAULT, st.profile || {});
+    const birth = p.birthDate || PROFILE_DEFAULT.birthDate;
+    const autoAge = ageFromBirthDate(birth);
+    if (autoAge != null) p.age = autoAge;
+    return p;
+  };
 
   function rollingWeight() {
     const eatenLog = st.eatenLog || {};
@@ -1465,8 +1484,10 @@
         }
       }
     }
+  }
 
-    // Calculateur moyenne semaine + aperçu bilan Bevel (.md)
+  function renderBevel() {
+    const waAvg = st.weeklyAvgs || syncWeeklyAvgs();
     const nObj = waAvg.n;
     const n1Obj = waAvg.n1;
     const deltaW = waAvg.deltaKg != null ? waAvg.deltaKg : nObj && n1Obj ? Math.round((nObj.avg - n1Obj.avg) * 100) / 100 : null;
@@ -1850,16 +1871,17 @@
   function buildProfile() {
     const p = profile();
     const sw = startWeight();
+    const birthTxt = p.birthDate ? p.birthDate.split('-').reverse().join('/') : '';
     const fields = [
-      ['startWeightKg', 'Départ (kg)', sw != null ? String(sw).replace('.', ',') : '', 'decimal', '1re pesée'],
-      ['targetWeightKg', 'Objectif (kg)', String(p.targetWeightKg).replace('.', ','), 'decimal', ''],
-      ['heightCm', 'Taille (cm)', String(p.heightCm), 'numeric', ''],
-      ['age', 'Âge (ans)', String(p.age), 'numeric', '']
+      ['startWeightKg', 'Départ (kg)', sw != null ? String(sw).replace('.', ',') : '', 'decimal', '1re pesée', false],
+      ['targetWeightKg', 'Objectif (kg)', String(p.targetWeightKg).replace('.', ','), 'decimal', '', false],
+      ['heightCm', 'Taille (cm)', String(p.heightCm), 'numeric', '', false],
+      ['age', birthTxt ? `Âge (auto · ${birthTxt})` : 'Âge (ans)', String(p.age), 'numeric', '', !!birthTxt]
     ];
     $('profGrid').innerHTML = fields
       .map(
-        ([k, lab, val, mode, ph]) => `<label class="prof-field"><small>${lab}</small>
-        <input type="text" inputmode="${mode}" autocomplete="off" data-prof="${k}" value="${val}"${ph ? ` placeholder="${ph}"` : ''}></label>`
+        ([k, lab, val, mode, ph, ro]) => `<label class="prof-field"><small>${lab}</small>
+        <input type="text" inputmode="${mode}" autocomplete="off" data-prof="${k}" value="${val}"${ph ? ` placeholder="${ph}"` : ''}${ro ? ' readonly tabindex="-1"' : ''}></label>`
       )
       .join('');
     const actBtns = document.querySelectorAll('[data-activity]');
@@ -1988,7 +2010,7 @@
       else b.removeAttribute('aria-current');
     });
     if ($('menuBtn')) {
-      $('menuBtn').classList.toggle('is-active', !['repas', 'seance'].includes(st.tab));
+      $('menuBtn').classList.toggle('is-active', !['repas', 'seance', 'bevel'].includes(st.tab));
       $('menuBtn').classList.toggle('has-dot', needsBackup());
     }
 
@@ -1998,6 +2020,8 @@
       renderRepas();
     } else if (st.tab === 'seance') {
       renderSeance();
+    } else if (st.tab === 'bevel') {
+      renderBevel();
     } else if (st.tab === 'cardio') {
       renderCardio();
     } else if (st.tab === 'courses') {
