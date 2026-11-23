@@ -1522,6 +1522,15 @@
     }
   }
 
+  const bevelTags = new Set();
+  let bevelNote = '';
+  const BEVEL_TAG_TEXT = {
+    stagnation: 'Je stagne sur la balance : que faire (calories, cardio ou patience) ?',
+    resto: 'Je prévois un resto / écart : comment gérer et ajuster ma journée ou ma semaine ?',
+    malade: 'Je suis malade ou très fatigué : comment adapter mes repas, mon cardio et mes séances ?',
+    changement: 'Est-ce que je dois modifier ma diète ou mon split actuellement ?'
+  };
+
   function buildBevelMd() {
     const clean = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     const p = profile();
@@ -1529,178 +1538,65 @@
     const wN = waAvg.n;
     const wN1 = waAvg.n1;
     const w2 = avgRange(14, 20);
-    const W = weekly();
     const deltaW =
       waAvg.deltaKg != null
         ? waAvg.deltaKg
         : wN && wN1
         ? Math.round((wN.avg - wN1.avg) * 100) / 100
         : null;
-    const rw = rollingWeight();
-    const sw = startWeight();
-    const hasW = hasLoggedWeight();
-    const totalLost = sw != null && hasW ? Math.round((sw - rw.weightKg) * 10) / 10 : null;
-    const remToGoal = hasW ? Math.round((rw.weightKg - p.targetWeightKg) * 10) / 10 : null;
     const wa = waistInfo();
-    const ep = engineProfile(st.phase);
-    const N = NE.calculateTargets(ep);
-    const onPlan = buildDay(st.phase, 'on');
-    const offPlan = buildDay(st.phase, 'off');
     const effOn = tgt(st.phase, 'on');
     const effOff = tgt(st.phase, 'off');
-    const avgChoice = Math.round((effOn + effOff) / 2);
-    const floorKcal = Math.max(KCAL_MIN, p.kcalFloor || KCAL_MIN);
     const C = cardioPlan(st.phase);
     const s7 = cardioDoneLast7();
-    const ad = adaptiveInfo();
-    const ev = NE.evaluateStagnation(ep, W.r1, W.r0, false, {
-      waistDeltaCm: wa.delta,
-      sleepUnder7h: p.sleepOk === false,
-      effectiveOffKcal: effOff
-    });
-
-    const t0 = dayNo(today);
-    const trendPts = NE.computeWeightTrend(
-      Object.keys(st.weights || {})
-        .filter((d) => isFinite(st.weights[d]) && dayNo(d) <= t0 && t0 - dayNo(d) <= 55)
-        .sort()
-        .map((d) => ({ d, n: dayNo(d), v: st.weights[d] }))
-    );
-    const latestTrendKg = trendPts.length >= 2 ? trendPts[trendPts.length - 1].trendKg : null;
-
     const phaseLab = st.phase === 'seche' ? 'Cut' : 'Maintien';
-    const lossTxt = String(Math.round(N.weeklyLossKg * 100) / 100).replace('.', ',');
-    const activityLab =
-      Math.abs((Number(p.activityFactor) || 1.38) - (NE.RULE_CONFIG.profile.activityOfficeFactor || 1.25)) < 0.04
-        ? 'Travail de bureau (sans salle)'
-        : 'Bureau + musculation (1 ON / 1 OFF)';
     const signKg = (v) =>
       (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(v).toFixed(2).replace('.', ',') + ' kg';
 
-    const ci = cycleIdx();
-    const cycTxt =
-      ci != null
-        ? CYCLE[ci]
-          ? `J${ci + 1}/${CYCLE.length} — Jour ON (${SESSIONS[CYCLE[ci]].short})`
-          : `J${ci + 1}/${CYCLE.length} — Jour OFF (Récupération)`
-        : 'Cycle non démarré';
+    const last7Weights = [6, 5, 4, 3, 2, 1, 0]
+      .map((k) => {
+        const d = fromNo(dayNo(today) - k);
+        const wt = st.weights[d];
+        if (wt == null) return null;
+        const dt = dateOf(d);
+        return `${DOW[dt.getDay()]} ${dt.getDate()} : **${fmt1(wt)} kg**`;
+      })
+      .filter(Boolean);
 
-    // Tableau historique des 14 derniers jours
-    const logDates = Array.from(
-      new Set([
-        ...Object.keys(st.weights || {}),
-        ...Object.keys(st.waist || {}),
-        ...Object.keys(st.kcalLog || {}),
-        ...Object.keys(st.cardioLog || {})
-      ])
-    )
-      .filter((d) => dayNo(d) <= t0 && t0 - dayNo(d) <= 13)
-      .sort()
-      .reverse();
-
-    const logRows = logDates.length
-      ? logDates
-          .map((d) => {
-            const wt = isFinite(st.weights[d]) ? fmt1(st.weights[d]) : '—';
-            const eatenN = st.eatenLog && st.eatenLog[d] != null ? `${st.eatenLog[d]}/3` : '—';
-            const kc = st.kcalLog && isFinite(st.kcalLog[d]) ? `${clean(st.kcalLog[d])}` : '—';
-            const cEntry = st.cardioLog && st.cardioLog[d];
-            const cTxt =
-              cEntry && (cEntry === true || cEntry.done)
-                ? cEntry.min
-                  ? `${cEntry.min} min`
-                  : 'Oui'
-                : '—';
-            const ws = st.waist && isFinite(st.waist[d]) ? fmt1(st.waist[d]) : '—';
-            return `| ${d} | ${wt} | ${eatenN} | ${kc} | ${cTxt} | ${ws} |`;
-          })
-          .join('\n')
-      : '| — | Aucune donnée enregistrée | — | — | — | — |';
-
-    const formatDayPlan = (P, label) => {
-      const t = P.tot;
-      const head = `### ${label} — ${clean(t.kcal)} / ${clean(P.target)} kcal (P ${Math.round(t.p)} g · G ${Math.round(t.g)} g · L ${Math.round(t.l)} g · Fibres ${Math.round(t.fib)} g)`;
-      const mealsTxt = P.meals
-        .map((m) => {
-          const items = m.items
-            .filter((i) => i.g > 0)
-            .map((i) => `${food(i.f).n} ${i.g} g${i.custom ? ' (perso)' : ''}`)
-            .join(', ');
-          return `- **${m.name} (${clean(m.kcal)} kcal)** : ${items || '—'}`;
-        })
-        .join('\n');
-      return `${head}\n${mealsTxt}`;
-    };
-
-    const loadLines = [];
-    Object.keys(SESSIONS).forEach((sKey) => {
-      const S = SESSIONS[sKey];
-      const items = [];
-      S.ex.forEach((raw) => {
-        if (!raw || raw.isAlt) return;
-        const kg = st.loads[raw.n] != null ? st.loads[raw.n] : defKg(raw);
-        if (kg == null) return;
-        const h = st.hist[raw.n] || [];
-        const last = h.length ? h[h.length - 1] : null;
-        const repsTxt =
-          last && Array.isArray(last.reps) && last.reps.length ? ` (${last.reps.join('/')} reps)` : '';
-        items.push(`${raw.n} ${fmtKg(kg)} kg${repsTxt}`);
-      });
-      if (items.length) loadLines.push(`- **${S.short} (${S.day})** : ${items.join(' · ')}`);
+    const questions = [];
+    ['stagnation', 'resto', 'malade', 'changement'].forEach((k) => {
+      if (bevelTags.has(k)) questions.push(`- ${BEVEL_TAG_TEXT[k]}`);
     });
+    if (bevelNote.trim()) {
+      questions.push(`- **Précision** : ${bevelNote.trim()}`);
+    }
+    if (!questions.length) {
+      questions.push(
+        '- Dis-moi si je continue tel quel ou si je dois ajuster ma diète, mon cardio ou mon split.'
+      );
+    }
 
     return [
-      `# Bilan Hebdo — Mon Plan Santé (${today})`,
+      `# Mise à jour Semaine (${today})`,
       '',
-      '## 1. Profil, Objectif & Règles du plan',
-      `- **Date & Cycle** : ${today} · ${cycTxt}`,
-      `- **Phase active** : **${phaseLab}**${st.phase === 'seche' ? ` (perte visée : −${lossTxt} kg/sem)` : ''}`,
-      `- **Profil** : Homme, **${p.age} ans**, **${p.heightCm} cm** · Activité : ${activityLab}`,
-      `- **Poids de départ → Objectif** : ${sw != null ? `${fmt1(sw)} kg` : '—'} → **${fmt1(p.targetWeightKg)} kg**${remToGoal != null ? (remToGoal > 0 ? ` (reste ${fmt1(remToGoal)} kg)` : ' (objectif atteint !)') : ''}`,
-      `- **Règles strictes à respecter** : plancher calorique **≥ ${clean(floorKcal)} kcal** en Jour OFF · protéines **≤ ${p.proteinMaxG || 165} g/j** · zéro riz (féculents : pâtes complètes crues + patate douce crue) · split **PPL 6 jours (1 ON / 1 OFF)** · Jour ON cardio = aller-retour salle à pied (${C.baseOn} min).`,
-      `- **Garde-fous déclarés** : Diète ≥ 90 % : **${p.dietAdhered === false ? 'Non' : 'Oui'}** · Sommeil ≥ 7 h : **${p.sleepOk === false ? 'Non' : 'Oui'}**`,
-      '',
-      '## 2. Poids, Moyennes hebdo & Tour de taille',
-      hasW
-        ? `- **Poids actuel (moyenne 7 j)** : **${fmt1(rw.weightKg)} kg**${totalLost != null ? ` (${totalLost > 0 ? `−${fmt1(totalLost)} kg` : totalLost < 0 ? `+${fmt1(-totalLost)} kg` : 'stable'} depuis le départ)` : ''}`
-        : '- **Poids actuel** : Aucune pesée enregistrée',
-      latestTrendKg != null ? `- **Tendance lissée (EWMA)** : ${fmt1(latestTrendKg)} kg` : null,
-      `- **Moyenne Semaine N (J0 à J−6)** : ${wN ? `**${fmt1(wN.avg)} kg** (${wN.n} pesée${wN.n > 1 ? 's' : ''})` : 'Aucune pesée'}`,
-      `- **Moyenne Semaine N−1 (J−7 à J−13)** : ${wN1 ? `**${fmt1(wN1.avg)} kg** (${wN1.n} pesée${wN1.n > 1 ? 's' : ''})` : 'Non renseignée'}`,
+      '## Moyennes de poids',
+      `- **Phase** : ${phaseLab} · **Objectif** : ${fmt1(p.targetWeightKg)} kg`,
+      `- **Moyenne Semaine N (7 j)** : ${wN ? `**${fmt1(wN.avg)} kg** (${wN.n} pesée${wN.n > 1 ? 's' : ''})` : 'Aucune pesée'}`,
+      `- **Moyenne Semaine N−1** : ${wN1 ? `**${fmt1(wN1.avg)} kg** (${wN1.n} pesée${wN1.n > 1 ? 's' : ''})` : 'Non renseignée'}`,
       `- **Écart Sem. N vs N−1** : ${deltaW != null ? `**${signKg(deltaW)}**` : 'Insuffisant'}`,
-      w2 ? `- **Moyenne Semaine N−2 (J−14 à J−20)** : ${fmt1(w2.avg)} kg (${w2.n} pesée${w2.n > 1 ? 's' : ''})` : null,
-      `- **Tour de taille** : ${wa.latest != null ? `**${fmt1(wa.latest)} cm**${wa.delta != null ? ` (${wa.delta > 0 ? '+' : wa.delta < 0 ? '−' : '±'}${fmt1(Math.abs(wa.delta))} cm depuis le ${shortDate(wa.prevD)})` : ''}` : 'Non mesuré'}`,
-      `- **Diagnostic auto de l’app** : **${ev.title}** — ${ev.message}`,
-      '',
-      '### Historique des 14 derniers jours',
-      '| Date | Poids (kg) | Repas | Kcal | Cardio | Taille (cm) |',
-      '|---|---:|---:|---:|---:|---:|',
-      logRows,
-      '',
-      '## 3. Calories, TDEE & Cardio',
-      `- **Cibles actives** : **${clean(effOn)} kcal Jour ON** · **${clean(effOff)} kcal Jour OFF** (moy. **${clean(avgChoice)} kcal/j**)`,
-      `- **TDEE théorique** : ~${clean(N.tdee)} kcal/j${ad.ready ? ` · **TDEE adaptatif mesuré** : ~${clean(ad.adaptiveTdee)} kcal/j (confiance : ${ad.confidence})` : ''}`,
-      ad.avgIntakeKcal != null
-        ? `- **Moyenne réellement validée (3/3 repas)** : **${clean(ad.avgIntakeKcal)} kcal/j** sur ${ad.loggedDays} jour${ad.loggedDays > 1 ? 's' : ''}`
+      w2 ? `- **Moyenne Semaine N−2** : ${fmt1(w2.avg)} kg (${w2.n} pesée${w2.n > 1 ? 's' : ''})` : null,
+      last7Weights.length ? `- **Pesées 7 j** : ${last7Weights.join(' · ')}` : null,
+      wa.latest != null
+        ? `- **Tour de taille** : **${fmt1(wa.latest)} cm**${wa.delta != null ? ` (${wa.delta > 0 ? '+' : wa.delta < 0 ? '−' : '±'}${fmt1(Math.abs(wa.delta))} cm)` : ''}`
         : null,
-      `- **Cardio réglé** : **${C.on} min Jour ON** (aller-retour salle) · **${C.off} min Jour OFF** (marche / Zone 2)`,
-      `- **Cardio validé (7 derniers jours)** : **${s7.days} / 7 jours**${s7.totalMin > 0 ? ` (${fmt(s7.totalMin)} min au total)` : ''}`,
       '',
-      '## 4. Mes repas actuels',
-      formatDayPlan(onPlan, 'Jour ON'),
+      '## Plan actuel',
+      `- **Calories** : ${clean(effOn)} kcal Jour ON · ${clean(effOff)} kcal Jour OFF`,
+      `- **Cardio** : ${C.on} min Jour ON · ${C.off} min Jour OFF (${s7.days}/7 j validés)`,
+      deloadOn() ? '- **Entraînement** : Deload actif' : null,
       '',
-      formatDayPlan(offPlan, 'Jour OFF'),
-      '',
-      `## 5. Entraînement — PPL 6 jours (${deloadOn() ? 'Deload actif' : 'Cycle normal'})`,
-      loadLines.length ? loadLines.join('\n') : '- Aucune charge personnalisée enregistrée.',
-      '',
-      '---',
-      '## Ce que j’attends de toi (Bevel)',
-      'En croisant ce bilan avec mes données Bevel de la semaine (**sommeil, récupération, HRV, strain, pas/activité**), donne-moi une réponse claire, directe et chiffrée :',
-      '1. **Verdict de la semaine** : est-ce que ma perte / tendance est dans la bonne zone ou y a-t-il stagnation, fatigue ou rétention ?',
-      `2. **Calories & repas** : est-ce que je garde **${clean(effOn)} / ${clean(effOff)} kcal** ou dois-je ajuster ? Si ajustement, dis-moi quels aliments et grammes précis modifier (en respectant le plancher **≥ ${clean(floorKcal)} kcal** en Jour OFF et sans riz).`,
-      '3. **Cardio** : quelles durées exactes (Jour ON / Jour OFF) pour la semaine qui vient ?',
-      '4. **Entraînement & récupération** : est-ce que je pousse la double progression normalement ou dois-je lever le pied / faire un deload ?'
+      '## Question / Situation',
+      ...questions
     ]
       .filter((line) => line !== null)
       .join('\n');
@@ -2426,6 +2322,14 @@
     } else if (t.id === 'copyBevelBtn') {
       copyBevelMd();
       return;
+    } else if (d.btag) {
+      if (bevelTags.has(d.btag)) bevelTags.delete(d.btag);
+      else bevelTags.add(d.btag);
+      document.querySelectorAll('[data-btag]').forEach((b) => {
+        b.setAttribute('aria-pressed', String(bevelTags.has(b.dataset.btag)));
+      });
+      if ($('bevelPreview')) $('bevelPreview').textContent = buildBevelMd();
+      return;
     } else if (t.id === 'exportFoodsBtn') {
       const merged = {};
       Object.keys(FOODS_DEFAULT).forEach((id) => {
@@ -2727,6 +2631,11 @@
         recordHist(exName, collectLoggedReps(prefix, nNorm));
       }
       save();
+      return;
+    }
+    if (el.id === 'bevelNote') {
+      bevelNote = el.value;
+      if ($('bevelPreview')) $('bevelPreview').textContent = buildBevelMd();
       return;
     }
     if (el.id === 'waistInput') {

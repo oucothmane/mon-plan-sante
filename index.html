@@ -366,6 +366,16 @@
             <span class="hint" id="wkAvgDeltaSub">N vs N−1</span>
           </div>
         </div>
+        <div class="bevel-ctx">
+          <small class="bevel-lab">Situation / Question (optionnel)</small>
+          <div class="bevel-chips" role="group" aria-label="Situation pour Bevel">
+            <button type="button" class="bevel-chip" data-btag="stagnation" aria-pressed="false">Stagnation</button>
+            <button type="button" class="bevel-chip" data-btag="resto" aria-pressed="false">Resto / Écart</button>
+            <button type="button" class="bevel-chip" data-btag="malade" aria-pressed="false">Malade / Fatigue</button>
+            <button type="button" class="bevel-chip" data-btag="changement" aria-pressed="false">Changer diète / split ?</button>
+          </div>
+          <input type="text" id="bevelNote" class="bevel-note" autocomplete="off" placeholder="Précision (ex : resto samedi, rhume, faim le soir…)">
+        </div>
         <button type="button" class="apply-btn" id="copyBevelBtn">Copier le bilan (.md)</button>
         <details class="bevel-fold">
           <summary>Aperçu du bilan Markdown</summary>

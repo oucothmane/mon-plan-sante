@@ -3161,6 +3161,63 @@ button.wk-day:active,
   font-size: 11px;
 }
 
+.bevel-ctx {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bevel-lab {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.bevel-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bevel-chip {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--sunken);
+  color: var(--fg);
+  font: 600 12.5px var(--font-display);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+
+.bevel-chip[aria-pressed="true"] {
+  background: var(--day-soft);
+  border-color: color-mix(in srgb, var(--day) 45%, transparent);
+  color: var(--day);
+}
+
+.bevel-chip:active {
+  transform: scale(0.97);
+}
+
+.bevel-note {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--sunken);
+  color: var(--fg);
+  font: 500 14px var(--font-display);
+}
+
+.bevel-note:focus {
+  outline: none;
+  border-color: var(--day);
+  background: var(--surface);
+}
+
 .bevel-fold {
   border-top: 0.5px solid var(--line);
   padding-top: 10px;
