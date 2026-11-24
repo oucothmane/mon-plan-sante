@@ -106,8 +106,8 @@ const NE = require('./nutritionEngine.js');
 
   const baseOil = baseOn.quantities.oilMidiG + baseOn.quantities.oilSoirG;
   const beefOil = beefOn.quantities.oilMidiG + beefOn.quantities.oilSoirG;
-  const baseAddedFat = baseOil + baseOn.quantities.walnutsG * 0.65;
-  const beefAddedFat = beefOil + beefOn.quantities.walnutsG * 0.65;
+  const baseAddedFat = baseOil + baseOn.quantities.walnutsG * 0.65 + baseOn.quantities.avocadoG * 0.15;
+  const beefAddedFat = beefOil + beefOn.quantities.walnutsG * 0.65 + beefOn.quantities.avocadoG * 0.15;
   assert(beefAddedFat < baseAddedFat - 5, `Expected beef5 swap to reduce added fat (${beefAddedFat.toFixed(1)} vs ${baseAddedFat.toFixed(1)})`);
   assert(Math.abs(beefOn.totals.l - baseOn.targets.fatG) <= 2, `Beef5 fat drift too high: ${beefOn.totals.l} vs ${baseOn.targets.fatG}`);
   assert(Math.abs(beefOn.totals.kcal - baseOn.dayKcal) / baseOn.dayKcal <= 0.03, 'Beef5 kcal within 3%');

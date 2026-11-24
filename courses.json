@@ -14,8 +14,8 @@
       { "id": "beef5", "label": "Bœuf haché 5 %", "mult": 1.0 }
     ],
     "fresh": [
-      { "id": "veggies", "label": "Légumes verts", "mult": 1.1 },
-      { "id": "sweet_potato", "label": "Patate douce", "mult": 1.0 },
+      { "id": "veggies", "label": "Poêlée de légumes surgelée", "packSize": 600, "one": "sachet 600 g", "many": "sachets 600 g" },
+      { "id": "sweet_potato", "label": "Frites patate douce surgelées (Picard)", "packSize": 500, "one": "sachet 500 g", "many": "sachets 500 g" },
       { "id": "banana", "label": "Bananes", "mult": 1.45 }
     ],
     "avocado": { "id": "avocado", "label": "Avocats", "unitG": 140, "one": "avocat", "many": "avocats" },
@@ -36,12 +36,12 @@
   },
   "categories": {
     "frais": [
-      { "id": "chicken", "name": "Blanc de poulet cru (ou Dinde / Cabillaud / Bœuf 5 %)", "cut8d": "~2 700 g", "maintien8d": "~2 600 g", "buy": "≈ 3,0 kg" },
+      { "id": "chicken", "name": "Blanc de poulet cru (ou Dinde / Cabillaud / Bœuf 5 %)", "cut8d": "~2 900 g", "maintien8d": "~2 800 g", "buy": "≈ 3,0 kg" },
       { "id": "eggs", "name": "Œufs entiers (calibre L)", "cut8d": "24 œufs (3/jour)", "maintien8d": "24 œufs (3/jour)", "buy": "2 boîtes de 12" },
-      { "id": "veggies", "name": "Légumes verts (haricots, brocolis, courgettes…)", "cut8d": "3 200 g (200 g × 2/j)", "maintien8d": "3 200 g", "buy": "≈ 3,5 kg" },
-      { "id": "sweet_potato", "name": "Patate douce crue", "cut8d": "~1 600 – 2 000 g", "maintien8d": "~2 000 g", "buy": "≈ 2,0 kg" },
+      { "id": "veggies", "name": "Poêlée de légumes surgelée", "cut8d": "2 400 g (150 g × 2/j)", "maintien8d": "2 400 g", "buy": "4 sachets de 600 g" },
+      { "id": "sweet_potato", "name": "Frites patate douce surgelées (Picard)", "cut8d": "~1 300 g", "maintien8d": "~1 600 g", "buy": "3 à 4 sachets de 500 g" },
       { "id": "banana", "name": "Bananes", "cut8d": "~480 g (4 bananes)", "maintien8d": "~480 g (4 bananes)", "buy": "≈ 1,0 kg" },
-      { "id": "avocado", "name": "Avocats", "cut8d": "~560 g (70 g/j)", "maintien8d": "~560 g", "buy": "4 avocats" }
+      { "id": "avocado", "name": "Avocats", "cut8d": "~480 g (60 g/j)", "maintien8d": "~440 g", "buy": "4 avocats" }
     ],
     "epicerie": [
       { "id": "pasta", "name": "Pâtes complètes crues", "cut8d": "~750 – 960 g", "maintien8d": "~960 g", "buy": "2 paquets de 500 g" },

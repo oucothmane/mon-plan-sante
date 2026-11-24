@@ -32,7 +32,7 @@
   },
   "foodCaps": {
     "pasta": 120,
-    "sweet_potato": 250,
+    "sweet_potato": 200,
     "raisins": 50,
     "banana": 120,
     "honey": 0,
@@ -45,17 +45,17 @@
   },
   "mealBases": {
     "eggs": 170,
-    "veggiesMidi": 200,
-    "veggiesSoir": 200,
+    "veggiesMidi": 150,
+    "veggiesSoir": 150,
     "tomatoSauceMidi": 150,
     "whey": 30,
     "creatine": 5,
     "dark_choc": 0,
     "peanut_butter": 0,
-    "walnutsOn": 25,
-    "walnutsOff": 35,
-    "avocadoOn": 70,
-    "avocadoOff": 70,
+    "walnutsOn": 15,
+    "walnutsOff": 25,
+    "avocadoOn": 60,
+    "avocadoOff": 60,
     "belvitaGPerBiscuit": 12.5
   },
   "cardioTargets": {

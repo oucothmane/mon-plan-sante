@@ -1152,7 +1152,10 @@
       );
       (rules.fresh || []).forEach((x) => {
         const amt = g(x.id);
-        if (amt > 0) freshItems.push(r(x.id, x.label, fmt(amt) + ' g', '≈ ' + kgUp(amt * (x.mult || 1))));
+        if (amt > 0) {
+          const buy = x.packSize ? packs(amt, x.packSize, x.one, x.many) : '≈ ' + kgUp(amt * (x.mult || 1));
+          freshItems.push(r(x.id, x.label, fmt(amt) + ' g', buy));
+        }
       });
       if (rules.avocado && g(rules.avocado.id) > 0) {
         const av = rules.avocado;
