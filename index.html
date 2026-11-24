@@ -93,6 +93,21 @@
 
       <div class="callout is-warn" id="floorNote" hidden></div>
       <div class="view" id="meals"></div>
+
+      <!-- Valeurs nutritionnelles pour 100 g (replié) -->
+      <details class="card fold">
+        <summary>
+          <span>Valeurs des aliments (pour 100 g)</span>
+          <svg class="ic" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="fold-body">
+          <div class="ref" id="foodRef"></div>
+          <div class="btn-row">
+            <button type="button" class="ghost-btn" id="exportFoodsBtn">Exporter foods.json</button>
+            <button type="button" class="ghost-btn is-danger" id="resetFoods" hidden>Revenir aux valeurs par défaut</button>
+          </div>
+        </div>
+      </details>
     </section>
 
     <!-- ==================================================================

@@ -49,6 +49,7 @@
   const num = (v) => parseFloat(String(v || '').replace(',', '.'));
   const fmt = (n) => Math.round(n).toLocaleString('fr-FR');
   const fmtKg = (v) => String(v).replace('.', ',');
+  const n1 = (x) => String(Math.round(x * 10) / 10).replace('.', ',');
   const spoon = (x) => String(Math.max(0.5, Math.round(x * 2) / 2)).replace('.', ',');
   const fmtRest = (s) =>
     s >= 60 ? Math.floor(s / 60) + '′' + (s % 60 ? pad(s % 60) : '') : s + ' s';
@@ -83,6 +84,7 @@
   // ==========================================================================
 
   const NE = window.NutritionEngine;
+  const FOODS_DEFAULT = NE.FOOD_DB;
   const cloneObj = (o) => JSON.parse(JSON.stringify(o));
 
   let KCAL_MIN = NE.RULE_CONFIG.kcalMin;
@@ -1202,6 +1204,75 @@
       $('cartResetRow').hidden = count === 0;
     }
 
+    const REF_KEYS = [
+      ['kcal', 'kcal'],
+      ['p', 'P'],
+      ['g', 'G'],
+      ['l', 'L']
+    ];
+
+    function foodRefGroups() {
+      const order = NE.RULE_CONFIG.foodsGroupOrder || ['Protéines', 'Glucides', 'Lipides', 'Légumes'];
+      const map = {};
+      order.forEach((g) => {
+        map[g] = [];
+      });
+      Object.keys(FOODS_DEFAULT).forEach((id) => {
+        const F = FOODS_DEFAULT[id];
+        if (!F || F.hidden) return;
+        const g = F.group || 'Autres';
+        if (!map[g]) map[g] = [];
+        map[g].push(id);
+      });
+      return Object.keys(map)
+        .filter((g) => map[g].length > 0)
+        .map((g) => [g, map[g]]);
+    }
+
+    function buildFoodRef() {
+      if (!$('foodRef')) return;
+      $('foodRef').innerHTML = foodRefGroups()
+        .map(
+          ([g, list]) =>
+            `<p class="ref-group">${g}</p>` +
+            list
+              .map((f) => {
+                const F = food(f);
+                return `<div class="ref-row"><span class="ref-name">${F.n} <small id="refTag-${f}"></small></span>
+          <div class="ref-in">${REF_KEYS.map(
+            ([k, lab]) =>
+              `<label><small>${lab}</small><input type="text" inputmode="decimal" autocomplete="off" data-food="${f}|${k}" value="${
+                k === 'kcal' ? Math.round(F[k]) : n1(F[k])
+              }"></label>`
+          ).join('')}</div>
+          <small class="ref-warn" id="refWarn-${f}" hidden></small></div>`;
+              })
+              .join('')
+        )
+        .join('');
+    }
+
+    function renderFoodRef() {
+      if (!$('foodRef')) return;
+      let any = false;
+      foodRefGroups().forEach(([, list]) =>
+        list.forEach((f) => {
+          const mod = Object.keys((st.foods || {})[f] || {}).length > 0;
+          any = any || mod;
+          const F = food(f);
+          const tag = $('refTag-' + f);
+          if (!tag) return;
+          tag.textContent = mod ? 'modifié' : (FOODS_DEFAULT[f] && FOODS_DEFAULT[f].badge) || 'Table';
+          tag.classList.toggle('is-mod', mod);
+          const calc = 4 * F.p + 4 * F.g + 9 * F.l + 2 * (F.fib || 0);
+          const off = F.kcal > 20 && Math.abs(calc - F.kcal) / F.kcal > 0.15;
+          $('refWarn-' + f).hidden = !off;
+          $('refWarn-' + f).textContent = off ? `Attendu ~${Math.round(calc)} kcal` : '';
+        })
+      );
+      if ($('resetFoods')) $('resetFoods').hidden = !any;
+    }
+
     function render() {
       if (st.phase !== 'seche' && st.phase !== 'maintien') st.phase = 'maintien';
       $('app').dataset.day = viewDay();
@@ -1232,6 +1303,7 @@
       if (st.tab !== 'courses') renderCycle();
       if (st.tab === 'repas') {
         renderRepas();
+        renderFoodRef();
       } else if (st.tab === 'seance') {
         renderSeance();
       } else if (st.tab === 'courses') {
@@ -1507,6 +1579,36 @@
         return;
       } else if (d.rec) {
         st.log.done['R|' + d.rec] = !st.log.done['R|' + d.rec];
+      } else if (t.id === 'exportFoodsBtn') {
+        const merged = {};
+        Object.keys(FOODS_DEFAULT).forEach((id) => {
+          merged[id] = Object.assign({}, FOODS_DEFAULT[id], (st.foods && st.foods[id]) || {});
+        });
+        const payload = JSON.stringify({ unit: 'pour 100 g', foods: merged }, null, 2) + '\n';
+        if (window.showSaveFilePicker) {
+          window
+            .showSaveFilePicker({
+              suggestedName: 'foods.json',
+              types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
+            })
+            .then((h) => h.createWritable().then((w) => w.write(payload).then(() => w.close())))
+            .then(() => showToast('foods.json enregistré ✓'))
+            .catch(() => {});
+        } else {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(new Blob([payload], { type: 'application/json' }));
+          a.download = 'foods.json';
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+          showToast('foods.json téléchargé ✓');
+        }
+        return;
+      } else if (t.id === 'resetFoods') {
+        if (!confirm('Remettre les valeurs par défaut ?')) return;
+        st.foods = {};
+        save();
+        buildFoodRef();
+        showToast('Valeurs par défaut rétablies');
       } else if (d.tab && TABS.includes(d.tab)) {
         st.tab = d.tab;
         window.scrollTo(0, 0);
@@ -1546,6 +1648,19 @@
         }
         return;
       }
+      if (el.dataset.food) {
+        const [f, k] = el.dataset.food.split('|');
+        const v = num(el.value);
+        st.foods = st.foods || {};
+        const o = (st.foods[f] = Object.assign({}, st.foods[f]));
+        if (el.value.trim() === '' || v === FOODS_DEFAULT[f][k]) delete o[k];
+        else if (isFinite(v) && v >= 0 && v <= (k === 'kcal' ? 900 : 100)) o[k] = v;
+        else return;
+        if (!Object.keys(o).length) delete st.foods[f];
+        save();
+        render();
+        return;
+      }
       if (el.dataset.load) {
         const v = num(el.value);
         if (el.value.trim() === '') delete st.loads[el.dataset.load];
@@ -1572,6 +1687,12 @@
     document.addEventListener('focusout', (e) => {
       if (e.target && e.target.dataset && e.target.dataset.qty) {
         render();
+        return;
+      }
+      if (e.target && e.target.dataset && e.target.dataset.food) {
+        const [f, k] = e.target.dataset.food.split('|');
+        const F = food(f);
+        e.target.value = k === 'kcal' ? Math.round(F[k]) : n1(F[k]);
       }
     });
 
@@ -1582,6 +1703,7 @@
       }
     });
 
+    buildFoodRef();
     render();
   }
 
