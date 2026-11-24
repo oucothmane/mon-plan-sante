@@ -1,7 +1,7 @@
 {
   "name": "Mon Plan Santé",
   "short_name": "Plan Santé",
-  "description": "Repas du jour, séances du cycle et suivi du poids.",
+  "description": "Repas du jour et split d'entraînement.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",

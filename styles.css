@@ -1379,10 +1379,40 @@ h1 {
 
 .meal-foot {
   padding: 12px 16px 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.copy-meal-btn {
+  flex: none;
+  height: 46px;
+  padding: 0 15px;
+  border-radius: 13px;
+  border: 0.5px solid color-mix(in srgb, var(--day) 28%, transparent);
+  background: var(--day-soft);
+  color: var(--day);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.16s ease, color 0.16s ease, border-color 0.16s ease, transform 0.12s ease;
+}
+
+.copy-meal-btn.is-copied {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: #FFFFFF;
 }
 
 .done-btn {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   height: 46px;
   border-radius: 13px;
   border: 0;
@@ -2779,12 +2809,12 @@ h1 {
   bottom: calc(168px + env(safe-area-inset-bottom, 0px));
 }
 
-/* ---------- Barre de navigation iOS Glass (pilule centrée 3 onglets) ---------- */
+/* ---------- Barre de navigation iOS Glass (pilule centrée 2 onglets) ---------- */
 .tabs {
   position: fixed;
   left: 50%;
   bottom: max(12px, env(safe-area-inset-bottom, 0px));
-  width: min(306px, calc(100% - 32px));
+  width: min(224px, calc(100% - 32px));
   z-index: 10;
   background: color-mix(in srgb, var(--surface) 84%, transparent);
   -webkit-backdrop-filter: saturate(200%) blur(28px);
@@ -2803,7 +2833,7 @@ h1 {
   margin: 0;
   padding: 5px 8px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 4px;
 }
 
@@ -2856,6 +2886,7 @@ h1 {
 .link-btn:active,
 .mini-act:active,
 .phase-pill:active,
+.copy-meal-btn:active,
 .done-btn:active,
 .set-btn:active,
 .rest-btn:active,

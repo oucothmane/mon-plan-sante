@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Mon Plan Santé — Repas, Séance, Cardio, Courses & Poids.">
+  <meta name="description" content="Mon Plan Santé — Repas & Split.">
   <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -28,17 +28,14 @@
       <div class="top-bar">
         <div class="top-title">
           <div class="date" id="date">Aujourd'hui</div>
-          <h1 id="screenTitle">Diet</h1>
+          <h1 id="screenTitle">Repas</h1>
         </div>
         <div class="top-actions">
           <button type="button" class="phase-pill" id="phaseToggleBtn" title="Basculer Cut / Maintien"></button>
-          <button type="button" class="menu-btn" id="menuBtn" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="appMenu">
-            <svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-          </button>
         </div>
       </div>
 
-      <!-- Carte du cycle (visible sur Diet, Séance et Cardio) -->
+      <!-- Carte du cycle -->
       <section class="card today" id="cycBar" aria-label="Mon cycle">
         <div class="today-top">
           <div class="today-txt">
@@ -57,61 +54,11 @@
     </div>
   </header>
 
-  <!-- MENU LISTE EN HAUT (Poids, Courses, Cardio, Profil, Réglages, Données) -->
-  <div class="menu-wrap" id="appMenu" hidden>
-    <div class="menu-backdrop" id="menuBackdrop" aria-hidden="true"></div>
-    <nav class="card menu-sheet" aria-label="Menu principal">
-      <button type="button" class="menu-item" data-tab="suivi">
-        <span class="menu-ic"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M5.5 14.5l4.2-4.2 3.3 2.8 5.5-6"/></svg></span>
-        <span class="menu-txt"><strong>Poids</strong><small>Pesées, Sem. N/N−1 &amp; courbe</small></span>
-        <svg class="ic menu-chev" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-      </button>
-      <button type="button" class="menu-item" data-tab="courses">
-        <span class="menu-ic"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5h2.4l2.1 10.5h10.5l2.2-7H7"/><circle cx="9.5" cy="19.2" r="1.3"/><circle cx="17" cy="19.2" r="1.3"/></svg></span>
-        <span class="menu-txt"><strong>Courses</strong><small>Liste 4 / 8 / 10 jours</small></span>
-        <svg class="ic menu-chev" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-      </button>
-      <button type="button" class="menu-item" data-tab="cardio">
-        <span class="menu-ic"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7-4.5-7-10.2A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 7 3.3c0 5.7-7 10.2-7 10.2z"/></svg></span>
-        <span class="menu-txt"><strong>Cardio</strong><small>Plan Jour ON / OFF</small></span>
-        <svg class="ic menu-chev" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-      </button>
-      <button type="button" class="menu-item" data-tab="profil">
-        <span class="menu-ic"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span>
-        <span class="menu-txt"><strong>Profil</strong><small>Objectif, calories, taille &amp; âge</small></span>
-        <svg class="ic menu-chev" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-      </button>
-      <button type="button" class="menu-item" data-tab="reglages">
-        <span class="menu-ic"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.3M12 18.7V21M3 12h2.3M18.7 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M5.6 18.4l1.6-1.6M16.8 7.2l1.6-1.6"/></svg></span>
-        <span class="menu-txt"><strong>Réglages</strong><small>Apparence &amp; Aliments</small></span>
-        <svg class="ic menu-chev" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-      </button>
-      <button type="button" class="menu-item" data-tab="donnees">
-        <span class="menu-ic"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>
-        <span class="menu-txt"><strong>Données</strong><small>Exporter ou importer</small></span>
-        <svg class="ic menu-chev" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-      </button>
-    </nav>
-  </div>
-
   <main class="wrap">
     <!-- ==================================================================
-         ONGLET 1 : REPAS (Pesée rapide, Résumé macros & Les 3 repas)
+         ONGLET 1 : REPAS (Résumé macros & Les 3 repas avec copie Foodvisor)
          ================================================================== -->
     <section class="view" id="view-repas" aria-label="Repas du jour">
-      <section class="card panel quick-weigh" id="weighCard" aria-label="Pesée du matin" hidden>
-        <div class="field-inline">
-          <label for="wQuick" class="field-label">
-            <span>Poids ce matin</span>
-            <small class="hint">À jeun · 1 tap</small>
-          </label>
-          <div class="amt-in">
-            <input id="wQuick" type="text" inputmode="decimal" autocomplete="off" placeholder="—">
-            <span>kg</span>
-          </div>
-        </div>
-      </section>
-
       <section class="card summary" aria-label="Résumé du jour">
         <div class="sum-top">
           <div class="kcal-block">
@@ -149,9 +96,9 @@
     </section>
 
     <!-- ==================================================================
-         ONGLET 2 : SÉANCE (Exercices, Récupération, Cardio ON/OFF & Charges)
+         ONGLET 2 : SPLIT (Exercices, Récupération & Charges)
          ================================================================== -->
-    <section class="view" id="view-seance" aria-label="Entraînement" hidden>
+    <section class="view" id="view-seance" aria-label="Split d'entraînement" hidden>
       <!-- Jour ON : Séance -->
       <div class="view" id="sessionBox">
         <section class="card sess" aria-label="Avancement de la séance">
@@ -189,308 +136,6 @@
         <div class="fold-body" id="loadsSummary"></div>
       </details>
     </section>
-
-    <!-- ==================================================================
-         MENU : CARDIO (Cardio du jour, validation & Plan Jour ON / OFF)
-         ================================================================== -->
-    <section class="view" id="view-cardio" aria-label="Cardio" hidden>
-      <section class="card panel cardio-card" id="cardioCard" aria-label="Cardio du jour">
-        <div class="panel-head">
-          <div>
-            <h2>Cardio du jour</h2>
-            <p class="hint" id="cardioSub"></p>
-          </div>
-          <span class="pill" id="cardioBadge"></span>
-        </div>
-        <div class="cardio-hero">
-          <strong class="cardio-min" id="cardioTodayMin">0 min</strong>
-          <span class="hint" id="cardioTodayMeta"></span>
-        </div>
-        <div class="cardio-foot">
-          <span class="hint" id="cardioWeekStat"></span>
-          <button type="button" class="cardio-done-btn" id="cardioDoneBtn" aria-pressed="false">Marquer fait</button>
-        </div>
-      </section>
-
-      <section class="card panel" aria-label="Plan cardio ON et OFF">
-        <div class="panel-head">
-          <div>
-            <h2>Plan Jour ON / OFF</h2>
-            <p class="hint" id="cardioPlanSource"></p>
-          </div>
-          <span class="pill" id="cardioSettingsBadge">Plan</span>
-        </div>
-        <div class="cardio-split">
-          <div class="cardio-slot" id="cardioSlotOn">
-            <small><span class="dot" style="background:var(--on)"></span>Jour ON · Salle A/R</small>
-            <div class="cardio-step">
-              <button type="button" class="step-btn" data-cstep="on|-5" aria-label="Diminuer cardio Jour ON de 5 min">−</button>
-              <b id="cardioOnVal">—</b>
-              <button type="button" class="step-btn" data-cstep="on|5" aria-label="Augmenter cardio Jour ON de 5 min">+</button>
-            </div>
-          </div>
-          <div class="cardio-slot" id="cardioSlotOff">
-            <small><span class="dot" style="background:var(--off)"></span>Jour OFF · Marche / Z2</small>
-            <div class="cardio-step">
-              <button type="button" class="step-btn" data-cstep="off|-5" aria-label="Diminuer cardio Jour OFF de 5 min">−</button>
-              <b id="cardioOffVal">—</b>
-              <button type="button" class="step-btn" data-cstep="off|5" aria-label="Augmenter cardio Jour OFF de 5 min">+</button>
-            </div>
-          </div>
-        </div>
-        <div class="cardio-foot" id="cardioResetRow" hidden>
-          <small class="hint" id="cardioSourceHint"></small>
-          <button type="button" class="link-btn" id="cardioResetAutoBtn">Rétablir</button>
-        </div>
-      </section>
-    </section>
-
-    <!-- ==================================================================
-         ONGLET 3 : COURSES (4 / 8 / 10 jours & Liste à cocher — cycle 4 ON / 4 OFF)
-         ================================================================== -->
-    <section class="view" id="view-courses" aria-label="Courses" hidden>
-      <div class="seg three" role="group" aria-label="Durée des courses">
-        <button type="button" data-shop="4" aria-pressed="false">4 jours</button>
-        <button type="button" data-shop="8" aria-pressed="true">8 jours</button>
-        <button type="button" data-shop="10" aria-pressed="false">10 jours</button>
-      </div>
-
-      <section class="card cart-sum">
-        <div class="cart-top">
-          <span id="cartBasis">Dans le panier</span>
-          <span class="cart-count" id="cartCount">0 / 14</span>
-        </div>
-        <div class="track cart-track"><span id="cartBar"></span></div>
-        <div class="cart-foot" id="cartResetRow" hidden>
-          <button type="button" class="link-btn" id="resetCart">Tout décocher</button>
-        </div>
-      </section>
-
-      <div class="view" id="groups"></div>
-    </section>
-
-    <!-- ==================================================================
-         MENU : POIDS (Pesées, Moyennes semaine, Export Bevel & Courbe)
-         ================================================================== -->
-    <section class="view" id="view-suivi" aria-label="Suivi du poids" hidden>
-      <!-- Carte 1 : Pesées & Tour de taille -->
-      <section class="card panel" aria-label="Mon poids">
-        <div class="panel-head">
-          <div>
-            <h2>Cette semaine</h2>
-            <p class="hint" id="wInfo">Pèse-toi à jeun (lun, mer, ven)</p>
-          </div>
-        </div>
-
-        <div class="wk" id="wWeek" role="group" aria-label="Pesées des 7 derniers jours"></div>
-
-        <div class="w-entry">
-          <label for="wEntryInput" class="field-label">
-            <span id="wEntryLabel">Aujourd’hui</span>
-            <small class="hint">Touche un jour au-dessus</small>
-          </label>
-          <div class="amt-in">
-            <input id="wEntryInput" type="text" inputmode="decimal" autocomplete="off" placeholder="97,0">
-            <span>kg</span>
-            <button type="button" class="clear-x" id="wEntryClear" aria-label="Effacer cette pesée" hidden>×</button>
-          </div>
-        </div>
-
-        <div class="field-inline sep">
-          <label for="waistInput" class="field-label">
-            <span>Tour de taille <small class="unit-tag">1×/sem</small></span>
-            <small id="waistInfo" class="hint">À jeun au nombril · en cm</small>
-          </label>
-          <div class="amt-in">
-            <input id="waistInput" type="text" inputmode="decimal" autocomplete="off" placeholder="96,5">
-            <span>cm</span>
-          </div>
-        </div>
-        <div class="waist-helper" id="waistHelper" hidden>
-          <span id="waistHelperText"></span>
-          <button type="button" class="link-btn" id="waistConvertBtn"></button>
-        </div>
-
-        <div class="result" id="result" hidden>
-          <div class="result-top">
-            <span class="delta" id="delta"></span>
-            <span class="badge" id="resDiag"></span>
-          </div>
-          <div class="adhere-group" id="adhereGroup" hidden>
-            <label class="adhere-row">
-              <input type="checkbox" id="dietAdhered" checked>
-              <span>Diète respectée à ≥ 90 %</span>
-            </label>
-            <label class="adhere-row">
-              <input type="checkbox" id="sleepOk" checked>
-              <span>Sommeil ≥ 7 h / nuit</span>
-            </label>
-          </div>
-          <p id="resAction"></p>
-          <div class="adj-btns" id="adjBtns" hidden></div>
-        </div>
-      </section>
-
-      <!-- Carte 2 : Courbe d'évolution -->
-      <section class="card panel" aria-label="Ma courbe de poids">
-        <h2>Évolution</h2>
-        <div class="sub-body" id="wCurve"></div>
-      </section>
-    </section>
-
-    <!-- ==================================================================
-         ONGLET 3 : BILAN BEVEL (Moyenne semaine & Export Markdown)
-         ================================================================== -->
-    <section class="view" id="view-bevel" aria-label="Bilan Bevel" hidden>
-      <section class="card panel" id="bevelCard" aria-label="Moyenne de la semaine et export Bevel">
-        <div class="panel-head">
-          <div>
-            <h2>Moyenne &amp; Bilan Bevel</h2>
-            <p class="hint">Récapitulatif hebdo prêt à coller dans Bevel</p>
-          </div>
-        </div>
-        <div class="wk-stats">
-          <div class="wk-stat">
-            <small>Cette semaine</small>
-            <strong id="wkAvgN">—</strong>
-            <span class="hint" id="wkAvgNSub">0 pesée</span>
-          </div>
-          <div class="wk-stat">
-            <small>Sem. dernière</small>
-            <strong id="wkAvgN1">—</strong>
-            <span class="hint" id="wkAvgN1Sub">0 pesée</span>
-          </div>
-          <div class="wk-stat">
-            <small>Écart</small>
-            <strong id="wkAvgDelta">—</strong>
-            <span class="hint" id="wkAvgDeltaSub">vs sem. dernière</span>
-          </div>
-        </div>
-        <div class="bevel-ctx">
-          <small class="bevel-lab">Situation / Question (optionnel)</small>
-          <div class="bevel-chips" role="group" aria-label="Situation pour Bevel">
-            <button type="button" class="bevel-chip" data-btag="stagnation" aria-pressed="false">Stagnation</button>
-            <button type="button" class="bevel-chip" data-btag="resto" aria-pressed="false">Resto / Écart</button>
-            <button type="button" class="bevel-chip" data-btag="malade" aria-pressed="false">Malade / Fatigue</button>
-            <button type="button" class="bevel-chip" data-btag="changement" aria-pressed="false">Changer diète / split ?</button>
-          </div>
-          <input type="text" id="bevelNote" class="bevel-note" autocomplete="off" placeholder="Précision (ex : resto samedi, rhume, faim le soir…)">
-        </div>
-        <button type="button" class="apply-btn" id="copyBevelBtn">Copier le bilan (.md)</button>
-        <details class="bevel-fold">
-          <summary>Aperçu du bilan Markdown</summary>
-          <pre class="bevel-pre" id="bevelPreview"></pre>
-        </details>
-      </section>
-    </section>
-
-    <!-- ==================================================================
-         ONGLET 5 : RÉGLAGES (Apparence, Aliments)
-         ================================================================== -->
-    <section class="view" id="view-reglages" aria-label="Réglages" hidden>
-      <p class="sec-label">Préférences</p>
-      <section class="card panel" aria-label="Apparence">
-        <h2>Apparence</h2>
-        <div class="seg three" role="group" aria-label="Thème">
-          <button type="button" data-look="auto">Auto</button>
-          <button type="button" data-look="light">Clair</button>
-          <button type="button" data-look="dark">Sombre</button>
-        </div>
-      </section>
-
-      <p class="sec-label">Aliments</p>
-      <details class="card fold">
-        <summary>
-          <span>Valeurs des aliments (pour 100 g)</span>
-          <svg class="ic" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-        </summary>
-        <div class="fold-body">
-          <div class="ref" id="foodRef"></div>
-          <div class="btn-row">
-            <button type="button" class="ghost-btn" id="exportFoodsBtn">Exporter foods.json</button>
-            <button type="button" class="ghost-btn is-danger" id="resetFoods" hidden>Revenir aux valeurs par défaut</button>
-          </div>
-        </div>
-      </details>
-    </section>
-
-    <!-- ==================================================================
-         MENU : PROFIL (Profil, Objectif & Calories)
-         ================================================================== -->
-    <section class="view" id="view-profil" aria-label="Mon profil" hidden>
-      <section class="card panel" aria-label="Mon profil">
-        <div>
-          <h2>Mon profil</h2>
-          <p class="hint" id="profFoldTitle"></p>
-        </div>
-        <div class="prof-grid" id="profGrid"></div>
-        <div class="loss-box">
-          <div class="loss-head">
-            <small>Niveau d'activité</small>
-            <span class="hint" id="activityHint"></span>
-          </div>
-          <div class="seg" role="group" aria-label="Niveau d'activité">
-            <button type="button" data-activity="1.38" aria-pressed="true">Bureau + muscu</button>
-            <button type="button" data-activity="1.25" aria-pressed="false">Que bureau</button>
-          </div>
-        </div>
-        <button type="button" class="ghost-btn is-danger" id="resetPlan">Revenir au plan de départ</button>
-      </section>
-
-      <p class="sec-label">Objectif &amp; Calories</p>
-      <section class="card panel" aria-label="Mon objectif">
-        <div class="seg" role="group" aria-label="Phase du plan">
-          <button type="button" data-phase="seche" aria-pressed="true">Cut</button>
-          <button type="button" data-phase="maintien" aria-pressed="false">Maintien</button>
-        </div>
-        <div class="prof-grid">
-          <label class="prof-field">
-            <small><span class="dot" style="background:var(--on)"></span>Jour ON (kcal)</small>
-            <input type="text" inputmode="numeric" autocomplete="off" id="myOnKcal" data-mykcal="on" value="">
-          </label>
-          <label class="prof-field">
-            <small><span class="dot" style="background:var(--off)"></span>Jour OFF (kcal)</small>
-            <input type="text" inputmode="numeric" autocomplete="off" id="myOffKcal" data-mykcal="off" value="">
-          </label>
-        </div>
-        <div class="seg" role="group" aria-label="Jour des macros" style="margin-top:10px">
-          <button type="button" data-macroday="on" aria-pressed="true">Jour ON</button>
-          <button type="button" data-macroday="off" aria-pressed="false">Jour OFF</button>
-        </div>
-        <div class="prof-grid">
-          <label class="prof-field">
-            <small><span class="dot" style="background:var(--mac-p)"></span>Protéines max (g)</small>
-            <input type="text" inputmode="numeric" autocomplete="off" id="myMacroProtG" data-macro="proteinOnG" placeholder="">
-          </label>
-          <label class="prof-field">
-            <small><span class="dot" style="background:var(--mac-l)"></span>Lipides (g)</small>
-            <input type="text" inputmode="numeric" autocomplete="off" id="myMacroFatG" data-macro="fatOnG" placeholder="Auto">
-          </label>
-        </div>
-        <div class="prof-grid">
-          <label class="prof-field" style="grid-column:1/-1">
-            <small><span class="dot" style="background:var(--mac-g)"></span>Glucides (g)</small>
-            <input type="text" id="myMacroCarbsG" readonly tabindex="-1" value="">
-          </label>
-        </div>
-        <div class="ks-meta" id="myCarbsWarn" hidden></div>
-      </section>
-    </section>
-
-    <!-- ==================================================================
-         MENU : DONNÉES (Export / Import JSON)
-         ================================================================== -->
-    <section class="view" id="view-donnees" aria-label="Mes données" hidden>
-      <section class="card panel" aria-label="Sauvegarde">
-        <h2>Mes données</h2>
-        <p class="hint" id="bkHint"></p>
-        <div class="btn-row">
-          <button type="button" class="ghost-btn" id="exportBtn">Exporter</button>
-          <button type="button" class="ghost-btn" id="importBtn">Importer</button>
-        </div>
-        <input type="file" id="importFile" accept="application/json,.json" hidden>
-      </section>
-    </section>
   </main>
 
   <!-- TOAST DE CONFIRMATION DISCRET -->
@@ -512,17 +157,14 @@
     </div>
   </div>
 
-  <!-- BARRE DE NAVIGATION iOS GLASS (3 ONGLETS : Diet, Séance, Bevel) -->
+  <!-- BARRE DE NAVIGATION iOS GLASS (2 ONGLETS : Repas & Split) -->
   <nav class="tabs" aria-label="Navigation">
     <div class="wrap">
       <button type="button" class="tab" data-tab="repas" aria-current="page">
-        <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg></span>Diet
+        <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg></span>Repas
       </button>
       <button type="button" class="tab" data-tab="seance">
-        <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7v10M3 9.5v5M18 7v10M21 9.5v5M6 12h12"/></svg></span>Séance
-      </button>
-      <button type="button" class="tab" data-tab="bevel">
-        <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span>Bevel
+        <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7v10M3 9.5v5M18 7v10M21 9.5v5M6 12h12"/></svg></span>Split
       </button>
     </div>
   </nav>
