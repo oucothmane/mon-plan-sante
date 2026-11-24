@@ -567,7 +567,7 @@
         if (label) label.textContent = 'Copié ✓';
         setTimeout(() => {
           btn.classList.remove('is-copied');
-          if (label) label.textContent = 'Foodvisor';
+          if (label) label.textContent = 'Copier';
         }, 1800);
       }
     }
@@ -740,7 +740,7 @@
           <ul class="items">${m.items.map((i) => itemView(i, m)).join('')}</ul>
           ${supp}
           <div class="meal-foot">
-            <button type="button" class="copy-meal-btn" data-copy-meal="${m.id}" aria-label="Copier ${escHtml(m.name)} pour Foodvisor">${COPY_IC}<span>Foodvisor</span></button>
+            <button type="button" class="copy-meal-btn" data-copy-meal="${m.id}" aria-label="Copier ${escHtml(m.name)} pour Foodvisor">${COPY_IC}<span>Copier</span></button>
             <button type="button" class="done-btn" data-meal="${m.id}" aria-pressed="${done}">${CHECK}<span>${
         done ? 'Repas validé' : 'Valider ce repas'
       }</span></button>
