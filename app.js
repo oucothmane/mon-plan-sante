@@ -649,7 +649,7 @@
           return `≈ ${String(n).replace('.', ',')} œuf${n > 1 ? 's' : ''}`;
         }
         case 'olive_oil':
-          return i.g > 0 ? '≈ ' + spoon(i.g / 13) + ' c. à soupe' : '0 c. à soupe';
+          return i.g > 0 ? '≈ ' + spoon(i.g / 5) + ' c. à café' : '0 c. à café';
         case 'creatine':
           return 'dans le shaker';
         case 'banana':
