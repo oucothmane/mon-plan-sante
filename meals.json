@@ -7,7 +7,9 @@
       "sub": "Repas 1",
       "supps": "Multivitamines · Oméga-3",
       "suppNote": "Au milieu du repas",
-      "ensureFoods": ["olive_oil"]
+      "ensureFoods": [
+        "olive_oil"
+      ]
     },
     "collation": {
       "num": "2",
@@ -15,7 +17,12 @@
       "nameOff": "Collation shaker",
       "subOn": "Après entraînement",
       "subOff": "Dans l’après-midi",
-      "ensureFoods": ["raisins", "honey", "belvita", "walnuts"]
+      "ensureFoods": [
+        "raisins",
+        "honey",
+        "belvita",
+        "walnuts"
+      ]
     },
     "soir": {
       "num": "3",
@@ -23,179 +30,380 @@
       "sub": "Dîner",
       "supps": "Magnésium bisglycinate",
       "suppNote": "Au dîner ou avant de dormir",
-      "ensureFoods": ["olive_oil", "avocado"]
+      "ensureFoods": [
+        "olive_oil",
+        "avocado"
+      ]
     }
   },
   "phases": {
     "cut": {
-      "targetKcal": { "on": 2200, "off": 2000 },
+      "targetKcal": {
+        "on": 2200,
+        "off": 2000
+      },
       "on": {
-        "totals": { "kcal": 2227, "p": 165, "g": 201, "l": 82, "fib": 38 },
+        "totals": {
+          "kcal": 2219,
+          "p": 165,
+          "g": 201,
+          "l": 82,
+          "fib": 37
+        },
         "meals": [
           {
             "id": "midi",
             "title": "Midi",
-            "kcal": 1023,
+            "kcal": 1037,
             "items": [
-              { "f": "eggs", "g": 170 },
-              { "f": "chicken", "g": 175 },
-              { "f": "pasta", "g": 120 },
-              { "f": "veggies", "g": 200 },
-              { "f": "olive_oil", "g": 13 }
+              {
+                "f": "eggs",
+                "g": 170
+              },
+              {
+                "f": "chicken",
+                "g": 180
+              },
+              {
+                "f": "pasta",
+                "g": 120
+              },
+              {
+                "f": "veggies",
+                "g": 200
+              },
+              {
+                "f": "olive_oil",
+                "g": 14
+              }
             ]
           },
           {
             "id": "collation",
             "title": "Shaker post-séance",
-            "kcal": 518,
+            "kcal": 482,
             "items": [
-              { "f": "whey", "g": 30 },
-              { "f": "creatine", "g": 5 },
-              { "f": "raisins", "g": 50 },
-              { "f": "honey", "g": 16 },
-              { "f": "peanut_butter", "g": 20 },
-              { "f": "dark_choc", "g": 15 }
+              {
+                "f": "whey",
+                "g": 30
+              },
+              {
+                "f": "creatine",
+                "g": 5
+              },
+              {
+                "f": "raisins",
+                "g": 50
+              },
+              {
+                "f": "honey",
+                "g": 19
+              },
+              {
+                "f": "walnuts",
+                "g": 25
+              }
             ]
           },
           {
             "id": "soir",
             "title": "Soir",
-            "kcal": 686,
+            "kcal": 700,
             "items": [
-              { "f": "chicken", "g": 175 },
-              { "f": "sweet_potato", "g": 250 },
-              { "f": "veggies", "g": 200 },
-              { "f": "olive_oil", "g": 12 },
-              { "f": "avocado", "g": 70 }
+              {
+                "f": "chicken",
+                "g": 180
+              },
+              {
+                "f": "sweet_potato",
+                "g": 250
+              },
+              {
+                "f": "veggies",
+                "g": 200
+              },
+              {
+                "f": "olive_oil",
+                "g": 13
+              },
+              {
+                "f": "avocado",
+                "g": 70
+              }
             ]
           }
         ]
       },
       "off": {
-        "totals": { "kcal": 2025, "p": 165, "g": 115, "l": 98, "fib": 32 },
+        "totals": {
+          "kcal": 2029,
+          "p": 165,
+          "g": 115,
+          "l": 98,
+          "fib": 31
+        },
         "meals": [
           {
             "id": "midi",
             "title": "Midi",
-            "kcal": 939,
+            "kcal": 971,
             "items": [
-              { "f": "eggs", "g": 170 },
-              { "f": "chicken", "g": 185 },
-              { "f": "pasta", "g": 85 },
-              { "f": "veggies", "g": 200 },
-              { "f": "olive_oil", "g": 16 }
+              {
+                "f": "eggs",
+                "g": 170
+              },
+              {
+                "f": "chicken",
+                "g": 190
+              },
+              {
+                "f": "pasta",
+                "g": 85
+              },
+              {
+                "f": "veggies",
+                "g": 200
+              },
+              {
+                "f": "olive_oil",
+                "g": 19
+              }
             ]
           },
           {
             "id": "collation",
-            "title": "Collation",
-            "kcal": 451,
+            "title": "Collation shaker",
+            "kcal": 340,
             "items": [
-              { "f": "whey", "g": 30 },
-              { "f": "creatine", "g": 5 },
-              { "f": "peanut_butter", "g": 20 },
-              { "f": "walnuts", "g": 20 },
-              { "f": "dark_choc", "g": 15 }
+              {
+                "f": "whey",
+                "g": 30
+              },
+              {
+                "f": "creatine",
+                "g": 5
+              },
+              {
+                "f": "walnuts",
+                "g": 35
+              }
             ]
           },
           {
             "id": "soir",
             "title": "Soir",
-            "kcal": 635,
+            "kcal": 718,
             "items": [
-              { "f": "chicken", "g": 185 },
-              { "f": "sweet_potato", "g": 175 },
-              { "f": "veggies", "g": 200 },
-              { "f": "olive_oil", "g": 16 },
-              { "f": "avocado", "g": 50 }
+              {
+                "f": "chicken",
+                "g": 195
+              },
+              {
+                "f": "sweet_potato",
+                "g": 190
+              },
+              {
+                "f": "veggies",
+                "g": 200
+              },
+              {
+                "f": "olive_oil",
+                "g": 19
+              },
+              {
+                "f": "avocado",
+                "g": 70
+              }
             ]
           }
         ]
       }
     },
     "maintien": {
-      "targetKcal": { "on": 2400, "off": 2200 },
+      "targetKcal": {
+        "on": 2400,
+        "off": 2200
+      },
       "on": {
-        "totals": { "kcal": 2439, "p": 165, "g": 255, "l": 82, "fib": 42 },
+        "totals": {
+          "kcal": 2428,
+          "p": 165,
+          "g": 253,
+          "l": 82,
+          "fib": 40
+        },
         "meals": [
           {
             "id": "midi",
             "title": "Midi",
-            "kcal": 968,
+            "kcal": 982,
             "items": [
-              { "f": "eggs", "g": 170 },
-              { "f": "chicken", "g": 165 },
-              { "f": "pasta", "g": 120 },
-              { "f": "veggies", "g": 200 },
-              { "f": "olive_oil", "g": 8 }
+              {
+                "f": "eggs",
+                "g": 170
+              },
+              {
+                "f": "chicken",
+                "g": 170
+              },
+              {
+                "f": "pasta",
+                "g": 120
+              },
+              {
+                "f": "veggies",
+                "g": 200
+              },
+              {
+                "f": "olive_oil",
+                "g": 9
+              }
             ]
           },
           {
             "id": "collation",
             "title": "Shaker post-séance",
-            "kcal": 838,
+            "kcal": 792,
             "items": [
-              { "f": "whey", "g": 30 },
-              { "f": "creatine", "g": 5 },
-              { "f": "raisins", "g": 50 },
-              { "f": "honey", "g": 30 },
-              { "f": "belvita", "g": 63 },
-              { "f": "peanut_butter", "g": 20 },
-              { "f": "dark_choc", "g": 15 }
+              {
+                "f": "whey",
+                "g": 30
+              },
+              {
+                "f": "creatine",
+                "g": 5
+              },
+              {
+                "f": "raisins",
+                "g": 50
+              },
+              {
+                "f": "honey",
+                "g": 30
+              },
+              {
+                "f": "belvita",
+                "g": 63
+              },
+              {
+                "f": "walnuts",
+                "g": 25
+              }
             ]
           },
           {
             "id": "soir",
             "title": "Soir",
-            "kcal": 634,
+            "kcal": 654,
             "items": [
-              { "f": "chicken", "g": 160 },
-              { "f": "sweet_potato", "g": 250 },
-              { "f": "veggies", "g": 200 },
-              { "f": "olive_oil", "g": 8 },
-              { "f": "avocado", "g": 70 }
+              {
+                "f": "chicken",
+                "g": 170
+              },
+              {
+                "f": "sweet_potato",
+                "g": 250
+              },
+              {
+                "f": "veggies",
+                "g": 200
+              },
+              {
+                "f": "olive_oil",
+                "g": 9
+              },
+              {
+                "f": "avocado",
+                "g": 70
+              }
             ]
           }
         ]
       },
       "off": {
-        "totals": { "kcal": 2229, "p": 165, "g": 165, "l": 98, "fib": 37 },
+        "totals": {
+          "kcal": 2228,
+          "p": 165,
+          "g": 165,
+          "l": 98,
+          "fib": 36
+        },
         "meals": [
           {
             "id": "midi",
             "title": "Midi",
-            "kcal": 1044,
+            "kcal": 1082,
             "items": [
-              { "f": "eggs", "g": 170 },
-              { "f": "chicken", "g": 170 },
-              { "f": "pasta", "g": 120 },
-              { "f": "veggies", "g": 200 },
-              { "f": "olive_oil", "g": 16 }
+              {
+                "f": "eggs",
+                "g": 170
+              },
+              {
+                "f": "chicken",
+                "g": 180
+              },
+              {
+                "f": "pasta",
+                "g": 120
+              },
+              {
+                "f": "veggies",
+                "g": 200
+              },
+              {
+                "f": "olive_oil",
+                "g": 19
+              }
             ]
           },
           {
             "id": "collation",
-            "title": "Collation",
-            "kcal": 501,
+            "title": "Collation shaker",
+            "kcal": 403,
             "items": [
-              { "f": "whey", "g": 30 },
-              { "f": "creatine", "g": 5 },
-              { "f": "raisins", "g": 17 },
-              { "f": "peanut_butter", "g": 20 },
-              { "f": "walnuts", "g": 20 },
-              { "f": "dark_choc", "g": 15 }
+              {
+                "f": "whey",
+                "g": 30
+              },
+              {
+                "f": "creatine",
+                "g": 5
+              },
+              {
+                "f": "raisins",
+                "g": 21
+              },
+              {
+                "f": "walnuts",
+                "g": 35
+              }
             ]
           },
           {
             "id": "soir",
             "title": "Soir",
-            "kcal": 683,
+            "kcal": 744,
             "items": [
-              { "f": "chicken", "g": 170 },
-              { "f": "sweet_potato", "g": 250 },
-              { "f": "veggies", "g": 200 },
-              { "f": "olive_oil", "g": 16 },
-              { "f": "avocado", "g": 50 }
+              {
+                "f": "chicken",
+                "g": 180
+              },
+              {
+                "f": "sweet_potato",
+                "g": 250
+              },
+              {
+                "f": "veggies",
+                "g": 200
+              },
+              {
+                "f": "olive_oil",
+                "g": 18
+              },
+              {
+                "f": "avocado",
+                "g": 70
+              }
             ]
           }
         ]

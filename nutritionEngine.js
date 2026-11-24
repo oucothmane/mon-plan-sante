@@ -61,8 +61,8 @@
       olive_oil: 60,
       avocado: 100,
       walnuts: 35,
-      peanut_butter: 30,
-      dark_choc: 25
+      peanut_butter: 0,
+      dark_choc: 0
     },
     mealBases: {
       eggs: 170,
@@ -70,12 +70,12 @@
       veggiesSoir: 200,
       whey: 30,
       creatine: 5,
-      dark_choc: 15,
-      peanut_butter: 20,
-      walnutsOn: 0,
-      walnutsOff: 20,
+      dark_choc: 0,
+      peanut_butter: 0,
+      walnutsOn: 25,
+      walnutsOff: 35,
       avocadoOn: 70,
-      avocadoOff: 50,
+      avocadoOff: 70,
       belvitaGPerBiscuit: 12.5
     },
     cardioTargets: { seche: { on: 50, off: 30 }, maintien: { on: 50, off: 0 } },
