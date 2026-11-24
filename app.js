@@ -574,6 +574,65 @@
       }
     }
 
+    function formatMealItems(meal) {
+      const parts = [];
+      (meal.items || []).forEach((i) => {
+        if (!i || i.g <= 0) return;
+        const F = food(i.f);
+        if (!F || (F.hidden && i.f !== 'creatine')) return;
+        parts.push(`${Math.round(i.g)} g ${F.n}`);
+      });
+      return parts.join(', ');
+    }
+
+    function formatAllMeals() {
+      const lines = ['Plan repas complet (Cut & Maintien · Jours ON et OFF)'];
+      const phases = [
+        ['seche', 'CUT'],
+        ['maintien', 'MAINTIEN']
+      ];
+      const days = [
+        ['on', 'Jour ON'],
+        ['off', 'Jour OFF']
+      ];
+
+      phases.forEach(([phaseKey, phaseLabel]) => {
+        days.forEach(([dayKey, dayLabel]) => {
+          const P = buildDay(phaseKey, dayKey);
+          const t = P.tot;
+          lines.push(
+            '',
+            `${phaseLabel} — ${dayLabel} (${Math.round(t.kcal)} / ${Math.round(P.target)} kcal · P ${Math.round(t.p)} g · G ${Math.round(t.g)} g · L ${Math.round(t.l)} g · Fibres ${Math.round(t.fib)} g)`
+          );
+          P.meals.forEach((m) => {
+            const itemsTxt = formatMealItems(m);
+            lines.push(`${m.num}. ${m.name} (${Math.round(m.kcal)} kcal) : ${itemsTxt}`);
+          });
+        });
+      });
+
+      return lines.join('\n');
+    }
+
+    async function copyAllMeals(btn) {
+      const text = formatAllMeals();
+      const copied = await copyToClipboard(text);
+      if (!copied) {
+        alert('Copie impossible sur ce navigateur.');
+        return;
+      }
+      showToast('Tous les repas copiés (Cut & Maintien · ON/OFF) ✓');
+      if (btn) {
+        btn.classList.add('is-copied');
+        const label = btn.querySelector('strong');
+        if (label) label.textContent = 'Repas copiés ✓';
+        setTimeout(() => {
+          btn.classList.remove('is-copied');
+          if (label) label.textContent = 'Copier tous les repas';
+        }, 1800);
+      }
+    }
+
     function formatFullSplit() {
       const keys = Object.keys(SESSIONS);
       const lines = [`Split Full Body ${keys.join('/')} (${CYCLE.length || 8} jours · 1 ON / 1 OFF)`];
@@ -1450,6 +1509,10 @@
 
       if (d.copyMeal) {
         copyMealForFoodvisor(d.copyMeal, t);
+        return;
+      }
+      if (t.id === 'copyMealsBtn') {
+        copyAllMeals(t);
         return;
       }
       if (t.id === 'copySplitBtn') {
