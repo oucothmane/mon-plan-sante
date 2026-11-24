@@ -18,8 +18,8 @@
       "subOn": "Après entraînement",
       "subOff": "Dans l’après-midi",
       "ensureFoods": [
+        "banana",
         "raisins",
-        "honey",
         "belvita",
         "walnuts"
       ]
@@ -44,11 +44,11 @@
       },
       "on": {
         "totals": {
-          "kcal": 2226,
+          "kcal": 2236,
           "p": 165,
           "g": 201,
           "l": 82,
-          "fib": 39
+          "fib": 41
         },
         "meals": [
           {
@@ -85,7 +85,7 @@
           {
             "id": "collation",
             "title": "Shaker post-séance",
-            "kcal": 451,
+            "kcal": 462,
             "items": [
               {
                 "f": "whey",
@@ -96,12 +96,12 @@
                 "g": 5
               },
               {
-                "f": "raisins",
-                "g": 50
+                "f": "banana",
+                "g": 120
               },
               {
-                "f": "honey",
-                "g": 9
+                "f": "raisins",
+                "g": 27
               },
               {
                 "f": "walnuts",
@@ -234,11 +234,11 @@
       },
       "on": {
         "totals": {
-          "kcal": 2431,
+          "kcal": 2441,
           "p": 165,
-          "g": 252,
+          "g": 251,
           "l": 82,
-          "fib": 41
+          "fib": 45
         },
         "meals": [
           {
@@ -275,7 +275,7 @@
           {
             "id": "collation",
             "title": "Shaker post-séance",
-            "kcal": 735,
+            "kcal": 751,
             "items": [
               {
                 "f": "whey",
@@ -286,12 +286,12 @@
                 "g": 5
               },
               {
-                "f": "raisins",
-                "g": 50
+                "f": "banana",
+                "g": 120
               },
               {
-                "f": "honey",
-                "g": 30
+                "f": "raisins",
+                "g": 50
               },
               {
                 "f": "belvita",
@@ -306,11 +306,11 @@
           {
             "id": "soir",
             "title": "Soir",
-            "kcal": 662,
+            "kcal": 657,
             "items": [
               {
                 "f": "chicken",
-                "g": 170
+                "g": 165
               },
               {
                 "f": "sweet_potato",

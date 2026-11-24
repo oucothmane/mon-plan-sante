@@ -652,8 +652,8 @@
           return i.g > 0 ? '≈ ' + spoon(i.g / 13) + ' c. à soupe' : '0 c. à soupe';
         case 'creatine':
           return 'dans le shaker';
-        case 'honey':
-          return i.g > 0 ? '≈ ' + spoon(i.g / 20) + ' c. à soupe' : 'option glucides';
+        case 'banana':
+          return i.g >= 100 ? '≈ 1 banane moyenne' : i.g > 0 ? '≈ ½ banane' : 'option glucides';
         case 'raisins':
           return i.g > 0 ? 'glucides rapides' : 'option glucides';
         case 'belvita': {
@@ -1152,7 +1152,7 @@
       );
       (rules.fresh || []).forEach((x) => {
         const amt = g(x.id);
-        freshItems.push(r(x.id, x.label, fmt(amt) + ' g', '≈ ' + kgUp(amt * (x.mult || 1))));
+        if (amt > 0) freshItems.push(r(x.id, x.label, fmt(amt) + ' g', '≈ ' + kgUp(amt * (x.mult || 1))));
       });
       if (rules.avocado && g(rules.avocado.id) > 0) {
         const av = rules.avocado;

@@ -24,7 +24,8 @@
     veggies:       { id: 'veggies',       n: 'Légumes verts',             kcal: 30,  p: 2.2,  g: 4.0,  l: 0.3,   fib: 3.0 },
     tomato_sauce:  { id: 'tomato_sauce',  n: 'Sauce tomate nature (conserve)', kcal: 32, p: 1.5, g: 5.5, l: 0.2, fib: 1.5 },
     raisins:       { id: 'raisins',       n: 'Raisins secs',              kcal: 299, p: 3.1,  g: 72.0, l: 0.5,   fib: 3.7 },
-    honey:         { id: 'honey',         n: "Miel d'acacia",             kcal: 304, p: 0.3,  g: 82.0, l: 0.0,   fib: 0.0 },
+    banana:        { id: 'banana',        n: 'Banane',                    kcal: 89,  p: 1.1,  g: 20.0, l: 0.3,   fib: 2.6 },
+    honey:         { id: 'honey',         n: "Miel d'acacia",             kcal: 304, p: 0.3,  g: 82.0, l: 0.0,   fib: 0.0, hidden: true },
     peanut_butter: { id: 'peanut_butter', n: 'Beurre de cacahuète 100 %', kcal: 600, p: 25.0, g: 12.0, l: 50.0,  fib: 8.0, hidden: true },
     walnuts:       { id: 'walnuts',       n: 'Noix de Grenoble',          kcal: 654, p: 15.0, g: 7.0,  l: 65.0,  fib: 6.7 },
     dark_choc:     { id: 'dark_choc',     n: 'Chocolat noir 90 %',        kcal: 592, p: 10.0, g: 14.0, l: 55.0,  fib: 12.0, hidden: true },
@@ -57,7 +58,8 @@
       pasta: 120,
       sweet_potato: 250,
       raisins: 50,
-      honey: 30,
+      banana: 120,
+      honey: 0,
       belvita: 75,
       olive_oil: 60,
       avocado: 100,
@@ -516,18 +518,21 @@
       const sweetPotatoG = Math.min(spCap, roundTo5(remG2 / spRate));
       add('sweet_potato', sweetPotatoG);
 
-      let raisinsG = 0, honeyG = 0, belvitaG = 0;
+      let bananaG = 0, raisinsG = 0, honeyG = 0, belvitaG = 0;
       const remG3 = carbsG - g;
       if (remG3 > 3) {
-        const raisinsRate = (getFood('raisins', foodOverrides).g || 72) / 100;
-        raisinsG = Math.min(caps.raisins, Math.max(0, Math.round(remG3 / raisinsRate)));
-        add('raisins', raisinsG);
+        const bananaCap = Number(caps.banana) || 0;
+        if (bananaCap > 0 && remG3 >= 15) {
+          const bananaRate = (getFood('banana', foodOverrides).g || 20) / 100;
+          bananaG = Math.min(bananaCap, Math.max(0, roundTo5(remG3 / bananaRate)));
+          add('banana', bananaG);
+        }
 
         const remG4 = carbsG - g;
         if (remG4 > 3) {
-          const honeyRate = (getFood('honey', foodOverrides).g || 82) / 100;
-          honeyG = Math.min(caps.honey, Math.max(0, Math.round(remG4 / honeyRate)));
-          add('honey', honeyG);
+          const raisinsRate = (getFood('raisins', foodOverrides).g || 72) / 100;
+          raisinsG = Math.min(caps.raisins, Math.max(0, Math.round(remG4 / raisinsRate)));
+          add('raisins', raisinsG);
 
           const remG5 = carbsG - g;
           if (remG5 > 4) {
@@ -555,7 +560,7 @@
       add(midiProtId, midiProtG);
       add(soirProtId, soirProtG);
 
-      return { pastaG, riceG: pastaG, sweetPotatoG, raisinsG, honeyG, belvitaG, midiProtG, soirProtG, p, g, l, fib };
+      return { pastaG, riceG: pastaG, sweetPotatoG, bananaG, raisinsG, honeyG, belvitaG, midiProtG, soirProtG, p, g, l, fib };
     };
 
     const sumBase = (eggsG, vegM, vegS, tomatoG, wheyG, chocG, pbG, walG, avoG) => {
@@ -642,7 +647,7 @@
     // Passe 2 : recalcule glucides & protéines exacts avec les sources de lipides/légumes finalisées, puis huile d'olive exacte
     const b2 = sumBase(eggsG, veggiesMidiG, veggiesSoirG, tomatoSauceG, wheyG, darkChocG, peanutButterG, walnutsG, avocadoG);
     const pass2 = solveCarbsAndProt(b2.p, b2.g, b2.l, b2.fib);
-    const { pastaG, sweetPotatoG, raisinsG, honeyG, belvitaG, midiProtG, soirProtG } = pass2;
+    const { pastaG, sweetPotatoG, bananaG, raisinsG, honeyG, belvitaG, midiProtG, soirProtG } = pass2;
 
     const totalOilG = Math.max(0, Math.min(caps.olive_oil, Math.round(fatG - pass2.l)));
     const oilMidiG = Math.ceil(totalOilG / 2);
@@ -687,12 +692,10 @@
         items: [
           makeItem('whey', wheyG),
           makeItem('creatine', bases.creatine),
+          makeItem('banana', bananaG),
           makeItem('raisins', raisinsG),
-          makeItem('honey', honeyG),
           makeItem('belvita', belvitaG),
-          makeItem('peanut_butter', peanutButterG),
-          makeItem('walnuts', walnutsG),
-          makeItem('dark_choc', darkChocG)
+          makeItem('walnuts', walnutsG)
         ].filter((i) => i.g > 0)
       },
       {
@@ -738,6 +741,7 @@
         pastaG,
         riceG: pastaG,
         sweetPotatoG,
+        bananaG,
         raisinsG,
         honeyG,
         belvitaG,
