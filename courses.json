@@ -20,6 +20,7 @@
     "avocado": { "id": "avocado", "label": "Avocats", "unitG": 140, "one": "avocat", "many": "avocats" },
     "epicerie": [
       { "id": "pasta", "label": "Pâtes complètes", "packSize": 500, "one": "paquet 500 g", "many": "paquets 500 g", "optional": true },
+      { "id": "tomato_sauce", "label": "Sauce tomate nature (conserve)", "packSize": 400, "one": "boîte 400 g", "many": "boîtes 400 g", "optional": false },
       { "id": "olive_oil", "label": "Huile d'olive", "type": "oil" },
       { "id": "raisins", "label": "Raisins secs", "packSize": 250, "one": "sachet 250 g", "many": "sachets 250 g", "optional": true },
       { "id": "honey", "label": "Miel d'acacia", "packSize": 250, "one": "pot 250 g", "many": "pots 250 g", "optional": true },
@@ -43,6 +44,7 @@
     ],
     "epicerie": [
       { "id": "pasta", "name": "Pâtes complètes crues", "cut8d": "~750 – 960 g", "maintien8d": "~960 g", "buy": "2 paquets de 500 g" },
+      { "id": "tomato_sauce", "name": "Sauce tomate nature (conserve)", "cut8d": "1 200 g (150 g/j)", "maintien8d": "1 200 g (150 g/j)", "buy": "3 boîtes de 400 g" },
       { "id": "olive_oil", "name": "Huile d'olive vierge extra", "cut8d": "~280 ml", "maintien8d": "~280 ml", "buy": "1 bouteille 50 cl" },
       { "id": "raisins", "name": "Raisins secs", "cut8d": "~300 – 400 g", "maintien8d": "~400 g", "buy": "2 sachets de 250 g" },
       { "id": "honey", "name": "Miel d'acacia", "cut8d": "~120 – 200 g", "maintien8d": "~240 g", "buy": "1 pot de 250 g" },

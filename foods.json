@@ -11,6 +11,7 @@
     "pasta":         { "id": "pasta",         "n": "Pâtes complètes crues",     "kcal": 348, "p": 13.0, "g": 65.0, "l": 2.5,   "fib": 7.5,  "step": 10, "group": "Glucides" },
     "sweet_potato":  { "id": "sweet_potato",  "n": "Patate douce crue",         "kcal": 86,  "p": 1.6,  "g": 20.0, "l": 0.1,   "fib": 3.0,  "step": 25, "group": "Glucides" },
     "veggies":       { "id": "veggies",       "n": "Légumes verts",             "kcal": 30,  "p": 2.2,  "g": 4.0,  "l": 0.3,   "fib": 3.0,  "step": 25, "group": "Légumes" },
+    "tomato_sauce":  { "id": "tomato_sauce",  "n": "Sauce tomate nature (conserve)", "kcal": 32, "p": 1.5, "g": 5.5, "l": 0.2, "fib": 1.5, "step": 25, "group": "Légumes" },
     "raisins":       { "id": "raisins",       "n": "Raisins secs",              "kcal": 299, "p": 3.1,  "g": 72.0, "l": 0.5,   "fib": 3.7,  "step": 5,  "group": "Glucides" },
     "honey":         { "id": "honey",         "n": "Miel d'acacia",             "kcal": 304, "p": 0.3,  "g": 82.0, "l": 0.0,   "fib": 0.0,  "step": 5,  "group": "Glucides" },
     "peanut_butter": { "id": "peanut_butter", "n": "Beurre de cacahuète 100 %", "kcal": 600, "p": 25.0, "g": 12.0, "l": 50.0,  "fib": 8.0,  "step": 5,  "group": "Lipides", "hidden": true },

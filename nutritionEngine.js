@@ -22,11 +22,12 @@
     pasta:         { id: 'pasta',         n: 'Pâtes complètes crues',     kcal: 348, p: 13.0, g: 65.0, l: 2.5,   fib: 7.5 },
     sweet_potato:  { id: 'sweet_potato',  n: 'Patate douce crue',         kcal: 86,  p: 1.6,  g: 20.0, l: 0.1,   fib: 3.0 },
     veggies:       { id: 'veggies',       n: 'Légumes verts',             kcal: 30,  p: 2.2,  g: 4.0,  l: 0.3,   fib: 3.0 },
+    tomato_sauce:  { id: 'tomato_sauce',  n: 'Sauce tomate nature (conserve)', kcal: 32, p: 1.5, g: 5.5, l: 0.2, fib: 1.5 },
     raisins:       { id: 'raisins',       n: 'Raisins secs',              kcal: 299, p: 3.1,  g: 72.0, l: 0.5,   fib: 3.7 },
     honey:         { id: 'honey',         n: "Miel d'acacia",             kcal: 304, p: 0.3,  g: 82.0, l: 0.0,   fib: 0.0 },
-    peanut_butter: { id: 'peanut_butter', n: 'Beurre de cacahuète 100 %', kcal: 600, p: 25.0, g: 12.0, l: 50.0,  fib: 8.0 },
+    peanut_butter: { id: 'peanut_butter', n: 'Beurre de cacahuète 100 %', kcal: 600, p: 25.0, g: 12.0, l: 50.0,  fib: 8.0, hidden: true },
     walnuts:       { id: 'walnuts',       n: 'Noix de Grenoble',          kcal: 654, p: 15.0, g: 7.0,  l: 65.0,  fib: 6.7 },
-    dark_choc:     { id: 'dark_choc',     n: 'Chocolat noir 90 %',        kcal: 592, p: 10.0, g: 14.0, l: 55.0,  fib: 12.0 },
+    dark_choc:     { id: 'dark_choc',     n: 'Chocolat noir 90 %',        kcal: 592, p: 10.0, g: 14.0, l: 55.0,  fib: 12.0, hidden: true },
     avocado:       { id: 'avocado',       n: 'Avocat',                    kcal: 160, p: 2.0,  g: 2.0,  l: 15.0,  fib: 6.7 },
     olive_oil:     { id: 'olive_oil',     n: "Huile d'olive",             kcal: 884, p: 0.0,  g: 0.0,  l: 100.0, fib: 0.0 },
     belvita:       { id: 'belvita',       n: 'Biscuit complet (Belvita)',   kcal: 440, p: 8.0,  g: 68.0, l: 15.0,  fib: 5.0 },
@@ -68,6 +69,7 @@
       eggs: 170,
       veggiesMidi: 200,
       veggiesSoir: 200,
+      tomatoSauceMidi: 150,
       whey: 30,
       creatine: 5,
       dark_choc: 0,
@@ -556,7 +558,7 @@
       return { pastaG, riceG: pastaG, sweetPotatoG, raisinsG, honeyG, belvitaG, midiProtG, soirProtG, p, g, l, fib };
     };
 
-    const sumBase = (eggsG, vegM, vegS, wheyG, chocG, pbG, walG, avoG) => {
+    const sumBase = (eggsG, vegM, vegS, tomatoG, wheyG, chocG, pbG, walG, avoG) => {
       let p = 0, g = 0, l = 0, fib = 0;
       const add = (id, grams) => {
         if (grams <= 0) return;
@@ -566,6 +568,7 @@
       add('eggs', eggsG);
       add('veggies', vegM);
       add('veggies', vegS);
+      add('tomato_sauce', tomatoG);
       add('whey', wheyG);
       add('dark_choc', chocG);
       add('peanut_butter', pbG);
@@ -574,17 +577,18 @@
       return { p, g, l, fib };
     };
 
-    // Passe 1 : socle de départ + ajustement des sources de lipides (avocat, noix, beurre de cacahuète, chocolat)
+    // Passe 1 : socle de départ + ajustement des sources de lipides (avocat, noix, huile d'olive)
     const eggsG = bases.eggs;
     let veggiesMidiG = bases.veggiesMidi;
     let veggiesSoirG = bases.veggiesSoir;
+    const tomatoSauceG = Number(bases.tomatoSauceMidi) || 0;
     const wheyG = bases.whey;
     let darkChocG = bases.dark_choc;
     let peanutButterG = bases.peanut_butter;
     let walnutsG = dt === 'OFF' ? bases.walnutsOff : bases.walnutsOn;
     let avocadoG = dt === 'ON' ? bases.avocadoOn : bases.avocadoOff;
 
-    const b1 = sumBase(eggsG, veggiesMidiG, veggiesSoirG, wheyG, darkChocG, peanutButterG, walnutsG, avocadoG);
+    const b1 = sumBase(eggsG, veggiesMidiG, veggiesSoirG, tomatoSauceG, wheyG, darkChocG, peanutButterG, walnutsG, avocadoG);
     const pass1 = solveCarbsAndProt(b1.p, b1.g, b1.l, b1.fib);
     let remL = fatG - pass1.l;
 
@@ -636,7 +640,7 @@
     }
 
     // Passe 2 : recalcule glucides & protéines exacts avec les sources de lipides/légumes finalisées, puis huile d'olive exacte
-    const b2 = sumBase(eggsG, veggiesMidiG, veggiesSoirG, wheyG, darkChocG, peanutButterG, walnutsG, avocadoG);
+    const b2 = sumBase(eggsG, veggiesMidiG, veggiesSoirG, tomatoSauceG, wheyG, darkChocG, peanutButterG, walnutsG, avocadoG);
     const pass2 = solveCarbsAndProt(b2.p, b2.g, b2.l, b2.fib);
     const { pastaG, sweetPotatoG, raisinsG, honeyG, belvitaG, midiProtG, soirProtG } = pass2;
 
@@ -670,6 +674,7 @@
           makeItem('eggs', eggsG),
           makeItem(midiProtId, midiProtG),
           makeItem(grainId, pastaG),
+          makeItem('tomato_sauce', tomatoSauceG),
           makeItem('veggies', finalVeggiesMidiG),
           makeItem('olive_oil', oilMidiG)
         ].filter((i) => i.g > 0 || i.f === grainId)
