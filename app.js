@@ -623,7 +623,7 @@
       showToast('Split copié en entier ✓');
       if (btn) {
         btn.classList.add('is-copied');
-        const label = btn.querySelector('span');
+        const label = btn.querySelector('strong');
         if (label) label.textContent = 'Split copié ✓';
         setTimeout(() => {
           btn.classList.remove('is-copied');

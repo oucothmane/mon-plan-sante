@@ -1389,10 +1389,10 @@ h1 {
   height: 46px;
   padding: 0 15px;
   border-radius: 13px;
-  border: 0.5px solid color-mix(in srgb, var(--day) 28%, transparent);
-  background: var(--day-soft);
-  color: var(--day);
-  font-size: 14px;
+  border: 0;
+  background: var(--sunken);
+  color: var(--fg);
+  font-size: 14.5px;
   font-weight: 600;
   letter-spacing: -0.01em;
   display: flex;
@@ -1401,12 +1401,58 @@ h1 {
   gap: 6px;
   cursor: pointer;
   white-space: nowrap;
-  transition: background-color 0.16s ease, color 0.16s ease, border-color 0.16s ease, transform 0.12s ease;
+  transition: background-color 0.16s ease, color 0.16s ease, transform 0.12s ease;
 }
 
 .copy-meal-btn.is-copied {
   background: var(--ok);
-  border-color: var(--ok);
+  color: #FFFFFF;
+}
+
+.copy-split-btn {
+  width: 100%;
+  padding: 14px 16px;
+  color: var(--fg);
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  transition: transform 0.14s var(--spring);
+}
+
+.copy-split-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.copy-split-txt strong {
+  font-size: 15.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.copy-split-txt small {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.copy-split-ic {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--sunken);
+  color: var(--fg);
+  display: grid;
+  place-items: center;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.copy-split-btn.is-copied .copy-split-ic {
+  background: var(--ok);
   color: #FFFFFF;
 }
 
