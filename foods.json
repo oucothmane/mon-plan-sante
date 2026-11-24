@@ -20,7 +20,7 @@
     "dark_choc":     { "id": "dark_choc",     "n": "Chocolat noir 90 %",        "kcal": 592, "p": 10.0, "g": 14.0, "l": 55.0,  "fib": 12.0, "step": 5,  "group": "Lipides", "badge": "étiquette", "hidden": true },
     "avocado":       { "id": "avocado",       "n": "Avocat",                    "kcal": 160, "p": 2.0,  "g": 2.0,  "l": 15.0,  "fib": 6.7,  "step": 10, "group": "Lipides" },
     "olive_oil":     { "id": "olive_oil",     "n": "Huile d'olive",             "kcal": 884, "p": 0.0,  "g": 0.0,  "l": 100.0, "fib": 0.0,  "step": 5,  "group": "Lipides" },
-    "belvita":       { "id": "belvita",       "n": "Biscuit complet (Belvita)", "kcal": 440, "p": 8.0,  "g": 68.0, "l": 15.0,  "fib": 5.0,  "step": 13, "group": "Glucides" },
+    "belvita":       { "id": "belvita",       "n": "Biscuit complet (Belvita)", "kcal": 440, "p": 8.0,  "g": 68.0, "l": 15.0,  "fib": 5.0,  "step": 13, "group": "Glucides", "hidden": true },
     "creatine":      { "id": "creatine",      "n": "Créatine monohydrate",      "kcal": 0,   "p": 0.0,  "g": 0.0,  "l": 0.0,   "fib": 0.0,  "step": 5,  "hidden": true }
   }
 }

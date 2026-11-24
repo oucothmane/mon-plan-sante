@@ -477,5 +477,23 @@ const NE = require('./nutritionEngine.js');
     assert.strictEqual(baseSets, 20, `${k} should have 20 base sets, got ${baseSets}`);
   });
   console.log('5 JSON sources + Full Body 4-session split.json loaded & verified OK');
+
+  // Vérification stricte Cut (2200/2000) & Maintien (2400/2200) : sans Belvita, banane gardée, macros exactes, huile >= 5 g/repas
+  [
+    ['cut', 'ON', 2200, 165, 82],
+    ['cut', 'OFF', 2000, 165, 98],
+    ['maintain', 'ON', 2400, 165, 82],
+    ['maintain', 'OFF', 2200, 165, 98]
+  ].forEach(([ph, dt, targetKcal, targetP, targetL]) => {
+    const pl = NE.buildMealPlan({ ...NE.DEFAULT_PROFILE, phase: ph }, dt, { overrideKcal: targetKcal });
+    assert.strictEqual(pl.quantities.belvitaG, 0, `${ph} ${dt}: belvita should be 0`);
+    assert(Math.abs(pl.totals.kcal - targetKcal) <= 20, `${ph} ${dt}: kcal ${pl.totals.kcal.toFixed(1)} vs ${targetKcal}`);
+    assert(Math.abs(pl.totals.p - targetP) <= 1, `${ph} ${dt}: protein ${pl.totals.p.toFixed(1)} vs ${targetP}`);
+    assert(Math.abs(pl.totals.l - targetL) <= 1, `${ph} ${dt}: fat ${pl.totals.l.toFixed(1)} vs ${targetL}`);
+    assert(pl.quantities.oilMidiG >= 5 && pl.quantities.oilSoirG >= 5, `${ph} ${dt}: oil ${pl.quantities.oilMidiG}/${pl.quantities.oilSoirG}g < 5g`);
+    assert(pl.totals.fib >= 25, `${ph} ${dt}: fiber ${pl.totals.fib.toFixed(1)}g < 25g`);
+    if (dt === 'ON') assert(pl.quantities.bananaG > 0, `${ph} ON: banana should be present`);
+  });
+  console.log('Strict Cut & Maintien macros (0 Belvita, banana kept, kcal ±20, oil >= 5g/meal) OK');
 }
 

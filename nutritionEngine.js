@@ -31,7 +31,7 @@
     dark_choc:     { id: 'dark_choc',     n: 'Chocolat noir 90 %',        kcal: 592, p: 10.0, g: 14.0, l: 55.0,  fib: 12.0, hidden: true },
     avocado:       { id: 'avocado',       n: 'Avocat',                    kcal: 160, p: 2.0,  g: 2.0,  l: 15.0,  fib: 6.7 },
     olive_oil:     { id: 'olive_oil',     n: "Huile d'olive",             kcal: 884, p: 0.0,  g: 0.0,  l: 100.0, fib: 0.0 },
-    belvita:       { id: 'belvita',       n: 'Biscuit complet (Belvita)',   kcal: 440, p: 8.0,  g: 68.0, l: 15.0,  fib: 5.0 },
+    belvita:       { id: 'belvita',       n: 'Biscuit complet (Belvita)',   kcal: 440, p: 8.0,  g: 68.0, l: 15.0,  fib: 5.0, hidden: true },
     creatine:      { id: 'creatine',      n: 'Créatine monohydrate',      kcal: 0,   p: 0.0,  g: 0.0,  l: 0.0,   fib: 0.0, hidden: true }
   };
 
@@ -58,9 +58,9 @@
       pasta: 120,
       sweet_potato: 200,
       raisins: 50,
-      banana: 120,
+      banana: 240,
       honey: 0,
-      belvita: 75,
+      belvita: 0,
       olive_oil: 60,
       avocado: 100,
       walnuts: 35,
@@ -76,10 +76,11 @@
       creatine: 5,
       dark_choc: 0,
       peanut_butter: 0,
-      walnutsOn: 15,
-      walnutsOff: 25,
-      avocadoOn: 60,
-      avocadoOff: 60,
+      walnutsOn: 10,
+      walnutsOff: 15,
+      avocadoOn: 45,
+      avocadoOff: 100,
+      oilMinG: 10,
       belvitaGPerBiscuit: 12.5
     },
     cardioTargets: { seche: { on: 50, off: 30 }, maintien: { on: 50, off: 0 } },
@@ -105,7 +106,7 @@
         nameOff: 'Collation shaker',
         subOn: 'Après entraînement',
         subOff: 'Dans l’après-midi',
-        ensureFoods: ['raisins', 'honey', 'belvita', 'walnuts']
+        ensureFoods: ['banana', 'raisins', 'walnuts']
       },
       soir: {
         num: '3',
@@ -501,45 +502,56 @@
     const spCap = caps.sweet_potato;
 
     // Solveur glucides + protéines avec plafonds stricts des aliments
-    const solveCarbsAndProt = (baseP, baseG, baseL, baseF) => {
-      let p = baseP, g = baseG, l = baseL, fib = baseF;
+    const solveCarbsAndProt = (baseKcal, baseP, baseG, baseL, baseF, targetCarbs) => {
+      let kcal = baseKcal, p = baseP, g = baseG, l = baseL, fib = baseF;
       const add = (id, grams) => {
         if (grams <= 0) return;
         const m = macroOf(id, grams, foodOverrides);
-        p += m.p; g += m.g; l += m.l; fib += m.fib;
+        kcal += m.kcal; p += m.p; g += m.g; l += m.l; fib += m.fib;
       };
 
-      const remG = Math.max(0, carbsG - g);
+      const remG = Math.max(0, targetCarbs - g);
       const pastaG = Math.min(pastaCap, roundTo5((remG * 0.6) / grainCarbRate));
       add(grainId, pastaG);
 
       const spRate = (getFood('sweet_potato', foodOverrides).g || 20) / 100;
-      const remG2 = Math.max(0, carbsG - g);
+      const remG2 = Math.max(0, targetCarbs - g);
       const sweetPotatoG = Math.min(spCap, roundTo5(remG2 / spRate));
       add('sweet_potato', sweetPotatoG);
 
       let bananaG = 0, raisinsG = 0, honeyG = 0, belvitaG = 0;
-      const remG3 = carbsG - g;
+      const remG3 = targetCarbs - g;
       if (remG3 > 3) {
         const bananaCap = Number(caps.banana) || 0;
-        if (bananaCap > 0 && remG3 >= 15) {
-          const bananaRate = (getFood('banana', foodOverrides).g || 20) / 100;
-          bananaG = Math.min(bananaCap, Math.max(0, roundTo5(remG3 / bananaRate)));
+        const firstBananaCap = Math.min(120, bananaCap);
+        const bananaRate = (getFood('banana', foodOverrides).g || 20) / 100;
+        if (firstBananaCap > 0 && remG3 >= 15) {
+          bananaG = Math.min(firstBananaCap, Math.max(0, roundTo5(remG3 / bananaRate)));
           add('banana', bananaG);
         }
 
-        const remG4 = carbsG - g;
+        const remG4 = targetCarbs - g;
         if (remG4 > 3) {
           const raisinsRate = (getFood('raisins', foodOverrides).g || 72) / 100;
           raisinsG = Math.min(caps.raisins, Math.max(0, Math.round(remG4 / raisinsRate)));
           add('raisins', raisinsG);
 
-          const remG5 = carbsG - g;
-          if (remG5 > 4) {
+          // Si encore des glucides à combler (ex. Maintien ON), on complète avec la 2e banane jusqu'au plafond
+          const remG5 = targetCarbs - g;
+          if (remG5 > 3 && bananaG < bananaCap) {
+            const extraBanana = Math.min(bananaCap - bananaG, Math.max(0, roundTo5(remG5 / bananaRate)));
+            if (extraBanana > 0) {
+              bananaG += extraBanana;
+              add('banana', extraBanana);
+            }
+          }
+
+          const remG6 = targetCarbs - g;
+          if (remG6 > 4 && (Number(caps.belvita) || 0) > 0) {
             const belvitaCarbRate = (getFood('belvita', foodOverrides).g || 68) / 100;
             const bSize = bases.belvitaGPerBiscuit || 12.5;
             const maxBiscuits = Math.floor(caps.belvita / bSize);
-            const nbBiscuits = Math.min(maxBiscuits, Math.max(0, Math.round(remG5 / (bSize * belvitaCarbRate))));
+            const nbBiscuits = Math.min(maxBiscuits, Math.max(0, Math.round(remG6 / (bSize * belvitaCarbRate))));
             belvitaG = Math.round(nbBiscuits * bSize);
             add('belvita', belvitaG);
           }
@@ -560,15 +572,15 @@
       add(midiProtId, midiProtG);
       add(soirProtId, soirProtG);
 
-      return { pastaG, riceG: pastaG, sweetPotatoG, bananaG, raisinsG, honeyG, belvitaG, midiProtG, soirProtG, p, g, l, fib };
+      return { pastaG, riceG: pastaG, sweetPotatoG, bananaG, raisinsG, honeyG, belvitaG, midiProtG, soirProtG, kcal, p, g, l, fib };
     };
 
     const sumBase = (eggsG, vegM, vegS, tomatoG, wheyG, chocG, pbG, walG, avoG) => {
-      let p = 0, g = 0, l = 0, fib = 0;
+      let kcal = 0, p = 0, g = 0, l = 0, fib = 0;
       const add = (id, grams) => {
         if (grams <= 0) return;
         const m = macroOf(id, grams, foodOverrides);
-        p += m.p; g += m.g; l += m.l; fib += m.fib;
+        kcal += m.kcal; p += m.p; g += m.g; l += m.l; fib += m.fib;
       };
       add('eggs', eggsG);
       add('veggies', vegM);
@@ -579,7 +591,7 @@
       add('peanut_butter', pbG);
       add('walnuts', walG);
       add('avocado', avoG);
-      return { p, g, l, fib };
+      return { kcal, p, g, l, fib };
     };
 
     // Passe 1 : socle de départ + ajustement des sources de lipides (avocat, noix, huile d'olive)
@@ -592,51 +604,55 @@
     let peanutButterG = bases.peanut_butter;
     let walnutsG = dt === 'OFF' ? bases.walnutsOff : bases.walnutsOn;
     let avocadoG = dt === 'ON' ? bases.avocadoOn : bases.avocadoOff;
+    const minOilG = bases.oilMinG != null ? Number(bases.oilMinG) : 10;
 
-    const b1 = sumBase(eggsG, veggiesMidiG, veggiesSoirG, tomatoSauceG, wheyG, darkChocG, peanutButterG, walnutsG, avocadoG);
-    const pass1 = solveCarbsAndProt(b1.p, b1.g, b1.l, b1.fib);
-    let remL = fatG - pass1.l;
-
-    // Si trop de lipides : on réduit avocat -> noix -> beurre de cacahuète -> chocolat noir
     const avoRate = (getFood('avocado', foodOverrides).l || 15) / 100;
     const walRate = (getFood('walnuts', foodOverrides).l || 65) / 100;
     const pbRate = (getFood('peanut_butter', foodOverrides).l || 50) / 100;
     const chocRate = (getFood('dark_choc', foodOverrides).l || 55) / 100;
 
-    if (remL < -1 && avocadoG > 0) {
-      const cut = Math.min(avocadoG, roundTo5(-remL / avoRate));
-      avocadoG -= cut;
-      remL += cut * avoRate;
-    }
-    if (remL < -1 && walnutsG > 0) {
-      const cut = Math.min(walnutsG, Math.round(-remL / walRate));
-      walnutsG -= cut;
-      remL += cut * walRate;
-    }
-    if (remL < -1 && peanutButterG > 0) {
-      const cut = Math.min(peanutButterG, roundTo5(-remL / pbRate));
-      peanutButterG -= cut;
-      remL += cut * pbRate;
-    }
-    if (remL < -1 && darkChocG > 0) {
-      const cut = Math.min(darkChocG, roundTo5(-remL / chocRate));
-      darkChocG -= cut;
-      remL += cut * chocRate;
-    }
+    // Préserve au minimum minOilG (10 g = 5 g Midi + 5 g Soir) d'huile d'olive avant de descendre sous ce seuil
+    const adjustFats = (currentL) => {
+      let remL = fatG - currentL;
+      if (remL < minOilG && avocadoG > 0) {
+        const cut = Math.min(avocadoG, roundTo5((minOilG - remL) / avoRate));
+        avocadoG -= cut;
+        remL += cut * avoRate;
+      }
+      if (remL < minOilG && walnutsG > 0) {
+        const cut = Math.min(walnutsG, roundTo5((minOilG - remL) / walRate));
+        walnutsG -= cut;
+        remL += cut * walRate;
+      }
+      if (remL < minOilG && peanutButterG > 0) {
+        const cut = Math.min(peanutButterG, roundTo5((minOilG - remL) / pbRate));
+        peanutButterG -= cut;
+        remL += cut * pbRate;
+      }
+      if (remL < minOilG && darkChocG > 0) {
+        const cut = Math.min(darkChocG, roundTo5((minOilG - remL) / chocRate));
+        darkChocG -= cut;
+        remL += cut * chocRate;
+      }
 
-    // Si beaucoup de lipides à combler (> 40 g restants pour l'huile) : on monte noix, avocat, beurre de cacahuète
-    if (remL > 40 && walnutsG < caps.walnuts) {
-      const addW = Math.min(caps.walnuts - walnutsG, Math.round((remL - 40) / walRate));
-      if (addW > 0) { walnutsG += addW; remL -= addW * walRate; }
-    }
-    if (remL > 40 && avocadoG < caps.avocado) {
-      const addA = Math.min(caps.avocado - avocadoG, roundTo5((remL - 40) / avoRate));
-      if (addA > 0) { avocadoG += addA; remL -= addA * avoRate; }
-    }
-    if (remL > 40 && peanutButterG < caps.peanut_butter) {
-      const addPb = Math.min(caps.peanut_butter - peanutButterG, roundTo5((remL - 40) / pbRate));
-      if (addPb > 0) { peanutButterG += addPb; remL -= addPb * pbRate; }
-    }
+      // Si beaucoup de lipides à combler (> 40 g restants pour l'huile) : on monte noix, avocat, beurre de cacahuète
+      if (remL > 40 && walnutsG < caps.walnuts) {
+        const addW = Math.min(caps.walnuts - walnutsG, Math.round((remL - 40) / walRate));
+        if (addW > 0) { walnutsG += addW; remL -= addW * walRate; }
+      }
+      if (remL > 40 && avocadoG < caps.avocado) {
+        const addA = Math.min(caps.avocado - avocadoG, roundTo5((remL - 40) / avoRate));
+        if (addA > 0) { avocadoG += addA; remL -= addA * avoRate; }
+      }
+      if (remL > 40 && peanutButterG < caps.peanut_butter) {
+        const addPb = Math.min(caps.peanut_butter - peanutButterG, roundTo5((remL - 40) / pbRate));
+        if (addPb > 0) { peanutButterG += addPb; remL -= addPb * pbRate; }
+      }
+    };
+
+    const b1 = sumBase(eggsG, veggiesMidiG, veggiesSoirG, tomatoSauceG, wheyG, darkChocG, peanutButterG, walnutsG, avocadoG);
+    const pass1 = solveCarbsAndProt(b1.kcal, b1.p, b1.g, b1.l, b1.fib, carbsG);
+    adjustFats(pass1.l);
 
     // Contrôle fibres avant la passe 2 pour que les protéines/glucides des légumes soient comptés
     if (pass1.fib < fibCfg.minG) {
@@ -644,14 +660,28 @@
       veggiesSoirG = fibCfg.boostVeggiesG;
     }
 
-    // Passe 2 : recalcule glucides & protéines exacts avec les sources de lipides/légumes finalisées, puis huile d'olive exacte
-    const b2 = sumBase(eggsG, veggiesMidiG, veggiesSoirG, tomatoSauceG, wheyG, darkChocG, peanutButterG, walnutsG, avocadoG);
-    const pass2 = solveCarbsAndProt(b2.p, b2.g, b2.l, b2.fib);
+    // Passe 2 & 3 : convergence exacte calories (en tenant compte des ~2 kcal/g de fibres sur les étiquettes EU), protéines et lipides
+    let effCarbs = carbsG;
+    let pass2, totalOilG;
+    for (let iter = 0; iter < 3; iter++) {
+      const b = sumBase(eggsG, veggiesMidiG, veggiesSoirG, tomatoSauceG, wheyG, darkChocG, peanutButterG, walnutsG, avocadoG);
+      pass2 = solveCarbsAndProt(b.kcal, b.p, b.g, b.l, b.fib, effCarbs);
+      if (fatG - pass2.l < minOilG - 0.5 && (avocadoG > 0 || walnutsG > 0 || peanutButterG > 0 || darkChocG > 0)) {
+        adjustFats(pass2.l);
+        const bAdj = sumBase(eggsG, veggiesMidiG, veggiesSoirG, tomatoSauceG, wheyG, darkChocG, peanutButterG, walnutsG, avocadoG);
+        pass2 = solveCarbsAndProt(bAdj.kcal, bAdj.p, bAdj.g, bAdj.l, bAdj.fib, effCarbs);
+      }
+      totalOilG = Math.max(0, Math.min(caps.olive_oil, Math.round(fatG - pass2.l)));
+      const totKcal = pass2.kcal + macroOf('olive_oil', totalOilG, foodOverrides).kcal;
+      const kcalErr = totKcal - dayKcal;
+      if (Math.abs(kcalErr) <= 15) break;
+      effCarbs = Math.max(0, Math.round(effCarbs - kcalErr / 4));
+    }
+
     const { pastaG, sweetPotatoG, bananaG, raisinsG, honeyG, belvitaG, midiProtG, soirProtG } = pass2;
 
-    const totalOilG = Math.max(0, Math.min(caps.olive_oil, Math.round(fatG - pass2.l)));
-    const oilMidiG = Math.ceil(totalOilG / 2);
-    const oilSoirG = Math.floor(totalOilG / 2);
+    const oilMidiG = totalOilG >= 5 ? Math.ceil(totalOilG / 2) : totalOilG;
+    const oilSoirG = totalOilG >= 5 ? Math.floor(totalOilG / 2) : 0;
     const finalVeggiesMidiG = veggiesMidiG;
     const finalVeggiesSoirG = veggiesSoirG;
     const lowFiber = pass2.fib < fibCfg.minG;

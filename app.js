@@ -653,7 +653,15 @@
         case 'creatine':
           return 'dans le shaker';
         case 'banana':
-          return i.g >= 100 ? '≈ 1 banane moyenne' : i.g > 0 ? '≈ ½ banane' : 'option glucides';
+          return i.g >= 200
+            ? '≈ 2 bananes'
+            : i.g >= 150
+            ? '≈ 1,5 banane'
+            : i.g >= 100
+            ? '≈ 1 banane moyenne'
+            : i.g > 0
+            ? '≈ ½ banane'
+            : 'option glucides';
         case 'raisins':
           return i.g > 0 ? 'glucides rapides' : 'option glucides';
         case 'belvita': {
@@ -668,7 +676,7 @@
         case 'dark_choc':
           return i.g > 0 ? Math.round(i.g / 5) + ' carrés' : '';
         case 'avocado':
-          return i.g >= 60 ? '½ avocat moyen' : i.g > 0 ? '½ petit avocat' : '';
+          return i.g >= 85 ? '≈ ⅔ avocat' : i.g >= 55 ? '½ avocat moyen' : i.g > 0 ? '½ petit avocat' : '';
         default:
           return '';
       }
