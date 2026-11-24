@@ -1,8 +1,9 @@
 /* ==========================================================================
    Mon Plan Santé — Logique minimaliste (app.js)
-   Parcours épuré en 2 onglets :
+   Parcours épuré en 3 onglets :
    1. Repas (Mes 3 repas du jour, macros, remplacement viande/poisson, −/+, copie Foodvisor)
    2. Split (Exercices du jour, minuteur auto, récupération & carnet de charges)
+   3. Courses (Panier 4 / 8 / 10 jours)
    ========================================================================== */
 
 (function () {
@@ -73,7 +74,8 @@
 
   const TITLES = {
     repas: 'Repas',
-    seance: 'Split'
+    seance: 'Split',
+    courses: 'Courses'
   };
 
   // ==========================================================================
@@ -93,7 +95,7 @@
     kcalFloor: KCAL_MIN
   });
 
-  // Données chargées depuis split.json
+  // Données chargées depuis split.json et courses.json
   let TECH = {};
   let DELOAD_MAX_SETS = 2;
   let DEFAULT_STEP_KG = 2.5;
@@ -104,6 +106,7 @@
   let CYCLE = [];
   let RECOVERY = [];
   let OFF_DAYS = [];
+  let SHOP_RULES = null;
 
   const techSteps = (tech) => (tech ? tech.steps || 2 : 0);
   const techOf = (e, dl) => (dl ? null : TECH[e.tech] || null);
@@ -184,10 +187,11 @@
       fetch(url, { cache: 'no-cache' })
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null);
-    const [rules, foods, meals, split] = await Promise.all([
+    const [rules, foods, meals, courses, split] = await Promise.all([
       fetchJson('./plan-rules.json'),
       fetchJson('./foods.json'),
       fetchJson('./meals.json'),
+      fetchJson('./courses.json'),
       fetchJson('./split.json')
     ]);
     if (rules) NE.applyConfig(rules);
@@ -195,6 +199,7 @@
       NE.applyConfig({ foods: foods.foods, foodsGroupOrder: foods.groupOrder });
     }
     if (meals) NE.applyConfig({ meals: meals.phases, mealMeta: meals.mealMeta });
+    if (courses && courses.shopRules) SHOP_RULES = courses.shopRules;
     if (split) applySplitConfig(split);
 
     KCAL_MIN = NE.RULE_CONFIG.kcalMin;
@@ -213,7 +218,7 @@
   // ==========================================================================
 
   const KEY = 'mon-plan-repas-v1';
-  const TABS = ['repas', 'seance'];
+  const TABS = ['repas', 'seance', 'courses'];
 
   async function initApp() {
     await loadJsonConfigs();
@@ -224,6 +229,7 @@
       tab: 'repas',
       eaten: {},
       eatenDate: today,
+      cart: {},
       swap: {},
       cycleStart: null,
       dayAutoDate: '',
@@ -235,6 +241,7 @@
       hist: {},
       eatenLog: {},
       kcalLog: {},
+      shopDays: 8,
       foods: {},
       qty: {},
       targets: cloneObj(DEFAULT_TARGETS),
@@ -251,12 +258,14 @@
     st.qty = st.qty || {};
     st.targets = st.targets || {};
     st.macros = st.macros || {};
+    st.cart = st.cart || {};
     st.swap = st.swap || {};
     st.altParity = st.altParity || {};
     st.loads = st.loads || {};
     st.hist = st.hist || {};
     st.eatenLog = st.eatenLog || {};
     st.kcalLog = st.kcalLog || {};
+    if (st.shopDays === 7 || st.shopDays === 3) st.shopDays = 8;
     st.profile = Object.assign({}, PROFILE_DEFAULT, st.profile || {});
 
     // Migration douce des anciens IDs de swap
@@ -1006,6 +1015,128 @@
       }
     }
 
+    // ==========================================================================
+    // 8. RENDU : COURSES
+    // ==========================================================================
+
+    const packs = (t, size, one, many) => {
+      const n = Math.max(1, Math.ceil(t / size - 0.001));
+      return `${n} ${n > 1 ? many : one}`;
+    };
+    const kgUp = (g) => String(Math.max(0.5, Math.ceil(g / 500) * 0.5)).replace('.', ',') + ' kg';
+
+    function shopCounts() {
+      const N = st.shopDays || 8;
+      const ti = cycleIdx();
+      let on = 0;
+      for (let k = 0; k < N; k++) {
+        const isOn =
+          ti === null
+            ? (st.day === 'on') === (k % 2 === 0)
+            : ((ti + k) % CYCLE.length) % 2 === 0;
+        if (isOn) on++;
+      }
+      return { N, on, off: N - on };
+    }
+
+    function shopping() {
+      const T = {};
+      const C = shopCounts();
+      [
+        [buildDay(st.phase, 'on'), C.on],
+        [buildDay(st.phase, 'off'), C.off]
+      ].forEach((pair) => {
+        pair[0].meals.forEach((m) =>
+          m.items.forEach((i) => {
+            T[i.f] = (T[i.f] || 0) + i.g * pair[1];
+          })
+        );
+      });
+      const g = (id) => Math.round(T[id] || 0);
+      const rules = SHOP_RULES || {};
+      const eggWeightG = Number(rules.eggWeightG) || 56.7;
+      const eggBoxSize = Number(rules.eggBoxSize) || 12;
+      const oilDensity = Number(rules.oilDensity) || 0.916;
+      const ml = Math.round(g('olive_oil') / oilDensity / 5) * 5;
+      const nEggs = Math.ceil(g('eggs') / eggWeightG - 0.001);
+      const r = (id, n, need, buy) => ({ id, n, need, buy });
+
+      const grocery = [];
+      (rules.epicerie || []).forEach((it) => {
+        if (it.type === 'oil') {
+          if (ml > 0) {
+            grocery.push(r(it.id, it.label, '~' + ml + ' ml', ml <= 500 ? '1 bouteille 50 cl' : '1 bouteille 1 L'));
+          }
+          return;
+        }
+        const amt = g(it.id);
+        if (it.optional && amt <= 0) return;
+        grocery.push(r(it.id, it.label, fmt(amt) + ' g', packs(amt, it.packSize, it.one, it.many)));
+      });
+
+      const freshItems = [];
+      (rules.meats || []).forEach((x) => {
+        const amt = g(x.id);
+        if (amt > 0) freshItems.push(r(x.id, x.label, fmt(amt) + ' g', '≈ ' + kgUp(amt * (x.mult || 1))));
+      });
+      const nBoxes = Math.max(1, Math.ceil(nEggs / eggBoxSize));
+      freshItems.push(
+        r('oeufs', 'Œufs (calibre L)', nEggs + ' œufs', nBoxes + (nBoxes > 1 ? ` boîtes de ${eggBoxSize}` : ` boîte de ${eggBoxSize}`))
+      );
+      (rules.fresh || []).forEach((x) => {
+        const amt = g(x.id);
+        freshItems.push(r(x.id, x.label, fmt(amt) + ' g', '≈ ' + kgUp(amt * (x.mult || 1))));
+      });
+      if (rules.avocado && g(rules.avocado.id) > 0) {
+        const av = rules.avocado;
+        freshItems.push(r(av.id, av.label, fmt(g(av.id)) + ' g', packs(g(av.id), av.unitG, av.one, av.many)));
+      }
+
+      const compItems = (rules.complements || []).map((c) =>
+        r(c.id, c.label, c.fromFood ? fmt(g(c.id)) + ' g' : c.need, c.buy || 'Vérifier stock')
+      );
+
+      return [
+        { title: 'Frais', items: freshItems },
+        { title: 'Épicerie', items: grocery },
+        { title: 'Compléments', items: compItems }
+      ];
+    }
+
+    function renderCourses() {
+      let total = 0;
+      let count = 0;
+      $('groups').innerHTML = shopping()
+        .map(
+          (g) => `
+        <section class="group">
+          <h2>${g.title}</h2>
+          <div class="card list-card">${g.items
+            .map((r) => {
+              const done = !!st.cart[r.id];
+              total++;
+              if (done) count++;
+              return `<button type="button" class="row" data-cart="${r.id}" aria-pressed="${done}">
+              <span class="box">${CHECK_SM}</span>
+              <span class="row-main"><span class="row-name">${r.n}</span><small>${r.need}</small></span>
+              <span class="row-buy">${r.buy}</span>
+            </button>`;
+            })
+            .join('')}</div>
+        </section>`
+        )
+        .join('');
+
+      const C = shopCounts();
+      $('cartBasis').textContent = `Pour ${C.N} jours (${C.on} ON · ${C.off} OFF)`;
+      document
+        .querySelectorAll('[data-shop]')
+        .forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.shop) === C.N)));
+      $('cartCount').textContent = `${count} / ${total}`;
+      $('cartBar').style.width = total > 0 ? (count / total) * 100 + '%' : '0%';
+      $('cartResetRow').hidden = count === 0;
+    }
+
     function render() {
       if (st.phase !== 'seche' && st.phase !== 'maintien') st.phase = 'maintien';
       $('app').dataset.day = viewDay();
@@ -1019,9 +1150,11 @@
 
       const phaseBtn = $('phaseToggleBtn');
       if (phaseBtn) {
-        phaseBtn.hidden = st.tab !== 'repas';
+        phaseBtn.hidden = st.tab === 'seance';
         phaseBtn.textContent = st.phase === 'seche' ? 'Cut' : 'Maintien';
       }
+
+      $('cycBar').hidden = st.tab === 'courses';
 
       TABS.forEach((t) => {
         if ($('view-' + t)) $('view-' + t).hidden = st.tab !== t;
@@ -1031,11 +1164,13 @@
         else b.removeAttribute('aria-current');
       });
 
-      renderCycle();
+      if (st.tab !== 'courses') renderCycle();
       if (st.tab === 'repas') {
         renderRepas();
-      } else {
+      } else if (st.tab === 'seance') {
         renderSeance();
+      } else if (st.tab === 'courses') {
+        renderCourses();
       }
     }
 
@@ -1180,6 +1315,8 @@
       } else if (t.id === 'phaseToggleBtn') {
         st.phase = st.phase === 'seche' ? 'maintien' : 'seche';
         showToast(st.phase === 'seche' ? 'Mode Cut activé' : 'Mode Maintien activé');
+      } else if (d.shop) {
+        st.shopDays = Number(d.shop);
       } else if (d.swapOpen) {
         swapOpen = swapOpen === d.swapOpen ? null : d.swapOpen;
         render();
@@ -1198,6 +1335,11 @@
       } else if (d.meal) {
         st.eaten[d.meal] = !st.eaten[d.meal];
         syncTodayKcalLog();
+      } else if (d.cart) {
+        st.cart[d.cart] = !st.cart[d.cart];
+      } else if (t.id === 'resetCart') {
+        st.cart = {};
+        showToast('Panier réinitialisé');
       } else if (d.cyc) {
         const i = Number(d.cyc);
         const ti = cycleIdx();

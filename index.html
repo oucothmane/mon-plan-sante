@@ -136,6 +136,30 @@
         <div class="fold-body" id="loadsSummary"></div>
       </details>
     </section>
+
+    <!-- ==================================================================
+         ONGLET 3 : COURSES (4 / 8 / 10 jours & Liste à cocher)
+         ================================================================== -->
+    <section class="view" id="view-courses" aria-label="Courses" hidden>
+      <div class="seg three" role="group" aria-label="Durée des courses">
+        <button type="button" data-shop="4" aria-pressed="false">4 jours</button>
+        <button type="button" data-shop="8" aria-pressed="true">8 jours</button>
+        <button type="button" data-shop="10" aria-pressed="false">10 jours</button>
+      </div>
+
+      <section class="card cart-sum">
+        <div class="cart-top">
+          <span id="cartBasis">Dans le panier</span>
+          <span class="cart-count" id="cartCount">0 / 14</span>
+        </div>
+        <div class="track cart-track"><span id="cartBar"></span></div>
+        <div class="cart-foot" id="cartResetRow" hidden>
+          <button type="button" class="link-btn" id="resetCart">Tout décocher</button>
+        </div>
+      </section>
+
+      <div class="view" id="groups"></div>
+    </section>
   </main>
 
   <!-- TOAST DE CONFIRMATION DISCRET -->
@@ -157,7 +181,7 @@
     </div>
   </div>
 
-  <!-- BARRE DE NAVIGATION iOS GLASS (2 ONGLETS : Repas & Split) -->
+  <!-- BARRE DE NAVIGATION iOS GLASS (3 ONGLETS : Repas, Split & Courses) -->
   <nav class="tabs" aria-label="Navigation">
     <div class="wrap">
       <button type="button" class="tab" data-tab="repas" aria-current="page">
@@ -165,6 +189,9 @@
       </button>
       <button type="button" class="tab" data-tab="seance">
         <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7v10M3 9.5v5M18 7v10M21 9.5v5M6 12h12"/></svg></span>Split
+      </button>
+      <button type="button" class="tab" data-tab="courses">
+        <span class="tab-ic"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4.5h2.4l2.1 10.5h10.5l2.2-7H7"/><circle cx="9.5" cy="19.2" r="1.3"/><circle cx="17" cy="19.2" r="1.3"/></svg></span>Courses
       </button>
     </div>
   </nav>

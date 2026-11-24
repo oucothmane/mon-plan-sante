@@ -1,7 +1,7 @@
 {
   "name": "Mon Plan Santé",
   "short_name": "Plan Santé",
-  "description": "Repas du jour et split d'entraînement.",
+  "description": "Repas du jour, split d'entraînement et liste de courses.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",
