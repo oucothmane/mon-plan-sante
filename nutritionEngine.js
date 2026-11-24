@@ -76,9 +76,9 @@
       creatine: 5,
       dark_choc: 0,
       peanut_butter: 0,
-      walnutsOn: 10,
+      walnutsOn: 5,
       walnutsOff: 15,
-      avocadoOn: 45,
+      avocadoOn: 25,
       avocadoOff: 100,
       oilMinG: 10,
       belvitaGPerBiscuit: 12.5

@@ -43,17 +43,17 @@
       },
       "on": {
         "totals": {
-          "kcal": 2192,
+          "kcal": 2198,
           "p": 165,
-          "g": 187,
+          "g": 188,
           "l": 82,
-          "fib": 28
+          "fib": 27
         },
         "meals": [
           {
             "id": "midi",
             "title": "Midi",
-            "kcal": 1147,
+            "kcal": 1165,
             "items": [
               {
                 "f": "eggs",
@@ -77,14 +77,14 @@
               },
               {
                 "f": "olive_oil",
-                "g": 5
+                "g": 7
               }
             ]
           },
           {
             "id": "collation",
             "title": "Shaker post-séance",
-            "kcal": 209,
+            "kcal": 183,
             "items": [
               {
                 "f": "whey",
@@ -96,22 +96,22 @@
               },
               {
                 "f": "raisins",
-                "g": 11
+                "g": 13
               },
               {
                 "f": "walnuts",
-                "g": 10
+                "g": 5
               }
             ]
           },
           {
             "id": "soir",
             "title": "Soir",
-            "kcal": 836,
+            "kcal": 850,
             "items": [
               {
                 "f": "chicken",
-                "g": 185
+                "g": 190
               },
               {
                 "f": "sweet_potato",
@@ -123,7 +123,7 @@
               },
               {
                 "f": "olive_oil",
-                "g": 5
+                "g": 6
               },
               {
                 "f": "avocado",
@@ -229,9 +229,9 @@
       },
       "on": {
         "totals": {
-          "kcal": 2393,
+          "kcal": 2401,
           "p": 165,
-          "g": 236,
+          "g": 238,
           "l": 82,
           "fib": 32
         },
@@ -239,7 +239,7 @@
           {
             "id": "midi",
             "title": "Midi",
-            "kcal": 1142,
+            "kcal": 1159,
             "items": [
               {
                 "f": "eggs",
@@ -263,14 +263,14 @@
               },
               {
                 "f": "olive_oil",
-                "g": 5
+                "g": 7
               }
             ]
           },
           {
             "id": "collation",
             "title": "Shaker post-séance",
-            "kcal": 421,
+            "kcal": 397,
             "items": [
               {
                 "f": "whey",
@@ -286,22 +286,22 @@
               },
               {
                 "f": "raisins",
-                "g": 46
+                "g": 49
               },
               {
                 "f": "walnuts",
-                "g": 10
+                "g": 5
               }
             ]
           },
           {
             "id": "soir",
             "title": "Soir",
-            "kcal": 830,
+            "kcal": 845,
             "items": [
               {
                 "f": "chicken",
-                "g": 180
+                "g": 185
               },
               {
                 "f": "sweet_potato",
@@ -313,7 +313,7 @@
               },
               {
                 "f": "olive_oil",
-                "g": 5
+                "g": 6
               },
               {
                 "f": "avocado",

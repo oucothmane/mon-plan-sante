@@ -45,9 +45,9 @@
     "epicerie": [
       { "id": "pasta", "name": "Pâtes complètes crues", "cut8d": "~560 g", "maintien8d": "~840 g", "buy": "2 paquets de 500 g" },
       { "id": "tomato_sauce", "name": "Sauce tomate nature (conserve)", "cut8d": "1 200 g (150 g/j)", "maintien8d": "1 200 g (150 g/j)", "buy": "3 boîtes de 400 g" },
-      { "id": "olive_oil", "name": "Huile d'olive vierge extra", "cut8d": "~100 ml", "maintien8d": "~110 ml", "buy": "1 bouteille 50 cl" },
+      { "id": "olive_oil", "name": "Huile d'olive vierge extra", "cut8d": "~120 ml", "maintien8d": "~130 ml", "buy": "1 bouteille 50 cl" },
       { "id": "raisins", "name": "Raisins secs", "cut8d": "~45 g", "maintien8d": "~185 g", "buy": "1 sachet de 250 g" },
-      { "id": "walnuts", "name": "Noix de Grenoble", "cut8d": "100 g (10 g ON / 15 g OFF)", "maintien8d": "100 g", "buy": "1 sachet de 150 g" }
+      { "id": "walnuts", "name": "Noix de Grenoble", "cut8d": "80 g (5 g ON / 15 g OFF)", "maintien8d": "80 g", "buy": "1 sachet de 150 g" }
     ],
     "complements": [
       { "id": "whey", "name": "Whey isolate", "dosePerDay": "30 g", "need8d": "240 g", "buy": "Vérifier stock" },
