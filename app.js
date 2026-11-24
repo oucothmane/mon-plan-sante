@@ -107,6 +107,7 @@
   let RECOVERY = [];
   let OFF_DAYS = [];
   let SHOP_RULES = null;
+  let SPLIT_RULES = {};
 
   const techSteps = (tech) => (tech ? tech.steps || 2 : 0);
   const techOf = (e, dl) => (dl ? null : TECH[e.tech] || null);
@@ -141,6 +142,7 @@
   function applySplitConfig(split) {
     if (!split || typeof split !== 'object') return;
     TECH = split.tech || {};
+    SPLIT_RULES = split.rules || {};
     DELOAD_MAX_SETS = Number(split.deloadMaxSets) || 2;
     DEFAULT_STEP_KG = Number(split.defaultStepKg) || 2.5;
     CYCLE = Array.isArray(split.cycleKeys) ? split.cycleKeys.slice() : [];
@@ -173,6 +175,7 @@
         return normalizeEx(rawEx);
       });
       SESSIONS[sKey] = {
+        day: s.day || '',
         short: s.short || sKey,
         title: s.title || sKey,
         sub: s.sub || '',
@@ -518,6 +521,29 @@
       return parts.join(', ');
     }
 
+    async function copyToClipboard(text) {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      } catch (e) {}
+
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      let copied = false;
+      try {
+        copied = document.execCommand('copy');
+      } catch (e) {}
+      ta.remove();
+      return copied;
+    }
+
     async function copyMealForFoodvisor(mealId, btn) {
       const P = buildDay(st.phase, viewDay());
       const meal = P.meals.find((m) => m.id === mealId);
@@ -528,28 +554,7 @@
         return;
       }
 
-      let copied = false;
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(text);
-          copied = true;
-        }
-      } catch (e) {}
-
-      if (!copied) {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.setAttribute('readonly', '');
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        try {
-          copied = document.execCommand('copy');
-        } catch (e) {}
-        ta.remove();
-      }
-
+      const copied = await copyToClipboard(text);
       if (!copied) {
         alert('Copie impossible sur ce navigateur.');
         return;
@@ -563,6 +568,66 @@
         setTimeout(() => {
           btn.classList.remove('is-copied');
           if (label) label.textContent = 'Copier';
+        }, 1800);
+      }
+    }
+
+    function formatFullSplit() {
+      const keys = Object.keys(SESSIONS);
+      const lines = [`Split Full Body ${keys.join('/')} (${CYCLE.length || 8} jours · 1 ON / 1 OFF)`];
+
+      keys.forEach((sKey) => {
+        const S = SESSIONS[sKey];
+        const dayTag = S.day ? ` (${S.day})` : '';
+        lines.push('', `${S.title}${dayTag}`);
+        if (S.sub) lines.push(S.sub);
+        let idx = 1;
+        (S.ex || []).forEach((raw) => {
+          const list = raw.isAlt ? raw.variants || [] : [raw];
+          list.forEach((e) => {
+            const cur = st.loads[e.n];
+            const kgVal = cur != null ? cur : defKg(e);
+            const kgTxt = kgVal != null ? ` · ${fmtKg(kgVal)} kg` : '';
+            const restStr = e.restTxt || fmtRest(e.rest);
+            const muscle = e.m ? ` (${e.m})` : '';
+            lines.push(`${idx}. ${e.n}${muscle} — ${e.sets} × ${e.reps} · ${e.rir} · ${restStr}${kgTxt}`);
+            idx++;
+          });
+        });
+      });
+
+      if (RECOVERY.length) {
+        lines.push('', '🧘 Jours OFF (Récupération)');
+        RECOVERY.forEach((routine, k) => {
+          const items = routine.map((r) => `${r.n} (${r.d})`).join(', ');
+          lines.push(`- Routine ${k + 1} : ${items}`);
+        });
+      }
+
+      if (SPLIT_RULES && (SPLIT_RULES.progression || SPLIT_RULES.deload)) {
+        lines.push('');
+        if (SPLIT_RULES.progression) lines.push(`Progression : ${SPLIT_RULES.progression}`);
+        if (SPLIT_RULES.deload) lines.push(`Deload : ${SPLIT_RULES.deload}`);
+      }
+
+      return lines.join('\n');
+    }
+
+    async function copyFullSplit(btn) {
+      const text = formatFullSplit();
+      const copied = await copyToClipboard(text);
+      if (!copied) {
+        alert('Copie impossible sur ce navigateur.');
+        return;
+      }
+      showToast('Split copié en entier ✓');
+      if (btn) {
+        btn.classList.add('is-copied');
+        const label = btn.querySelector('span');
+        if (label) label.textContent = 'Split copié ✓';
+        setTimeout(() => {
+          btn.classList.remove('is-copied');
+          if (label) label.textContent = 'Copier tout le split';
         }, 1800);
       }
     }
@@ -1299,6 +1364,10 @@
 
       if (d.copyMeal) {
         copyMealForFoodvisor(d.copyMeal, t);
+        return;
+      }
+      if (t.id === 'copySplitBtn') {
+        copyFullSplit(t);
         return;
       }
       if (t.id === 'timerAdd') {
