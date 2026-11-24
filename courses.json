@@ -8,7 +8,7 @@
     "eggBoxSize": 12,
     "oilDensity": 0.916,
     "meats": [
-      { "id": "chicken", "label": "Blanc de poulet", "mult": 1.08 },
+      { "id": "chicken", "label": "Filets de poulet surgelés (Picard)", "packSize": 1000, "one": "sachet 1 kg", "many": "sachets 1 kg" },
       { "id": "turkey", "label": "Escalopes de dinde", "mult": 1.0 },
       { "id": "cod", "label": "Cabillaud", "mult": 1.0 },
       { "id": "beef5", "label": "Bœuf haché 5 %", "mult": 1.0 }
@@ -36,7 +36,7 @@
   },
   "categories": {
     "frais": [
-      { "id": "chicken", "name": "Blanc de poulet cru (ou Dinde / Cabillaud / Bœuf 5 %)", "cut8d": "~2 900 g", "maintien8d": "~2 800 g", "buy": "≈ 3,0 kg" },
+      { "id": "chicken", "name": "Filets de poulet surgelés (Picard)", "cut8d": "~2 900 g", "maintien8d": "~2 800 g", "buy": "3 sachets de 1 kg" },
       { "id": "eggs", "name": "Œufs entiers (calibre L)", "cut8d": "24 œufs (3/jour)", "maintien8d": "24 œufs (3/jour)", "buy": "2 boîtes de 12" },
       { "id": "veggies", "name": "Poêlée de légumes surgelée", "cut8d": "2 400 g (150 g × 2/j)", "maintien8d": "2 400 g", "buy": "4 sachets de 600 g" },
       { "id": "sweet_potato", "name": "Frites patate douce surgelées (Picard)", "cut8d": "~1 300 g", "maintien8d": "~1 600 g", "buy": "3 à 4 sachets de 500 g" },

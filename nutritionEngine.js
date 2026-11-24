@@ -14,7 +14,7 @@
 
   const FOOD_DB = {
     eggs:          { id: 'eggs',          n: 'Œufs entiers (calibre L)',  kcal: 140, p: 12.6, g: 0.7,  l: 9.6,   fib: 0.0 },
-    chicken:       { id: 'chicken',       n: 'Blanc de poulet cru',       kcal: 110, p: 23.0, g: 0.0,  l: 1.8,   fib: 0.0 },
+    chicken:       { id: 'chicken',       n: 'Filets de poulet surgelés (Picard)', kcal: 110, p: 23.0, g: 0.0,  l: 1.8,   fib: 0.0 },
     turkey:        { id: 'turkey',        n: 'Escalope de dinde crue',    kcal: 108, p: 23.0, g: 0.0,  l: 1.5,   fib: 0.0 },
     cod:           { id: 'cod',           n: 'Cabillaud cru',             kcal: 77,  p: 17.7, g: 0.0,  l: 0.6,   fib: 0.0 },
     beef5:         { id: 'beef5',         n: 'Bœuf haché 5 % cru',        kcal: 130, p: 21.9, g: 0.3,  l: 4.6,   fib: 0.0 },
