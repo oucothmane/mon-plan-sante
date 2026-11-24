@@ -1317,8 +1317,7 @@
               `<label><small>${lab}</small><input type="text" inputmode="decimal" autocomplete="off" data-food="${f}|${k}" value="${
                 k === 'kcal' ? Math.round(F[k]) : n1(F[k])
               }"></label>`
-          ).join('')}</div>
-          <small class="ref-warn" id="refWarn-${f}" hidden></small></div>`;
+          ).join('')}</div></div>`;
               })
               .join('')
         )
@@ -1332,15 +1331,10 @@
         list.forEach((f) => {
           const mod = Object.keys((st.foods || {})[f] || {}).length > 0;
           any = any || mod;
-          const F = food(f);
           const tag = $('refTag-' + f);
           if (!tag) return;
           tag.textContent = mod ? 'modifié' : (FOODS_DEFAULT[f] && FOODS_DEFAULT[f].badge) || 'Table';
           tag.classList.toggle('is-mod', mod);
-          const calc = 4 * F.p + 4 * F.g + 9 * F.l + 2 * (F.fib || 0);
-          const off = F.kcal > 20 && Math.abs(calc - F.kcal) / F.kcal > 0.15;
-          $('refWarn-' + f).hidden = !off;
-          $('refWarn-' + f).textContent = off ? `Attendu ~${Math.round(calc)} kcal` : '';
         })
       );
       if ($('resetFoods')) $('resetFoods').hidden = !any;
