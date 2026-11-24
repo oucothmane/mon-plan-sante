@@ -43,11 +43,11 @@
       },
       "on": {
         "totals": {
-          "kcal": 2200,
+          "kcal": 2192,
           "p": 165,
-          "g": 188,
+          "g": 187,
           "l": 82,
-          "fib": 30
+          "fib": 28
         },
         "meals": [
           {
@@ -84,7 +84,7 @@
           {
             "id": "collation",
             "title": "Shaker post-séance",
-            "kcal": 257,
+            "kcal": 209,
             "items": [
               {
                 "f": "whey",
@@ -95,8 +95,8 @@
                 "g": 5
               },
               {
-                "f": "banana",
-                "g": 90
+                "f": "raisins",
+                "g": 11
               },
               {
                 "f": "walnuts",
@@ -107,7 +107,7 @@
           {
             "id": "soir",
             "title": "Soir",
-            "kcal": 796,
+            "kcal": 836,
             "items": [
               {
                 "f": "chicken",
@@ -115,7 +115,7 @@
               },
               {
                 "f": "sweet_potato",
-                "g": 200
+                "g": 250
               },
               {
                 "f": "veggies",
@@ -127,7 +127,7 @@
               },
               {
                 "f": "avocado",
-                "g": 45
+                "g": 25
               }
             ]
           }
@@ -229,11 +229,11 @@
       },
       "on": {
         "totals": {
-          "kcal": 2402,
+          "kcal": 2393,
           "p": 165,
-          "g": 240,
+          "g": 236,
           "l": 82,
-          "fib": 33
+          "fib": 32
         },
         "meals": [
           {
@@ -270,7 +270,7 @@
           {
             "id": "collation",
             "title": "Shaker post-séance",
-            "kcal": 477,
+            "kcal": 421,
             "items": [
               {
                 "f": "whey",
@@ -282,11 +282,11 @@
               },
               {
                 "f": "banana",
-                "g": 170
+                "g": 120
               },
               {
                 "f": "raisins",
-                "g": 50
+                "g": 46
               },
               {
                 "f": "walnuts",
@@ -297,7 +297,7 @@
           {
             "id": "soir",
             "title": "Soir",
-            "kcal": 783,
+            "kcal": 830,
             "items": [
               {
                 "f": "chicken",
@@ -305,7 +305,7 @@
               },
               {
                 "f": "sweet_potato",
-                "g": 200
+                "g": 250
               },
               {
                 "f": "veggies",
@@ -317,7 +317,7 @@
               },
               {
                 "f": "avocado",
-                "g": 40
+                "g": 25
               }
             ]
           }

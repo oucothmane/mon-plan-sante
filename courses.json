@@ -38,15 +38,15 @@
       { "id": "chicken", "name": "Filets de poulet surgelés (Picard)", "cut8d": "~3 160 g", "maintien8d": "~3 020 g", "buy": "3 à 4 sachets de 1 kg" },
       { "id": "eggs", "name": "Œufs entiers (calibre L)", "cut8d": "24 œufs (3/jour)", "maintien8d": "24 œufs (3/jour)", "buy": "2 boîtes de 12" },
       { "id": "veggies", "name": "Poêlée de légumes surgelée", "cut8d": "3 200 g", "maintien8d": "2 400 g", "buy": "4 à 6 sachets de 600 g" },
-      { "id": "sweet_potato", "name": "Frites patate douce surgelées (Picard)", "cut8d": "~1 000 g", "maintien8d": "~1 600 g", "buy": "2 à 4 sachets de 500 g" },
-      { "id": "banana", "name": "Bananes", "cut8d": "~360 g (3 à 4 bananes)", "maintien8d": "~680 g (6 bananes)", "buy": "≈ 0,6 – 1,0 kg" },
-      { "id": "avocado", "name": "Avocats", "cut8d": "~580 g", "maintien8d": "~560 g", "buy": "4 à 5 avocats" }
+      { "id": "sweet_potato", "name": "Frites patate douce surgelées (Picard)", "cut8d": "~1 200 g", "maintien8d": "~1 800 g", "buy": "3 à 4 sachets de 500 g" },
+      { "id": "banana", "name": "Bananes", "cut8d": "0 g", "maintien8d": "~480 g (4 bananes)", "buy": "0 à 0,7 kg" },
+      { "id": "avocado", "name": "Avocats", "cut8d": "~500 g", "maintien8d": "~500 g", "buy": "4 avocats" }
     ],
     "epicerie": [
       { "id": "pasta", "name": "Pâtes complètes crues", "cut8d": "~560 g", "maintien8d": "~840 g", "buy": "2 paquets de 500 g" },
       { "id": "tomato_sauce", "name": "Sauce tomate nature (conserve)", "cut8d": "1 200 g (150 g/j)", "maintien8d": "1 200 g (150 g/j)", "buy": "3 boîtes de 400 g" },
       { "id": "olive_oil", "name": "Huile d'olive vierge extra", "cut8d": "~100 ml", "maintien8d": "~110 ml", "buy": "1 bouteille 50 cl" },
-      { "id": "raisins", "name": "Raisins secs", "cut8d": "0 g", "maintien8d": "~200 g", "buy": "1 sachet de 250 g" },
+      { "id": "raisins", "name": "Raisins secs", "cut8d": "~45 g", "maintien8d": "~185 g", "buy": "1 sachet de 250 g" },
       { "id": "walnuts", "name": "Noix de Grenoble", "cut8d": "100 g (10 g ON / 15 g OFF)", "maintien8d": "100 g", "buy": "1 sachet de 150 g" }
     ],
     "complements": [

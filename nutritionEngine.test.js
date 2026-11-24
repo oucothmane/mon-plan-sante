@@ -492,7 +492,10 @@ const NE = require('./nutritionEngine.js');
     assert(Math.abs(pl.totals.l - targetL) <= 1, `${ph} ${dt}: fat ${pl.totals.l.toFixed(1)} vs ${targetL}`);
     assert(pl.quantities.oilMidiG >= 5 && pl.quantities.oilSoirG >= 5, `${ph} ${dt}: oil ${pl.quantities.oilMidiG}/${pl.quantities.oilSoirG}g < 5g`);
     assert(pl.totals.fib >= 25, `${ph} ${dt}: fiber ${pl.totals.fib.toFixed(1)}g < 25g`);
-    if (dt === 'ON') assert(pl.quantities.bananaG > 0, `${ph} ON: banana should be present`);
+    assert(pl.quantities.pastaG <= 120, `${ph} ${dt}: pasta ${pl.quantities.pastaG}g > 120g`);
+    assert(pl.quantities.sweetPotatoG <= 250, `${ph} ${dt}: sweet_potato ${pl.quantities.sweetPotatoG}g > 250g`);
+    assert(pl.quantities.raisinsG <= 50, `${ph} ${dt}: raisins ${pl.quantities.raisinsG}g > 50g`);
+    if (ph === 'maintain' && dt === 'ON') assert(pl.quantities.bananaG > 0, 'maintain ON: banana should be present');
   });
   console.log('Strict Cut & Maintien macros (0 Belvita, banana kept, kcal ±20, oil >= 5g/meal) OK');
 }
