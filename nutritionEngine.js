@@ -14,19 +14,18 @@
 
   const FOOD_DB = {
     eggs:          { id: 'eggs',          n: 'Œufs entiers (calibre L)',  kcal: 140, p: 12.6, g: 0.7,  l: 9.6,   fib: 0.0 },
-    chicken:       { id: 'chicken',       n: 'Filets de poulet surgelés (Picard)', kcal: 110, p: 23.0, g: 0.0,  l: 1.8,   fib: 0.0 },
+    chicken:       { id: 'chicken',       n: 'Filets de poulet surgelés (Picard)', kcal: 121, p: 26.0, g: 0.0,  l: 1.8,   fib: 0.0 },
     turkey:        { id: 'turkey',        n: 'Escalope de dinde crue',    kcal: 108, p: 23.0, g: 0.0,  l: 1.5,   fib: 0.0 },
     cod:           { id: 'cod',           n: 'Cabillaud cru',             kcal: 77,  p: 17.7, g: 0.0,  l: 0.6,   fib: 0.0 },
     beef5:         { id: 'beef5',         n: 'Bœuf haché 5 % cru',        kcal: 130, p: 21.9, g: 0.3,  l: 4.6,   fib: 0.0 },
-    whey:          { id: 'whey',          n: 'Whey isolate',              kcal: 370, p: 85.0, g: 3.0,  l: 1.5,   fib: 0.0 },
-    pasta:         { id: 'pasta',         n: 'Pâtes complètes crues',     kcal: 348, p: 13.0, g: 65.0, l: 2.5,   fib: 7.5 },
-    sweet_potato:  { id: 'sweet_potato',  n: 'Frites patate douce surgelées (Picard)', kcal: 143, p: 1.5, g: 19.5, l: 6.1, fib: 2.5 },
-    veggies:       { id: 'veggies',       n: 'Poêlée de légumes surgelée',             kcal: 127, p: 2.5, g: 13.6, l: 6.5, fib: 2.5 },
-    tomato_sauce:  { id: 'tomato_sauce',  n: 'Sauce tomate nature (conserve)', kcal: 32, p: 1.5, g: 5.5, l: 0.2, fib: 1.5 },
-    raisins:       { id: 'raisins',       n: 'Raisins secs',              kcal: 299, p: 3.1,  g: 72.0, l: 0.5,   fib: 3.7 },
+    whey:          { id: 'whey',          n: 'Whey isolate',              kcal: 370, p: 92.0, g: 3.0,  l: 1.5,   fib: 0.0 },
+    pasta:         { id: 'pasta',         n: 'Pâtes complètes crues',     kcal: 348, p: 12.0, g: 65.0, l: 2.5,   fib: 7.5 },
+    sweet_potato:  { id: 'sweet_potato',  n: 'Frites patate douce surgelées (Picard)', kcal: 150, p: 1.5, g: 19.5, l: 6.1, fib: 2.5 },
+    veggies:       { id: 'veggies',       n: 'Poêlée de légumes grillés (Picard)',  kcal: 51,  p: 1.6, g: 5.3,  l: 2.1,   fib: 2.7 },
+    tomato_sauce:  { id: 'tomato_sauce',  n: 'Sauce tomate nature (conserve)', kcal: 42, p: 1.5, g: 5.5, l: 0.2, fib: 1.5 },
+    raisins:       { id: 'raisins',       n: 'Raisins secs',              kcal: 331, p: 3.1,  g: 72.0, l: 0.5,   fib: 3.7 },
     banana:        { id: 'banana',        n: 'Banane',                    kcal: 89,  p: 1.1,  g: 20.0, l: 0.3,   fib: 2.6 },
     honey:         { id: 'honey',         n: "Miel d'acacia",             kcal: 304, p: 0.3,  g: 82.0, l: 0.0,   fib: 0.0, hidden: true },
-    peanut_butter: { id: 'peanut_butter', n: 'Beurre de cacahuète 100 %', kcal: 600, p: 25.0, g: 12.0, l: 50.0,  fib: 8.0, hidden: true },
     walnuts:       { id: 'walnuts',       n: 'Noix de Grenoble',          kcal: 654, p: 15.0, g: 7.0,  l: 65.0,  fib: 6.7 },
     dark_choc:     { id: 'dark_choc',     n: 'Chocolat noir 90 %',        kcal: 592, p: 10.0, g: 14.0, l: 55.0,  fib: 12.0, hidden: true },
     avocado:       { id: 'avocado',       n: 'Avocat',                    kcal: 160, p: 2.0,  g: 2.0,  l: 15.0,  fib: 6.7 },
@@ -64,7 +63,6 @@
       olive_oil: 60,
       avocado: 100,
       walnuts: 35,
-      peanut_butter: 0,
       dark_choc: 0
     },
     mealBases: {
@@ -75,7 +73,6 @@
       whey: 30,
       creatine: 5,
       dark_choc: 0,
-      peanut_butter: 0,
       walnutsOn: 5,
       walnutsOff: 15,
       avocadoOn: 25,
@@ -575,7 +572,7 @@
       return { pastaG, riceG: pastaG, sweetPotatoG, bananaG, raisinsG, honeyG, belvitaG, midiProtG, soirProtG, kcal, p, g, l, fib };
     };
 
-    const sumBase = (eggsG, vegM, vegS, tomatoG, wheyG, chocG, pbG, walG, avoG) => {
+    const sumBase = (eggsG, vegM, vegS, tomatoG, wheyG, chocG, walG, avoG) => {
       let kcal = 0, p = 0, g = 0, l = 0, fib = 0;
       const add = (id, grams) => {
         if (grams <= 0) return;
@@ -588,7 +585,6 @@
       add('tomato_sauce', tomatoG);
       add('whey', wheyG);
       add('dark_choc', chocG);
-      add('peanut_butter', pbG);
       add('walnuts', walG);
       add('avocado', avoG);
       return { kcal, p, g, l, fib };
@@ -601,14 +597,12 @@
     const tomatoSauceG = Number(bases.tomatoSauceMidi) || 0;
     const wheyG = bases.whey;
     let darkChocG = bases.dark_choc;
-    let peanutButterG = bases.peanut_butter;
     let walnutsG = dt === 'OFF' ? bases.walnutsOff : bases.walnutsOn;
     let avocadoG = dt === 'ON' ? bases.avocadoOn : bases.avocadoOff;
     const minOilG = bases.oilMinG != null ? Number(bases.oilMinG) : 10;
 
     const avoRate = (getFood('avocado', foodOverrides).l || 15) / 100;
     const walRate = (getFood('walnuts', foodOverrides).l || 65) / 100;
-    const pbRate = (getFood('peanut_butter', foodOverrides).l || 50) / 100;
     const chocRate = (getFood('dark_choc', foodOverrides).l || 55) / 100;
 
     // Préserve au minimum minOilG (10 g = 5 g Midi + 5 g Soir) d'huile d'olive avant de descendre sous ce seuil
@@ -624,18 +618,13 @@
         walnutsG -= cut;
         remL += cut * walRate;
       }
-      if (remL < minOilG && peanutButterG > 0) {
-        const cut = Math.min(peanutButterG, roundTo5((minOilG - remL) / pbRate));
-        peanutButterG -= cut;
-        remL += cut * pbRate;
-      }
       if (remL < minOilG && darkChocG > 0) {
         const cut = Math.min(darkChocG, roundTo5((minOilG - remL) / chocRate));
         darkChocG -= cut;
         remL += cut * chocRate;
       }
 
-      // Si beaucoup de lipides à combler (> 40 g restants pour l'huile) : on monte noix, avocat, beurre de cacahuète
+      // Si beaucoup de lipides à combler (> 40 g restants pour l'huile) : on monte noix, avocat
       if (remL > 40 && walnutsG < caps.walnuts) {
         const addW = Math.min(caps.walnuts - walnutsG, Math.round((remL - 40) / walRate));
         if (addW > 0) { walnutsG += addW; remL -= addW * walRate; }
@@ -644,13 +633,9 @@
         const addA = Math.min(caps.avocado - avocadoG, roundTo5((remL - 40) / avoRate));
         if (addA > 0) { avocadoG += addA; remL -= addA * avoRate; }
       }
-      if (remL > 40 && peanutButterG < caps.peanut_butter) {
-        const addPb = Math.min(caps.peanut_butter - peanutButterG, roundTo5((remL - 40) / pbRate));
-        if (addPb > 0) { peanutButterG += addPb; remL -= addPb * pbRate; }
-      }
     };
 
-    const b1 = sumBase(eggsG, veggiesMidiG, veggiesSoirG, tomatoSauceG, wheyG, darkChocG, peanutButterG, walnutsG, avocadoG);
+    const b1 = sumBase(eggsG, veggiesMidiG, veggiesSoirG, tomatoSauceG, wheyG, darkChocG, walnutsG, avocadoG);
     const pass1 = solveCarbsAndProt(b1.kcal, b1.p, b1.g, b1.l, b1.fib, carbsG);
     adjustFats(pass1.l);
 
@@ -664,11 +649,11 @@
     let effCarbs = carbsG;
     let pass2, totalOilG;
     for (let iter = 0; iter < 3; iter++) {
-      const b = sumBase(eggsG, veggiesMidiG, veggiesSoirG, tomatoSauceG, wheyG, darkChocG, peanutButterG, walnutsG, avocadoG);
+      const b = sumBase(eggsG, veggiesMidiG, veggiesSoirG, tomatoSauceG, wheyG, darkChocG, walnutsG, avocadoG);
       pass2 = solveCarbsAndProt(b.kcal, b.p, b.g, b.l, b.fib, effCarbs);
-      if (fatG - pass2.l < minOilG - 0.5 && (avocadoG > 0 || walnutsG > 0 || peanutButterG > 0 || darkChocG > 0)) {
+      if (fatG - pass2.l < minOilG - 0.5 && (avocadoG > 0 || walnutsG > 0 || darkChocG > 0)) {
         adjustFats(pass2.l);
-        const bAdj = sumBase(eggsG, veggiesMidiG, veggiesSoirG, tomatoSauceG, wheyG, darkChocG, peanutButterG, walnutsG, avocadoG);
+        const bAdj = sumBase(eggsG, veggiesMidiG, veggiesSoirG, tomatoSauceG, wheyG, darkChocG, walnutsG, avocadoG);
         pass2 = solveCarbsAndProt(bAdj.kcal, bAdj.p, bAdj.g, bAdj.l, bAdj.fib, effCarbs);
       }
       totalOilG = Math.max(0, Math.min(caps.olive_oil, Math.round(fatG - pass2.l)));

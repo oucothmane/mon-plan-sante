@@ -730,8 +730,6 @@
           const nb = Math.max(1, Math.round(i.g / bSize));
           return `≈ ${nb} biscuit${nb > 1 ? 's' : ''}`;
         }
-        case 'peanut_butter':
-          return i.g > 0 ? '≈ ' + spoon(i.g / 20) + ' c. à soupe' : '';
         case 'dark_choc':
           return i.g > 0 ? Math.round(i.g / 5) + ' carrés' : '';
         case 'avocado':
