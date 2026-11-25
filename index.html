@@ -127,11 +127,19 @@
       <!-- Jour ON : Séance -->
       <div class="view" id="sessionBox">
         <section class="card sess" aria-label="Avancement de la séance">
-          <div class="progress-row">
-            <span>Séries validées<span class="tag warn" id="deloadTag" hidden>Deload</span></span>
-            <b id="setCount">0 / 16</b>
+          <div class="sess-head">
+            <div class="sess-title-wrap">
+              <strong class="sess-title" id="sessTitle">Séance du jour</strong>
+              <span class="tag warn" id="deloadTag" hidden>Deload</span>
+            </div>
+            <b class="sess-count" id="setCount">0 / 16</b>
           </div>
+          <div class="sess-pills" id="sessPills"></div>
           <div class="track"><span id="setBar" class="on-bar"></span></div>
+          <div class="sess-foot">
+            <span id="sessSub">2′ polyarticulaires · 1′ isolation</span>
+            <span class="sess-pct" id="sessPct">0 %</span>
+          </div>
         </section>
 
         <div class="view" id="exList"></div>
@@ -149,6 +157,16 @@
 
       <!-- Jour OFF : Récupération active -->
       <div class="view" id="recoveryBox" hidden>
+        <section class="card rec-hero" aria-label="Récupération active">
+          <div class="rec-head">
+            <div>
+              <h2>Récupération active</h2>
+              <p class="rec-sub" id="recSub">Mobilité hanches &amp; gainage · ~10 min</p>
+            </div>
+            <span class="pill" id="recCount">0 / 2</span>
+          </div>
+          <div class="track"><span id="recBar"></span></div>
+        </section>
         <div class="card list-card" id="recList"></div>
       </div>
 
@@ -164,7 +182,7 @@
       <button type="button" class="card copy-split-btn" id="copySplitBtn">
         <span class="copy-split-txt">
           <strong>Copier tout le split</strong>
-          <small>Séances A/B/C/D, charges &amp; récup</small>
+          <small>Push · Pull · Legs, charges &amp; récup</small>
         </span>
         <span class="copy-split-ic" aria-hidden="true">
           <svg class="ic" width="18" height="18" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>

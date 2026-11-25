@@ -465,18 +465,28 @@ const NE = require('./nutritionEngine.js');
   assert(splitJson.sessions && Array.isArray(splitJson.cycleKeys), 'split.json has sessions and cycleKeys');
   assert.deepStrictEqual(
     splitJson.cycleKeys,
-    ['A', null, 'B', null, 'C', null, 'D', null],
-    '8-day Full Body cycleKeys'
+    ['Push', null, 'Pull', null, 'Legs', null],
+    '6-day PPL cycleKeys'
   );
-  assert.deepStrictEqual(Object.keys(splitJson.sessions), ['A', 'B', 'C', 'D'], '4 Full Body sessions');
-  ['A', 'B', 'C', 'D'].forEach((k) => {
+  assert.deepStrictEqual(Object.keys(splitJson.sessions), ['Push', 'Pull', 'Legs'], '3 PPL sessions');
+  ['Push', 'Pull', 'Legs'].forEach((k) => {
     const sess = splitJson.sessions[k];
     assert(sess, `Missing session ${k}`);
-    assert.strictEqual(sess.ex.length, 7, `${k} should have 7 exercises, got ${sess.ex.length}`);
-    const baseSets = sess.ex.filter((x) => x.sets != null).reduce((sum, x) => sum + x.sets, 0);
-    assert.strictEqual(baseSets, 20, `${k} should have 20 base sets, got ${baseSets}`);
+    assert.strictEqual(sess.ex.length, 7, `${k} should have 6 main exercises + 1 alternating finisher, got ${sess.ex.length}`);
+    const mainEx = sess.ex.filter((x) => !x.altKey);
+    const baseSets = mainEx.reduce((sum, x) => sum + x.sets, 0);
+    assert.strictEqual(baseSets, 16, `${k} should have 16 main sets, got ${baseSets}`);
+    mainEx.forEach((x) => {
+      assert.strictEqual(x.rest, x.poly ? 120 : 60, `${k} ${x.n}: expected ${x.poly ? 120 : 60}s rest, got ${x.rest}`);
+    });
+    assert.strictEqual(sess.ex[sess.ex.length - 1].altKey, 'avantBras', `${k} ends with alternating avantBras`);
   });
-  console.log('5 JSON sources + Full Body 4-session split.json loaded & verified OK');
+  const latEx = splitJson.sessions.Push.ex.find((x) => x.m === 'Épaule lat.');
+  assert(latEx && latEx.sets === 3 && latEx.tech === 'drop', 'Push lateral raise has 3 sets + 2 dropset steps');
+  assert.strictEqual(splitJson.tech.drop.steps, 2, 'Dropset has 2 steps');
+  assert.strictEqual(splitJson.altExercises.avantBras.length, 2, '2 alternating forearm exercises');
+  assert.strictEqual(splitJson.recovery.length, 2, '2 recovery routines (psoas + planche / crunch)');
+  console.log('5 JSON sources + PPL 6-day split.json loaded & verified OK');
 
   // Vérification stricte Cut (2200/2000) & Maintien (2400/2200) : sans Belvita, banane gardée, macros exactes, huile >= 5 g/repas
   [

@@ -3317,6 +3317,278 @@ button.wk-day:active,
   overflow-y: auto;
 }
 
+/* ---------- UX Séances PPL (Hypertrophie) ---------- */
+.sess {
+  padding: 15px 16px;
+  gap: 10px;
+}
+
+.sess-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sess-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sess-title {
+  font: 700 17px/1.2 var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.sess-count {
+  font: 700 15px/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--on-soft);
+  color: var(--on);
+  flex: none;
+}
+
+.sess-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sess-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--sunken);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sess-pill b {
+  color: var(--fg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sess-pill.is-alt {
+  background: color-mix(in srgb, #AF52DE 12%, transparent);
+  color: #AF52DE;
+}
+
+.sess-pill.is-alt b {
+  color: #AF52DE;
+}
+
+.sess-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.sess-pct {
+  font-variant-numeric: tabular-nums;
+}
+
+.sess-pct.is-done {
+  color: var(--ok);
+}
+
+.sec-div {
+  margin: 4px 0 -4px;
+  padding-left: 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.ex.is-poly:not(.is-done) .ex-num {
+  background: var(--on);
+  color: #FFFFFF;
+}
+
+.ex.is-alt:not(.is-done) .ex-num {
+  background: color-mix(in srgb, #AF52DE 16%, transparent);
+  color: #AF52DE;
+}
+
+.ex-eyebrow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 2px;
+}
+
+.ex-muscle {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--on);
+}
+
+.ex.is-alt .ex-muscle {
+  color: #AF52DE;
+}
+
+.ex-type {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--sunken);
+  color: var(--muted);
+}
+
+.ex-type.is-poly {
+  background: var(--on-soft);
+  color: var(--on);
+}
+
+.ex-type.is-alt {
+  background: color-mix(in srgb, #AF52DE 14%, transparent);
+  color: #AF52DE;
+}
+
+.ex-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin: 4px 0 2px;
+}
+
+.ex-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--sunken);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ex-chip.is-vol {
+  background: var(--fill);
+  color: var(--fg);
+  font-weight: 700;
+}
+
+.ex-chip.is-tech {
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-weight: 700;
+}
+
+.rest-btn.is-poly {
+  background: var(--on-soft);
+  color: var(--on);
+}
+
+.set-btn.is-tech {
+  border: 1.5px dashed var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 12.5px;
+}
+
+.set-btn.is-tech[aria-pressed="true"] {
+  border-style: solid;
+  background: var(--warn);
+  border-color: var(--warn);
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--warn) 36%, transparent);
+}
+
+.ex-tech-tip {
+  margin: 0;
+  padding: 8px 11px;
+  border-radius: 12px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.38;
+}
+
+.ex .reps-row {
+  padding: 7px 10px;
+  border-radius: 12px;
+  background: var(--sunken);
+}
+
+.ex .rep-in {
+  background: var(--surface);
+  border-color: var(--line-strong);
+}
+
+.ex-fold-txt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ex-fold-m {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ok);
+}
+
+.ex-alt-btn {
+  background: color-mix(in srgb, #AF52DE 14%, transparent);
+  color: #AF52DE;
+  border-radius: 999px;
+}
+
+/* Jour OFF : Récupération active */
+.rec-hero {
+  padding: 15px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rec-head h2 {
+  margin: 0;
+  font: 700 17px/1.2 var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.rec-sub {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.rec-hero .track span {
+  background: var(--off);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

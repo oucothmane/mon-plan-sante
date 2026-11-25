@@ -635,7 +635,11 @@
 
     function formatFullSplit() {
       const keys = Object.keys(SESSIONS);
-      const lines = [`Split Full Body ${keys.join('/')} (${CYCLE.length || 8} jours · 1 ON / 1 OFF)`];
+      const isPpl = keys.join('/') === 'Push/Pull/Legs';
+      const headLabel = isPpl ? 'Split PPL (Push / Pull / Legs)' : `Split ${keys.join('/')}`;
+      const lines = [`${headLabel} — ${CYCLE.length || 6} jours (1 ON / 1 OFF)`];
+      const seenAlt = new Set();
+      const altGroups = [];
 
       keys.forEach((sKey) => {
         const S = SESSIONS[sKey];
@@ -644,18 +648,42 @@
         if (S.sub) lines.push(S.sub);
         let idx = 1;
         (S.ex || []).forEach((raw) => {
-          const list = raw.isAlt ? raw.variants || [] : [raw];
-          list.forEach((e) => {
+          if (raw.isAlt) {
+            if (!seenAlt.has(raw.altKey)) {
+              seenAlt.add(raw.altKey);
+              altGroups.push(raw);
+            }
+            return;
+          }
+          const e = raw;
+          const tech = techOf(e, false);
+          const tSteps = techSteps(tech);
+          const nNorm = tech ? e.sets - tSteps : e.sets;
+          const setsTxt = tech
+            ? `${nNorm} × ${e.reps} + ${tSteps} paliers ${tech.n}`
+            : `${e.sets} × ${e.reps}`;
+          const cur = st.loads[e.n];
+          const kgVal = cur != null ? cur : defKg(e);
+          const kgTxt = kgVal != null ? ` · ${fmtKg(kgVal)} kg` : '';
+          const restStr = e.restTxt || fmtRest(e.rest);
+          const muscle = e.m ? ` (${e.m})` : '';
+          lines.push(`${idx}. ${e.n}${muscle} — ${setsTxt} · ${e.rir} · ${restStr}${kgTxt}`);
+          idx++;
+        });
+      });
+
+      if (altGroups.length) {
+        lines.push('', '🟣 Fin de séance (alternance 1 séance sur 2)');
+        altGroups.forEach((g) => {
+          (g.variants || []).forEach((e) => {
             const cur = st.loads[e.n];
             const kgVal = cur != null ? cur : defKg(e);
             const kgTxt = kgVal != null ? ` · ${fmtKg(kgVal)} kg` : '';
             const restStr = e.restTxt || fmtRest(e.rest);
-            const muscle = e.m ? ` (${e.m})` : '';
-            lines.push(`${idx}. ${e.n}${muscle} — ${e.sets} × ${e.reps} · ${e.rir} · ${restStr}${kgTxt}`);
-            idx++;
+            lines.push(`- ${e.n} — ${e.sets} × ${e.reps} · ${e.rir} · ${restStr}${kgTxt}`);
           });
         });
-      });
+      }
 
       if (RECOVERY.length) {
         lines.push('', '🧘 Jours OFF (Récupération)');
@@ -665,8 +693,10 @@
         });
       }
 
-      if (SPLIT_RULES && (SPLIT_RULES.progression || SPLIT_RULES.deload)) {
+      if (SPLIT_RULES && (SPLIT_RULES.progression || SPLIT_RULES.rest || SPLIT_RULES.dropset || SPLIT_RULES.deload)) {
         lines.push('');
+        if (SPLIT_RULES.rest) lines.push(`Repos : ${SPLIT_RULES.rest}`);
+        if (SPLIT_RULES.dropset) lines.push(`Dropset : ${SPLIT_RULES.dropset}`);
         if (SPLIT_RULES.progression) lines.push(`Progression : ${SPLIT_RULES.progression}`);
         if (SPLIT_RULES.deload) lines.push(`Deload : ${SPLIT_RULES.deload}`);
       }
@@ -960,22 +990,33 @@
         const d = !!st.log.done[key];
         if (!d) all = false;
         const isTech = !!tech && k >= nNorm;
-        return `<button type="button" class="set-btn" data-set="${key}" aria-pressed="${d}">${
-          d ? CHECK_SM : isTech ? tech.k : k + 1
-        }</button>`;
+        const label = isTech ? `${tech.k}${tSteps > 1 ? k - nNorm + 1 : ''}` : k + 1;
+        return `<button type="button" class="set-btn${isTech ? ' is-tech' : ''}" data-set="${key}" aria-pressed="${d}" aria-label="${
+          isTech ? `${tech.N} palier ${k - nNorm + 1}` : `Série ${k + 1}`
+        }">${d ? CHECK_SM : label}</button>`;
       }).join('');
+
+      const dividerHtml = e.altKey
+        ? `<p class="sec-div">Fin de séance · Alternance avant-bras</p>`
+        : '';
 
       const id = donePrefix;
       if (all && !unfolded.has(id)) {
-        return `
-        <article class="card ex is-done is-folded">
+        return (
+          dividerHtml +
+          `
+        <article class="card ex is-done is-folded${e.altKey ? ' is-alt' : ''}">
           <button type="button" class="ex-fold" data-unfold="${id}" aria-expanded="false">
             <span class="ex-num" aria-hidden="true">${CHECK_SM}</span>
-            <span class="ex-fold-name">${e.n}</span>
+            <span class="ex-fold-txt">
+              ${e.m ? `<small class="ex-fold-m">${escHtml(e.m)}</small>` : ''}
+              <span class="ex-fold-name">${escHtml(e.n)}</span>
+            </span>
             ${st.loads[e.n] != null ? `<span class="ex-fold-kg">${fmtKg(st.loads[e.n])} kg</span>` : ''}
             ${CHEVRON}
           </button>
-        </article>`;
+        </article>`
+        );
       }
 
       const curLoad = num(st.loads[e.n]);
@@ -1008,32 +1049,57 @@
         ? e.variants[(e.variantIdx + 1) % e.variants.length]
         : null;
       const altBtnHtml = otherAlt
-        ? `<button type="button" class="link-btn ex-alt-btn" data-alt="${e.altKey}">⇄ ${otherAlt.short || otherAlt.n}</button>`
+        ? `<button type="button" class="link-btn ex-alt-btn" data-alt="${e.altKey}">⇄ ${escHtml(otherAlt.short || otherAlt.n)}</button>`
         : '';
       const allBtnHtml = !all ? `<button type="button" class="link-btn ex-all-btn" data-setall="${donePrefix}">Tout valider</button>` : '';
       const actsHtml = altBtnHtml || allBtnHtml ? `<div class="ex-foot-acts">${altBtnHtml}${allBtnHtml}</div>` : '';
       const footHtml = lastHtml || actsHtml ? `<div class="ex-foot">${lastHtml}${actsHtml}</div>` : '';
 
-      return `
-        <article class="card ex${all ? ' is-done' : ''}">
+      const typeTag = e.altKey
+        ? '<span class="ex-type is-alt">Alternance</span>'
+        : e.poly
+        ? '<span class="ex-type is-poly">Poly</span>'
+        : '<span class="ex-type">Iso</span>';
+      const rirClean = dl
+        ? e.poly
+          ? 'Deload · RIR 4'
+          : 'Deload · RIR 3'
+        : String(e.rir || '').replace(/\s*\+\s*Dropset/i, '');
+      const techChip = tech
+        ? `<span class="ex-chip is-tech">${escHtml(tech.N)} ×${tSteps}</span>`
+        : '';
+      const techTipHtml = tech && tech.tip
+        ? `<p class="ex-tech-tip">${escHtml(tech.tip)}</p>`
+        : '';
+
+      return (
+        dividerHtml +
+        `
+        <article class="card ex${all ? ' is-done' : ''}${e.poly ? ' is-poly' : ''}${e.altKey ? ' is-alt' : ''}">
           <div class="ex-head">
             <span class="ex-num" aria-hidden="true">${e.opt ? '+' : i + 1}</span>
             <div class="ex-title">
-              <h3>${e.n}</h3>
-              <p class="ex-meta"><b>${
-                tech ? `${nNorm} × ${e.reps} + ${tSteps > 1 ? `${tSteps} ` : ''}${tech.k}` : `${nSets} × ${e.reps}`
-              }</b><span>${dl ? (e.poly ? 'Deload · RIR 3' : 'Deload · RIR 2') : e.rir}</span></p>
-              ${e.note ? `<small>${e.note}</small>` : ''}
+              <div class="ex-eyebrow">
+                ${e.m ? `<span class="ex-muscle">${escHtml(e.m)}</span>` : ''}
+                ${typeTag}
+              </div>
+              <h3>${escHtml(e.n)}</h3>
+              <div class="ex-chips">
+                <span class="ex-chip is-vol">${nNorm} × ${escHtml(e.reps)}</span>
+                ${rirClean ? `<span class="ex-chip">${escHtml(rirClean)}</span>` : ''}
+                ${techChip}
+              </div>
+              ${e.note ? `<small>${escHtml(e.note)}</small>` : ''}
             </div>
-            <button type="button" class="rest-btn" data-rest="${s}|${slot}">${CLOCK}${
-        e.restTxt || fmtRest(e.rest)
-      }</button>
+            <button type="button" class="rest-btn${e.poly ? ' is-poly' : ''}" data-rest="${s}|${slot}" aria-label="Lancer repos ${e.restTxt || fmtRest(e.rest)}">${CLOCK}${
+          e.restTxt || fmtRest(e.rest)
+        }</button>
           </div>
           <div class="ex-row">
             <div class="load-row">
               <input id="load-${s}-${slot}" type="text" inputmode="decimal" autocomplete="off" placeholder="${
         defKg(e) != null ? fmtKg(defKg(e)) : 'kg'
-      }" data-load="${e.n}" value="${
+      }" data-load="${escHtml(e.n)}" value="${
         st.loads[e.n] != null ? fmtKg(st.loads[e.n]) : ''
       }" aria-label="Charge en kg">
               <button type="button" class="plus-btn" data-plus="${s}|${slot}">+${fmtKg(
@@ -1046,9 +1112,11 @@
             <span class="reps-lab">Reps</span>
             <div class="reps-ins">${repsInputs}</div>
           </div>
+          ${techTipHtml}
           ${footHtml}
           ${all ? `<button type="button" class="link-btn ex-refold" data-unfold="${id}">Replier</button>` : ''}
-        </article>`;
+        </article>`
+      );
     }
 
     function renderSeance() {
@@ -1062,23 +1130,71 @@
         const S = SESSIONS[s];
         let total = 0;
         let done = 0;
+        const muscleVol = [];
+        const muscleMap = {};
+        let hasFinisher = false;
+        let finisherSets = 0;
+
         S.ex.forEach((_, i) => {
           const e = resolveEx(s, i, vi);
-          if (!e || e.opt) return;
-          const n = setsFor(e, dl) - techSteps(techOf(e, dl));
+          if (!e) return;
+          if (e.opt) {
+            if (!dl) {
+              hasFinisher = true;
+              finisherSets += setsFor(e, dl);
+            }
+            return;
+          }
+          const tech = techOf(e, dl);
+          const tSteps = techSteps(tech);
+          const n = setsFor(e, dl) - tSteps;
           for (let k = 0; k < n; k++) {
             total++;
             if (st.log.done[`${s}|${i}|${k}`]) done++;
           }
+          if (e.m) {
+            if (!muscleMap[e.m]) {
+              muscleMap[e.m] = { m: e.m, sets: 0, drop: 0 };
+              muscleVol.push(muscleMap[e.m]);
+            }
+            muscleMap[e.m].sets += n;
+            if (tSteps > 0) muscleMap[e.m].drop += tSteps;
+          }
         });
+
         $('deloadTag').hidden = !dl;
+        if ($('sessTitle')) $('sessTitle').textContent = S.title;
+        if ($('sessPills')) {
+          const pillsHtml = muscleVol
+            .map(
+              (mv) =>
+                `<span class="sess-pill">${escHtml(mv.m)} <b>${mv.sets}${
+                  mv.drop ? `+${mv.drop}D` : ''
+                }</b></span>`
+            )
+            .join('');
+          const finHtml = hasFinisher
+            ? `<span class="sess-pill is-alt">+ Avant-bras <b>${finisherSets}</b></span>`
+            : '';
+          $('sessPills').innerHTML = pillsHtml + finHtml;
+        }
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
         const cards = S.ex.map((_, i) => {
           const e = resolveEx(s, i, vi);
           return !e || (dl && e.opt) ? '' : exHTML(s, e, i, dl, String(i));
         });
         $('exList').innerHTML = cards.join('');
         $('setCount').textContent = `${done} / ${total}`;
-        $('setBar').style.width = total > 0 ? (done / total) * 100 + '%' : '0%';
+        $('setBar').style.width = pct + '%';
+        if ($('sessPct')) {
+          $('sessPct').textContent = done >= total && total > 0 ? 'Séance terminée ✓' : `${pct} %`;
+          $('sessPct').classList.toggle('is-done', done >= total && total > 0);
+        }
+        if ($('sessSub')) {
+          $('sessSub').textContent = dl
+            ? 'Deload · RIR 4 poly · RIR 3 iso'
+            : '2′ polyarticulaires · 1′ isolation';
+        }
         $('deloadBtn').setAttribute('aria-checked', String(dl));
         if ($('deloadTitle') && CYCLE.length) {
           $('deloadTitle').textContent = `Mode deload (${CYCLE.length} jours)`;
@@ -1087,15 +1203,25 @@
           ? `Actif jusqu’au ${longDate(fromNo(dayNo(st.deloadUntil) - 1))}`
           : '2 séries / exercice · RIR 4 poly / RIR 3 iso';
       } else {
-        $('recList').innerHTML = recoveryFor(vi)
+        const recs = recoveryFor(vi);
+        let recDone = 0;
+        $('recList').innerHTML = recs
           .map((r, i) => {
             const d = !!st.log.done['R|' + i];
+            if (d) recDone++;
             return `<button type="button" class="row" data-rec="${i}" aria-pressed="${d}">
             <span class="box">${CHECK_SM}</span>
             <span class="row-main"><span class="row-name">${r.n}</span><small>${r.d}</small></span>
           </button>`;
           })
           .join('');
+        if ($('recCount')) {
+          $('recCount').textContent =
+            recs.length > 0 && recDone === recs.length ? 'Validé ✓' : `${recDone} / ${recs.length}`;
+        }
+        if ($('recBar')) {
+          $('recBar').style.width = recs.length > 0 ? (recDone / recs.length) * 100 + '%' : '0%';
+        }
       }
 
       if ($('loadsSummaryTitle')) {
