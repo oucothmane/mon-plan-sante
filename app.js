@@ -1023,28 +1023,9 @@
       const ltKg = lt && isFinite(lt.kg) ? lt.kg : null;
       const progDiff = ltKg != null && isFinite(curLoad) && curLoad > ltKg ? Math.round((curLoad - ltKg) * 100) / 100 : 0;
       const progHtml = progDiff > 0 ? `<span class="ex-prog">+${fmtKg(progDiff)} kg</span>` : '';
-      const maxRep = repRangeMax(e.reps);
-      const ltReps = lt && Array.isArray(lt.reps) && lt.reps.length ? lt.reps : null;
-      const readyUp =
-        !dl &&
-        maxRep != null &&
-        ltReps != null &&
-        ltReps.length >= nNorm &&
-        ltReps.slice(0, nNorm).every((r) => r >= maxRep) &&
-        (ltKg == null || !isFinite(curLoad) || curLoad <= ltKg);
-      const readyHtml = readyUp ? `<span class="ex-prog is-ready">↑ +${fmtKg(stepFor(e))} kg prêt</span>` : '';
-      const ltParts = [];
-      if (ltKg != null) ltParts.push(`${fmtKg(ltKg)} kg`);
-      if (ltReps) ltParts.push(ltReps.join(' / ') + ' reps');
-      const lastHtml = lt && ltParts.length
-        ? `<p class="ex-last">Dernière fois : ${ltParts.join(' · ')} (${shortDate(lt.d)})${progHtml}${readyHtml}</p>`
+      const lastHtml = lt && ltKg != null
+        ? `<p class="ex-last">Dernière fois : ${fmtKg(ltKg)} kg (${shortDate(lt.d)})${progHtml}</p>`
         : '';
-      const repsMap = (st.log && st.log.reps) || {};
-      const repsInputs = Array.from({ length: nNorm }, (_, k) => {
-        const rKey = `${donePrefix}|${k}`;
-        const val = repsMap[rKey] != null ? repsMap[rKey] : '';
-        return `<input type="text" inputmode="numeric" autocomplete="off" class="rep-in" data-rep="${rKey}" data-repex="${escHtml(e.n)}" data-repprefix="${donePrefix}" data-repnorm="${nNorm}" placeholder="S${k + 1}" value="${val}" aria-label="Répétitions série ${k + 1}">`;
-      }).join('');
       const otherAlt = e.altKey && e.variants && e.variants.length > 1
         ? e.variants[(e.variantIdx + 1) % e.variants.length]
         : null;
@@ -1107,10 +1088,6 @@
       )}</button>
             </div>
             <div class="sets" role="group">${sets}</div>
-          </div>
-          <div class="reps-row">
-            <span class="reps-lab">Reps</span>
-            <div class="reps-ins">${repsInputs}</div>
           </div>
           ${techTipHtml}
           ${footHtml}
