@@ -28,15 +28,15 @@
     "avantBras": [
       {
         "m": "Avant-bras",
-        "n": "Reverse curl poulie (barre EZ)",
-        "short": "Reverse curl",
-        "note": "Brachioradial · prise en pronation · alternance 1 séance sur 2",
+        "n": "Curl Hammer poulie (corde)",
+        "short": "Hammer curl",
+        "note": "Brachioradial & brachial · prise neutre, zéro balancement · alternance 1 séance sur 2",
         "sets": 2,
         "reps": "12–15",
         "rir": "RIR 1",
         "rest": 60,
         "opt": true,
-        "defaultKg": 10
+        "defaultKg": 15
       },
       {
         "m": "Avant-bras",
@@ -188,10 +188,10 @@
         },
         {
           "m": "Biceps",
-          "n": "Curl Hammer poulie (corde)",
-          "note": "Brachial & avant-bras · prise neutre, zéro balancement",
+          "n": "Curl pupitre",
+          "note": "Chef court · coude calé devant le buste, zéro élan",
           "sets": 2,
-          "reps": "12–15",
+          "reps": "10–12",
           "rir": "RIR 1 → 0",
           "rest": 60,
           "defaultKg": 15
