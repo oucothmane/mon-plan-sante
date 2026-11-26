@@ -9,6 +9,13 @@
       "N": "Dropset",
       "steps": 2,
       "tip": "Dropset (2 paliers sur la dernière série) : à l’échec (RIR 0), −25/30 % sans repos × 2"
+    },
+    "restPause": {
+      "k": "RP",
+      "n": "rest-pause",
+      "N": "Rest-pause",
+      "steps": 2,
+      "tip": "Rest-pause (2 paliers sur la dernière série) : à l’échec (RIR 0), 15 s de repos puis max reps × 2"
     }
   },
   "cycleKeys": [
@@ -28,18 +35,6 @@
     "avantBras": [
       {
         "m": "Avant-bras",
-        "n": "Curl Hammer poulie (corde)",
-        "short": "Hammer curl",
-        "note": "Brachioradial & brachial · prise neutre, zéro balancement · alternance 1 séance sur 2",
-        "sets": 2,
-        "reps": "12–15",
-        "rir": "RIR 1",
-        "rest": 60,
-        "opt": true,
-        "defaultKg": 15
-      },
-      {
-        "m": "Avant-bras",
         "n": "Wrist curl poulie",
         "short": "Wrist curl",
         "note": "Fléchisseurs poignets · enrouler depuis les doigts · alternance 1 séance sur 2",
@@ -49,6 +44,18 @@
         "rest": 60,
         "opt": true,
         "defaultKg": 15
+      },
+      {
+        "m": "Avant-bras",
+        "n": "Reverse wrist curl poulie",
+        "short": "Reverse wrist curl",
+        "note": "Extenseurs poignets · amplitude contrôlée sans élan · alternance 1 séance sur 2",
+        "sets": 2,
+        "reps": "12–15",
+        "rir": "RIR 1",
+        "rest": 60,
+        "opt": true,
+        "defaultKg": 10
       }
     ]
   },
@@ -57,7 +64,7 @@
       "day": "J1",
       "short": "Push",
       "title": "🔵 Push",
-      "sub": "16 séries · Pecs · Épaule lat. · Triceps · ~45 min",
+      "sub": "18 séries · Pecs · Épaule lat. · Triceps · ~50 min",
       "ex": [
         {
           "m": "Pecs",
@@ -85,7 +92,7 @@
           "m": "Pecs",
           "n": "Pec deck",
           "note": "Étirement contrôlé sans hyperextension · contraction 1 s",
-          "sets": 2,
+          "sets": 3,
           "reps": "12–15",
           "rir": "RIR 1 → 0",
           "rest": 60,
@@ -116,7 +123,7 @@
           "m": "Triceps",
           "n": "Extension triceps corde",
           "note": "Chefs latéral & médial · coudes collés au buste, verrouillage propre",
-          "sets": 2,
+          "sets": 3,
           "reps": "12–15",
           "rir": "RIR 1 → 0",
           "rest": 60,
@@ -131,7 +138,7 @@
       "day": "J3",
       "short": "Pull",
       "title": "🟢 Pull",
-      "sub": "16 séries · Dos · Épaule post. · Biceps · ~45 min",
+      "sub": "18 séries · Dos · Épaule post. · Biceps · ~50 min",
       "ex": [
         {
           "m": "Dos",
@@ -159,7 +166,7 @@
           "m": "Dos",
           "n": "Rowing machine prise large",
           "note": "Haut du dos (trapèzes & rhomboïdes) · coudes ouverts, omoplates serrées",
-          "sets": 2,
+          "sets": 3,
           "reps": "10–12",
           "rir": "RIR 2 → 1",
           "rest": 120,
@@ -178,19 +185,19 @@
         },
         {
           "m": "Biceps",
-          "n": "Curl Bayesian poulie",
-          "note": "Chef long étiré (coude derrière le buste) · tension continue",
+          "n": "Curl poulie basse barre EZ",
+          "note": "Tension continue · coudes fixes le long du buste, zéro élan",
           "sets": 3,
           "reps": "10–12",
           "rir": "RIR 1 → 0",
           "rest": 60,
-          "defaultKg": 12.5
+          "defaultKg": 20
         },
         {
           "m": "Biceps",
-          "n": "Curl pupitre",
-          "note": "Chef court · coude calé devant le buste, zéro élan",
-          "sets": 2,
+          "n": "Curl hammer poulie (corde)",
+          "note": "Brachial & brachioradial · prise neutre, coudes calés",
+          "sets": 3,
           "reps": "10–12",
           "rir": "RIR 1 → 0",
           "rest": 60,
@@ -205,7 +212,7 @@
       "day": "J5",
       "short": "Legs",
       "title": "🟠 Legs",
-      "sub": "16 séries · Quads · Ischios · Mollets · ~45 min",
+      "sub": "18 séries · Quads · Ischios · Lombaires · Mollets · ~50 min",
       "ex": [
         {
           "m": "Quads",
@@ -245,30 +252,31 @@
           "m": "Ischios",
           "n": "Leg curl assis",
           "note": "Étirement max hanche fléchie · contrôle sur la phase excentrique",
-          "sets": 2,
+          "sets": 3,
           "reps": "12–15",
           "rir": "RIR 1 → 0",
           "rest": 60,
           "defaultKg": 55
         },
         {
-          "m": "Mollets",
-          "n": "Mollets jambes tendues",
-          "note": "Gastrocnémien · pause 2 s en bas (étirement complet), pas de rebond",
+          "m": "Lombaires",
+          "n": "Extension lombaire",
+          "note": "Chaîne postérieure · dos neutre, montée contrôlée sans hyperextension",
           "sets": 3,
-          "reps": "10–15",
-          "rir": "RIR 1 → 0",
+          "reps": "12–15",
+          "rir": "RIR 2 → 1",
           "rest": 60,
-          "defaultKg": 40
+          "defaultKg": 10
         },
         {
           "m": "Mollets",
-          "n": "Mollets assis machine",
-          "note": "Soléaire (genoux fléchis) · pause 2 s en bas, amplitude totale",
-          "sets": 2,
-          "reps": "12–15",
-          "rir": "RIR 1 → 0",
+          "n": "Mollets jambes tendues",
+          "note": "Pause 2 s en bas (étirement complet), pas de rebond · dernière série + 2 paliers rest-pause",
+          "sets": 3,
+          "reps": "10–15",
+          "rir": "RIR 1 → 0 + Rest-pause",
           "rest": 60,
+          "tech": "restPause",
           "defaultKg": 40
         },
         {
@@ -284,24 +292,6 @@
         "d": "2 × 45 s/côté"
       },
       {
-        "n": "Bird dog",
-        "d": "3 × 15–20"
-      },
-      {
-        "n": "Planche",
-        "d": "3 × 45–60 s"
-      }
-    ],
-    [
-      {
-        "n": "Étirement psoas",
-        "d": "2 × 45 s/côté"
-      },
-      {
-        "n": "Bird dog",
-        "d": "3 × 15–20"
-      },
-      {
         "n": "Crunch",
         "d": "3 × 15–20"
       }
@@ -310,7 +300,8 @@
   "rules": {
     "progression": "Double progression : monte de +2,5 kg (ou +5 kg jambes poly) dès que toutes les séries valident le haut de la fourchette au bon RIR.",
     "dropset": "Élévations latérales (dernière série) : à l’échec (RIR 0), enchaîne 2 paliers dégressifs (−25/30 % sans repos).",
+    "restPause": "Mollets (dernière série) : à l’échec (RIR 0), 15 s de repos puis max reps × 2 paliers.",
     "rest": "2 min pour les polyarticulaires · 1 min pour les isolations.",
-    "deload": "6 jours : 2 séries par exercice à RIR 4 (poly) / RIR 3 (iso), sans dropset."
+    "deload": "6 jours : 2 séries par exercice à RIR 4 (poly) / RIR 3 (iso), sans dropset ni rest-pause."
   }
 }

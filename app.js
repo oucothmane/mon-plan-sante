@@ -693,10 +693,11 @@
         });
       }
 
-      if (SPLIT_RULES && (SPLIT_RULES.progression || SPLIT_RULES.rest || SPLIT_RULES.dropset || SPLIT_RULES.deload)) {
+      if (SPLIT_RULES && (SPLIT_RULES.progression || SPLIT_RULES.rest || SPLIT_RULES.dropset || SPLIT_RULES.restPause || SPLIT_RULES.deload)) {
         lines.push('');
         if (SPLIT_RULES.rest) lines.push(`Repos : ${SPLIT_RULES.rest}`);
         if (SPLIT_RULES.dropset) lines.push(`Dropset : ${SPLIT_RULES.dropset}`);
+        if (SPLIT_RULES.restPause) lines.push(`Rest-pause : ${SPLIT_RULES.restPause}`);
         if (SPLIT_RULES.progression) lines.push(`Progression : ${SPLIT_RULES.progression}`);
         if (SPLIT_RULES.deload) lines.push(`Deload : ${SPLIT_RULES.deload}`);
       }
@@ -1045,7 +1046,7 @@
         ? e.poly
           ? 'Deload · RIR 4'
           : 'Deload · RIR 3'
-        : String(e.rir || '').replace(/\s*\+\s*Dropset/i, '');
+        : String(e.rir || '').replace(/\s*\+\s*(Dropset|Rest-pause)/i, '');
       const techChip = tech
         ? `<span class="ex-chip is-tech">${escHtml(tech.N)} ×${tSteps}</span>`
         : '';
@@ -1131,11 +1132,14 @@
           }
           if (e.m) {
             if (!muscleMap[e.m]) {
-              muscleMap[e.m] = { m: e.m, sets: 0, drop: 0 };
+              muscleMap[e.m] = { m: e.m, sets: 0, techSteps: 0, techK: '' };
               muscleVol.push(muscleMap[e.m]);
             }
             muscleMap[e.m].sets += n;
-            if (tSteps > 0) muscleMap[e.m].drop += tSteps;
+            if (tSteps > 0) {
+              muscleMap[e.m].techSteps += tSteps;
+              muscleMap[e.m].techK = tech.k || 'D';
+            }
           }
         });
 
@@ -1146,7 +1150,7 @@
             .map(
               (mv) =>
                 `<span class="sess-pill">${escHtml(mv.m)} <b>${mv.sets}${
-                  mv.drop ? `+${mv.drop}D` : ''
+                  mv.techSteps ? `+${mv.techSteps}${escHtml(mv.techK)}` : ''
                 }</b></span>`
             )
             .join('');
