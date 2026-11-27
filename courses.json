@@ -30,6 +30,7 @@
       { "id": "whey", "label": "Whey isolate (Nutri&Co)", "fromFood": true, "buy": "Vérifier stock" },
       { "id": "creatine", "label": "Créatine monohydrate (Nutri&Co)", "fromFood": true, "buy": "Vérifier stock" },
       { "id": "multi", "label": "Multivitamines & Oméga-3 (Nutri&Co)", "need": "Midi", "buy": "Vérifier stock" },
+      { "id": "vitd3", "label": "Vitamine D3 1000 UI", "need": "Après-midi", "buy": "Vérifier stock" },
       { "id": "magnesium", "label": "Magnésium (Nutri&Co)", "need": "Soir", "buy": "Vérifier stock" }
     ]
   },
@@ -53,6 +54,7 @@
       { "id": "whey", "name": "Whey isolate (Nutri&Co)", "dosePerDay": "30 g", "need8d": "240 g", "buy": "Vérifier stock" },
       { "id": "creatine", "name": "Créatine monohydrate (Nutri&Co)", "dosePerDay": "5 g", "need8d": "40 g", "buy": "Vérifier stock" },
       { "id": "multi", "name": "Multivitamines & Oméga-3 (Nutri&Co)", "dosePerDay": "Midi", "need8d": "8 prises", "buy": "Vérifier stock" },
+      { "id": "vitd3", "name": "Vitamine D3 1000 UI", "dosePerDay": "Après-midi", "need8d": "8 prises", "buy": "Vérifier stock" },
       { "id": "magnesium", "name": "Magnésium (Nutri&Co)", "dosePerDay": "Soir", "need8d": "8 prises", "buy": "Vérifier stock" }
     ]
   }

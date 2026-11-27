@@ -103,6 +103,8 @@
         nameOff: 'Collation shaker',
         subOn: 'Après entraînement',
         subOff: 'Dans l’après-midi',
+        supps: 'Vitamine D3 1000 UI',
+        suppNote: 'Dans l’après-midi',
         ensureFoods: ['banana', 'raisins', 'walnuts']
       },
       soir: {
@@ -704,6 +706,8 @@
         num: mCollMeta.num || '2',
         name: dt === 'ON' ? (mCollMeta.nameOn || 'Shaker post-séance') : (mCollMeta.nameOff || 'Collation shaker'),
         sub: dt === 'ON' ? (mCollMeta.subOn || 'Après entraînement') : (mCollMeta.subOff || 'Dans l’après-midi'),
+        supps: mCollMeta.supps || '',
+        suppNote: mCollMeta.suppNote || '',
         items: [
           makeItem('whey', wheyG),
           makeItem('creatine', bases.creatine),

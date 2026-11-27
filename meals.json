@@ -17,6 +17,8 @@
       "nameOff": "Collation shaker",
       "subOn": "Après entraînement",
       "subOff": "Dans l’après-midi",
+      "supps": "Vitamine D3 1000 UI",
+      "suppNote": "Dans l’après-midi",
       "ensureFoods": [
         "banana",
         "raisins",
