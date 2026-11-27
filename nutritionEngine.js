@@ -21,7 +21,7 @@
     whey:          { id: 'whey',          n: 'Whey isolate (Nutri&Co)',   kcal: 370, p: 92.0, g: 3.0,  l: 1.5,   fib: 0.0 },
     pasta:         { id: 'pasta',         n: 'Pâtes complètes crues',     kcal: 348, p: 12.0, g: 65.0, l: 2.5,   fib: 7.5 },
     sweet_potato:  { id: 'sweet_potato',  n: 'Frites patate douce surgelées', kcal: 150, p: 1.5, g: 19.5, l: 6.1, fib: 2.5 },
-    veggies:       { id: 'veggies',       n: 'Poêlée de légumes grillés (Picard)',  kcal: 51,  p: 1.6, g: 5.3,  l: 2.1,   fib: 2.7 },
+    veggies:       { id: 'veggies',       n: 'Poêlée de légumes grillés',  kcal: 51,  p: 1.6, g: 5.3,  l: 2.1,   fib: 2.7 },
     tomato_sauce:  { id: 'tomato_sauce',  n: 'Sauce tomate nature (conserve)', kcal: 42, p: 1.5, g: 5.5, l: 0.2, fib: 1.5 },
     raisins:       { id: 'raisins',       n: 'Raisins secs',              kcal: 331, p: 3.1,  g: 72.0, l: 0.5,   fib: 3.7 },
     banana:        { id: 'banana',        n: 'Banane',                    kcal: 89,  p: 1.1,  g: 20.0, l: 0.3,   fib: 2.6 },

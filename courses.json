@@ -14,7 +14,7 @@
       { "id": "beef5", "label": "Bœuf haché 5 %", "mult": 1.0 }
     ],
     "fresh": [
-      { "id": "veggies", "label": "Poêlée de légumes grillés (Picard)", "packSize": 600, "one": "sachet 600 g", "many": "sachets 600 g" },
+      { "id": "veggies", "label": "Poêlée de légumes grillés", "packSize": 600, "one": "sachet 600 g", "many": "sachets 600 g" },
       { "id": "sweet_potato", "label": "Frites patate douce surgelées", "packSize": 500, "one": "sachet 500 g", "many": "sachets 500 g" },
       { "id": "banana", "label": "Bananes", "mult": 1.45 }
     ],
@@ -37,7 +37,7 @@
     "frais": [
       { "id": "chicken", "name": "Filets de poulet surgelés", "cut8d": "~3 160 g", "maintien8d": "~3 020 g", "buy": "3 à 4 sachets de 1 kg" },
       { "id": "eggs", "name": "Œufs entiers (calibre L)", "cut8d": "24 œufs (3/jour)", "maintien8d": "24 œufs (3/jour)", "buy": "2 boîtes de 12" },
-      { "id": "veggies", "name": "Poêlée de légumes grillés (Picard)", "cut8d": "3 200 g", "maintien8d": "2 400 g", "buy": "4 à 6 sachets de 600 g" },
+      { "id": "veggies", "name": "Poêlée de légumes grillés", "cut8d": "3 200 g", "maintien8d": "2 400 g", "buy": "4 à 6 sachets de 600 g" },
       { "id": "sweet_potato", "name": "Frites patate douce surgelées", "cut8d": "~1 200 g", "maintien8d": "~1 800 g", "buy": "3 à 4 sachets de 500 g" },
       { "id": "banana", "name": "Bananes", "cut8d": "0 g", "maintien8d": "~480 g (4 bananes)", "buy": "0 à 0,7 kg" },
       { "id": "avocado", "name": "Avocats", "cut8d": "~500 g", "maintien8d": "~500 g", "buy": "4 avocats" }
