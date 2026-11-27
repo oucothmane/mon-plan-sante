@@ -5,7 +5,7 @@
       "num": "1",
       "name": "Midi",
       "sub": "Repas 1",
-      "supps": "Multivitamines · Oméga-3",
+      "supps": "Multivitamines · Oméga-3 (Nutri&Co)",
       "suppNote": "Au milieu du repas",
       "ensureFoods": [
         "olive_oil"
@@ -27,7 +27,7 @@
       "num": "3",
       "name": "Soir",
       "sub": "Dîner",
-      "supps": "Magnésium bisglycinate",
+      "supps": "Magnésium bisglycinate (Nutri&Co)",
       "suppNote": "Au dîner ou avant de dormir",
       "ensureFoods": [
         "olive_oil",

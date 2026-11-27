@@ -3,13 +3,13 @@
   "groupOrder": ["Protéines", "Glucides", "Lipides", "Légumes"],
   "foods": {
     "eggs":          { "id": "eggs",          "n": "Œufs entiers (calibre L)",  "kcal": 140, "p": 12.6, "g": 0.7,  "l": 9.6,   "fib": 0.0,  "step": 55, "group": "Protéines" },
-    "chicken":       { "id": "chicken",       "n": "Filets de poulet surgelés (Picard)", "kcal": 121, "p": 26.0, "g": 0.0,  "l": 1.8,   "fib": 0.0,  "step": 10, "group": "Protéines", "badge": "étiquette" },
+    "chicken":       { "id": "chicken",       "n": "Filets de poulet surgelés", "kcal": 121, "p": 26.0, "g": 0.0,  "l": 1.8,   "fib": 0.0,  "step": 10, "group": "Protéines", "badge": "étiquette" },
     "turkey":        { "id": "turkey",        "n": "Escalope de dinde crue",    "kcal": 108, "p": 23.0, "g": 0.0,  "l": 1.5,   "fib": 0.0,  "step": 10, "group": "Protéines" },
     "cod":           { "id": "cod",           "n": "Cabillaud cru",             "kcal": 77,  "p": 17.7, "g": 0.0,  "l": 0.6,   "fib": 0.0,  "step": 10, "group": "Protéines" },
     "beef5":         { "id": "beef5",         "n": "Bœuf haché 5 % cru",        "kcal": 130, "p": 21.9, "g": 0.3,  "l": 4.6,   "fib": 0.0,  "step": 10, "group": "Protéines" },
-    "whey":          { "id": "whey",          "n": "Whey isolate",              "kcal": 370, "p": 92.0, "g": 3.0,  "l": 1.5,   "fib": 0.0,  "step": 5,  "group": "Protéines", "badge": "étiquette" },
+    "whey":          { "id": "whey",          "n": "Whey isolate (Nutri&Co)",   "kcal": 370, "p": 92.0, "g": 3.0,  "l": 1.5,   "fib": 0.0,  "step": 5,  "group": "Protéines", "badge": "étiquette" },
     "pasta":         { "id": "pasta",         "n": "Pâtes complètes crues",     "kcal": 348, "p": 12.0, "g": 65.0, "l": 2.5,   "fib": 7.5,  "step": 10, "group": "Glucides", "badge": "étiquette" },
-    "sweet_potato":  { "id": "sweet_potato",  "n": "Frites patate douce surgelées (Picard)", "kcal": 150, "p": 1.5, "g": 19.5, "l": 6.1, "fib": 2.5, "step": 25, "group": "Glucides", "badge": "étiquette" },
+    "sweet_potato":  { "id": "sweet_potato",  "n": "Frites patate douce surgelées", "kcal": 150, "p": 1.5, "g": 19.5, "l": 6.1, "fib": 2.5, "step": 25, "group": "Glucides", "badge": "étiquette" },
     "veggies":       { "id": "veggies",       "n": "Poêlée de légumes grillés (Picard)",  "kcal": 51,  "p": 1.6, "g": 5.3,  "l": 2.1,   "fib": 2.7,  "step": 25, "group": "Légumes",  "badge": "étiquette" },
     "tomato_sauce":  { "id": "tomato_sauce",  "n": "Sauce tomate nature (conserve)", "kcal": 42, "p": 1.5, "g": 5.5, "l": 0.2, "fib": 1.5, "step": 25, "group": "Légumes", "badge": "étiquette" },
     "raisins":       { "id": "raisins",       "n": "Raisins secs",              "kcal": 331, "p": 3.1,  "g": 72.0, "l": 0.5,   "fib": 3.7,  "step": 5,  "group": "Glucides", "badge": "étiquette" },
@@ -20,6 +20,6 @@
     "avocado":       { "id": "avocado",       "n": "Avocat",                    "kcal": 160, "p": 2.0,  "g": 2.0,  "l": 15.0,  "fib": 6.7,  "step": 10, "group": "Lipides" },
     "olive_oil":     { "id": "olive_oil",     "n": "Huile d'olive",             "kcal": 884, "p": 0.0,  "g": 0.0,  "l": 100.0, "fib": 0.0,  "step": 5,  "group": "Lipides" },
     "belvita":       { "id": "belvita",       "n": "Biscuit complet (Belvita)", "kcal": 440, "p": 8.0,  "g": 68.0, "l": 15.0,  "fib": 5.0,  "step": 13, "group": "Glucides", "hidden": true },
-    "creatine":      { "id": "creatine",      "n": "Créatine monohydrate",      "kcal": 0,   "p": 0.0,  "g": 0.0,  "l": 0.0,   "fib": 0.0,  "step": 5,  "hidden": true }
+    "creatine":      { "id": "creatine",      "n": "Créatine monohydrate (Nutri&Co)", "kcal": 0,   "p": 0.0,  "g": 0.0,  "l": 0.0,   "fib": 0.0,  "step": 5,  "hidden": true }
   }
 }

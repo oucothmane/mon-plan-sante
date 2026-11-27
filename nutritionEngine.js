@@ -14,13 +14,13 @@
 
   const FOOD_DB = {
     eggs:          { id: 'eggs',          n: 'Œufs entiers (calibre L)',  kcal: 140, p: 12.6, g: 0.7,  l: 9.6,   fib: 0.0 },
-    chicken:       { id: 'chicken',       n: 'Filets de poulet surgelés (Picard)', kcal: 121, p: 26.0, g: 0.0,  l: 1.8,   fib: 0.0 },
+    chicken:       { id: 'chicken',       n: 'Filets de poulet surgelés', kcal: 121, p: 26.0, g: 0.0,  l: 1.8,   fib: 0.0 },
     turkey:        { id: 'turkey',        n: 'Escalope de dinde crue',    kcal: 108, p: 23.0, g: 0.0,  l: 1.5,   fib: 0.0 },
     cod:           { id: 'cod',           n: 'Cabillaud cru',             kcal: 77,  p: 17.7, g: 0.0,  l: 0.6,   fib: 0.0 },
     beef5:         { id: 'beef5',         n: 'Bœuf haché 5 % cru',        kcal: 130, p: 21.9, g: 0.3,  l: 4.6,   fib: 0.0 },
-    whey:          { id: 'whey',          n: 'Whey isolate',              kcal: 370, p: 92.0, g: 3.0,  l: 1.5,   fib: 0.0 },
+    whey:          { id: 'whey',          n: 'Whey isolate (Nutri&Co)',   kcal: 370, p: 92.0, g: 3.0,  l: 1.5,   fib: 0.0 },
     pasta:         { id: 'pasta',         n: 'Pâtes complètes crues',     kcal: 348, p: 12.0, g: 65.0, l: 2.5,   fib: 7.5 },
-    sweet_potato:  { id: 'sweet_potato',  n: 'Frites patate douce surgelées (Picard)', kcal: 150, p: 1.5, g: 19.5, l: 6.1, fib: 2.5 },
+    sweet_potato:  { id: 'sweet_potato',  n: 'Frites patate douce surgelées', kcal: 150, p: 1.5, g: 19.5, l: 6.1, fib: 2.5 },
     veggies:       { id: 'veggies',       n: 'Poêlée de légumes grillés (Picard)',  kcal: 51,  p: 1.6, g: 5.3,  l: 2.1,   fib: 2.7 },
     tomato_sauce:  { id: 'tomato_sauce',  n: 'Sauce tomate nature (conserve)', kcal: 42, p: 1.5, g: 5.5, l: 0.2, fib: 1.5 },
     raisins:       { id: 'raisins',       n: 'Raisins secs',              kcal: 331, p: 3.1,  g: 72.0, l: 0.5,   fib: 3.7 },
@@ -31,7 +31,7 @@
     avocado:       { id: 'avocado',       n: 'Avocat',                    kcal: 160, p: 2.0,  g: 2.0,  l: 15.0,  fib: 6.7 },
     olive_oil:     { id: 'olive_oil',     n: "Huile d'olive",             kcal: 884, p: 0.0,  g: 0.0,  l: 100.0, fib: 0.0 },
     belvita:       { id: 'belvita',       n: 'Biscuit complet (Belvita)',   kcal: 440, p: 8.0,  g: 68.0, l: 15.0,  fib: 5.0, hidden: true },
-    creatine:      { id: 'creatine',      n: 'Créatine monohydrate',      kcal: 0,   p: 0.0,  g: 0.0,  l: 0.0,   fib: 0.0, hidden: true }
+    creatine:      { id: 'creatine',      n: 'Créatine monohydrate (Nutri&Co)', kcal: 0,   p: 0.0,  g: 0.0,  l: 0.0,   fib: 0.0, hidden: true }
   };
 
   const RULE_CONFIG = {
@@ -93,7 +93,7 @@
         num: '1',
         name: 'Midi',
         sub: 'Repas 1',
-        supps: 'Multivitamines · Oméga-3',
+        supps: 'Multivitamines · Oméga-3 (Nutri&Co)',
         suppNote: 'Au milieu du repas',
         ensureFoods: ['olive_oil']
       },
@@ -109,7 +109,7 @@
         num: '3',
         name: 'Soir',
         sub: 'Dîner',
-        supps: 'Magnésium bisglycinate',
+        supps: 'Magnésium bisglycinate (Nutri&Co)',
         suppNote: 'Au dîner ou avant de dormir',
         ensureFoods: ['olive_oil', 'avocado']
       }
