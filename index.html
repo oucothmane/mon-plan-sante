@@ -235,6 +235,108 @@
           </label>
         </div>
       </section>
+
+      <section class="card panel">
+        <div class="panel-head">
+          <div>
+            <h2>Estimer mon objectif</h2>
+            <p class="panel-sub">Ton profil et ton quotidien</p>
+          </div>
+        </div>
+
+        <div class="seg" role="group" aria-label="Sexe" style="margin-bottom:10px;">
+          <button type="button" data-calc-sex="male" aria-pressed="true">Homme</button>
+          <button type="button" data-calc-sex="female" aria-pressed="false">Femme</button>
+        </div>
+
+        <div class="prof-grid">
+          <label class="prof-field">
+            <small>Âge (ans)</small>
+            <input type="number" id="calcAge" min="16" max="90" step="1" inputmode="numeric" value="32">
+          </label>
+          <label class="prof-field">
+            <small>Taille (cm)</small>
+            <input type="number" id="calcHeight" min="140" max="220" step="1" inputmode="numeric" value="182">
+          </label>
+          <label class="prof-field" style="grid-column:1 / -1;">
+            <small>Poids actuel (kg)</small>
+            <input type="number" id="calcWeight" min="45" max="200" step="0.5" inputmode="decimal" value="99">
+          </label>
+        </div>
+
+        <p class="panel-sub" style="margin:14px 0 6px;font-weight:600;color:var(--fg);">Ton quotidien</p>
+        <div class="choice-list" role="group" aria-label="Niveau d'activité">
+          <button type="button" class="choice-btn" data-calc-act="sedentary" aria-pressed="true">
+            <span><strong>Sédentaire</strong><small>Bureau, peu de marche</small></span>
+          </button>
+          <button type="button" class="choice-btn" data-calc-act="moderate" aria-pressed="false">
+            <span><strong>Modéré</strong><small>Debout souvent ou 2–3 séances/semaine</small></span>
+          </button>
+          <button type="button" class="choice-btn" data-calc-act="active" aria-pressed="false">
+            <span><strong>Actif</strong><small>Métier physique ou 4–5 séances/semaine</small></span>
+          </button>
+        </div>
+
+        <p class="panel-sub" style="margin:14px 0 6px;font-weight:600;color:var(--fg);">Ton objectif</p>
+        <div class="choice-list" role="group" aria-label="Objectif">
+          <button type="button" class="choice-btn" data-calc-goal="cut" aria-pressed="true">
+            <span><strong>🔥 Perdre du gras (Sèche)</strong><small>Déficit progressif pour sécher</small></span>
+          </button>
+          <button type="button" class="choice-btn" data-calc-goal="maint" aria-pressed="false">
+            <span><strong>⚖️ Stabiliser mon poids (Maintien)</strong><small>Maintien exact</small></span>
+          </button>
+          <button type="button" class="choice-btn" data-calc-goal="bulk" aria-pressed="false">
+            <span><strong>💪 Prendre du muscle (Prise de masse)</strong><small>Surplus léger (+250 kcal)</small></span>
+          </button>
+        </div>
+
+        <div id="calcPaceBox" style="margin-top:12px;">
+          <p class="panel-sub" style="margin:0 0 6px;font-weight:600;color:var(--fg);">Rythme de perte</p>
+          <div class="choice-list" role="group" aria-label="Rythme de sèche">
+            <button type="button" class="choice-btn" data-calc-pace="mild" aria-pressed="false">
+              <span><strong>🐢 Doux</strong><small>−0,3 à 0,4 kg/sem · −400 kcal/jour</small></span>
+            </button>
+            <button type="button" class="choice-btn" data-calc-pace="rec" aria-pressed="true">
+              <span><strong>⚡ Recommandé</strong><small>−0,5 kg/sem · −550 kcal/jour</small></span>
+            </button>
+            <button type="button" class="choice-btn" id="paceFastBtn" data-calc-pace="fast" aria-pressed="false">
+              <span><strong>🔥 Rapide</strong><small id="paceFastSub">−0,8 kg/sem · −880 kcal/jour</small></span>
+              <span class="choice-badge" id="paceFastBadge">IMC élevé</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="kcal-hero">
+          <div class="kcal-hero-label">Ton objectif</div>
+          <div class="kcal-hero-val" id="calcMainVal">— kcal / jour</div>
+          <p class="kcal-hero-why" id="calcWhy">—</p>
+        </div>
+
+        <div class="prof-grid" style="margin-top:10px;">
+          <div class="prof-field">
+            <small><span class="dot" style="background:var(--on)"></span>Jour ON</small>
+            <strong id="calcOnVal" style="font-size:18px;line-height:1.4;">— kcal</strong>
+          </div>
+          <div class="prof-field">
+            <small><span class="dot" style="background:var(--off)"></span>Jour OFF</small>
+            <strong id="calcOffVal" style="font-size:18px;line-height:1.4;">— kcal</strong>
+          </div>
+        </div>
+
+        <div class="callout is-warn" id="calcWarn" hidden style="margin-top:10px;"></div>
+
+        <button type="button" class="ghost-btn" id="applyCalcBtn" style="margin-top:12px;width:100%;">Appliquer à mes repas</button>
+
+        <details class="fold" style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px;">
+          <summary style="padding:4px 0;font-size:13px;color:var(--muted);">
+            <span>ⓘ Comment c’est calculé ?</span>
+            <svg class="ic" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </summary>
+          <p style="font-size:13px;line-height:1.45;color:var(--muted);margin:6px 0 0;">
+            Calculé avec l’équation de Mifflin-St Jeor, la référence la plus fiable utilisée par les nutritionnistes. Ce chiffre est un point de départ : suis-le pendant 2 semaines, puis ajuste de ±150 kcal selon l’évolution de ton poids.
+          </p>
+        </details>
+      </section>
     </section>
   </main>
 

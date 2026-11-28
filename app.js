@@ -1444,6 +1444,28 @@
       if ($('resetFoods')) $('resetFoods').hidden = !any;
     }
 
+    const calcSt = { sex: 'male', act: 'sedentary', goal: 'cut', pace: 'rec' };
+    const ACT_PAL = { sedentary: 1.2, moderate: 1.375, active: 1.55 };
+    const PACE_DEF = { mild: 400, rec: 550, fast: 880 };
+
+    function computeCalcKcal() {
+      const p = profile();
+      const w = Math.max(45, Math.min(200, num($('calcWeight') ? $('calcWeight').value : p.currentWeightKg) || p.currentWeightKg));
+      const h = Math.max(140, Math.min(220, num($('calcHeight') ? $('calcHeight').value : p.heightCm) || p.heightCm));
+      const age = Math.max(16, Math.min(90, num($('calcAge') ? $('calcAge').value : p.age) || p.age));
+      const bmi = w / Math.pow(h / 100, 2);
+      const mb = Math.round(10 * w + 6.25 * h - 5 * age + (calcSt.sex === 'male' ? 5 : -161));
+      const maint = Math.round(mb * (ACT_PAL[calcSt.act] || 1.2));
+      const delta = calcSt.goal === 'cut' ? -(PACE_DEF[calcSt.pace] || 550) : calcSt.goal === 'bulk' ? 250 : 0;
+      const rawTarget = maint + delta;
+      const floor = Math.max(mb, calcSt.sex === 'male' ? 2000 : 1500);
+      const clamped = calcSt.goal === 'cut' && rawTarget < floor;
+      const avg = Math.min(KCAL_MAX, Math.round((clamped ? floor : rawTarget) / 25) * 25);
+      const on = Math.min(KCAL_MAX, avg + 100);
+      const off = Math.max(clamped ? floor : 1400, avg - 100);
+      return { w, h, age, bmi, mb, maint, avg, on, off, clamped, floor };
+    }
+
     function renderKcal() {
       const onVal = tgt(st.phase, 'on');
       const offVal = tgt(st.phase, 'off');
@@ -1457,6 +1479,39 @@
         $('myOffKcal').classList.toggle('is-custom', customTarget(st.phase, 'off') !== null);
       }
       if ($('resetTargetsBtn')) $('resetTargetsBtn').hidden = !isCustom;
+
+      const c = computeCalcKcal();
+      document.querySelectorAll('[data-calc-sex]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.calcSex === calcSt.sex)));
+      document.querySelectorAll('[data-calc-act]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.calcAct === calcSt.act)));
+      document.querySelectorAll('[data-calc-goal]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.calcGoal === calcSt.goal)));
+      document.querySelectorAll('[data-calc-pace]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.calcPace === calcSt.pace)));
+
+      if ($('calcPaceBox')) $('calcPaceBox').hidden = calcSt.goal !== 'cut';
+      const fastOk = c.bmi >= 27;
+      if ($('paceFastBtn')) $('paceFastBtn').disabled = !fastOk;
+      if ($('paceFastBadge')) $('paceFastBadge').textContent = fastOk ? 'Dispo (IMC ≥ 27)' : 'IMC ≥ 27 requis';
+      if (!fastOk && calcSt.pace === 'fast') {
+        calcSt.pace = 'rec';
+        return renderKcal();
+      }
+
+      if ($('calcMainVal')) $('calcMainVal').textContent = `${fmt(c.avg)} kcal / jour`;
+      if ($('calcWhy')) {
+        $('calcWhy').textContent =
+          calcSt.goal === 'cut'
+            ? 'C’est le niveau idéal pour perdre du gras régulièrement tout en gardant ton énergie et tes muscles.'
+            : calcSt.goal === 'bulk'
+            ? 'C’est le niveau idéal pour prendre du muscle progressivement sans accumuler trop de gras.'
+            : 'C’est le niveau idéal pour stabiliser ton poids tout en gardant ton énergie et tes performances.';
+      }
+      if ($('calcOnVal')) $('calcOnVal').textContent = `${fmt(c.on)} kcal`;
+      if ($('calcOffVal')) $('calcOffVal').textContent = `${fmt(c.off)} kcal`;
+      if ($('calcWarn')) {
+        $('calcWarn').hidden = !c.clamped;
+        if (c.clamped) {
+          $('calcWarn').textContent = 'Pour protéger tes muscles et ta santé, on ne descend pas plus bas : ajoute plutôt de la marche pour accélérer.';
+        }
+      }
     }
 
     function render() {
@@ -1638,6 +1693,31 @@
         return;
       } else if (t.id === 'timerSkip') {
         stopTimer();
+        return;
+      } else if (d.calcSex) {
+        calcSt.sex = d.calcSex;
+        renderKcal();
+        return;
+      } else if (d.calcAct) {
+        calcSt.act = d.calcAct;
+        renderKcal();
+        return;
+      } else if (d.calcGoal) {
+        calcSt.goal = d.calcGoal;
+        renderKcal();
+        return;
+      } else if (d.calcPace) {
+        calcSt.pace = d.calcPace;
+        renderKcal();
+        return;
+      } else if (t.id === 'applyCalcBtn') {
+        const c = computeCalcKcal();
+        st.targets = st.targets || {};
+        st.targets[st.phase] = { on: c.on, off: c.off };
+        syncTodayKcalLog();
+        save();
+        render();
+        showToast(`Objectif appliqué : ${fmt(c.on)} ON / ${fmt(c.off)} OFF ✓`);
         return;
       } else if (t.id === 'resetTargetsBtn') {
         if (st.targets) delete st.targets[st.phase];
@@ -1859,6 +1939,10 @@
         st.targets[st.phase][el.id === 'myOnKcal' ? 'on' : 'off'] = v;
         syncTodayKcalLog();
         save();
+        renderKcal();
+        return;
+      }
+      if (el.id === 'calcWeight' || el.id === 'calcHeight' || el.id === 'calcAge') {
         renderKcal();
         return;
       }

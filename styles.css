@@ -2499,6 +2499,83 @@ h1 {
   color: var(--off);
 }
 
+.choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.choice-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--sunken);
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.choice-btn strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.choice-btn small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+.choice-btn[aria-pressed="true"] {
+  border-color: var(--day);
+  background: color-mix(in srgb, var(--day) 10%, var(--surface));
+}
+
+.choice-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.kcal-hero {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--sunken);
+  text-align: center;
+}
+
+.kcal-hero-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.kcal-hero-val {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 4px 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.kcal-hero-why {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin: 0;
+}
+
 .key-in-wrap {
   display: flex;
   align-items: center;
