@@ -1444,7 +1444,7 @@
       if ($('resetFoods')) $('resetFoods').hidden = !any;
     }
 
-    const calcSt = { sex: 'male', act: 'sedentary', goal: 'cut', pace: 'rec' };
+    const calcSt = { act: 'sedentary', goal: 'cut', pace: 'rec' };
     const ACT_PAL = { sedentary: 1.2, moderate: 1.375, active: 1.55 };
     const PACE_DEF = { mild: 400, rec: 550, fast: 880 };
 
@@ -1454,11 +1454,11 @@
       const h = Math.max(140, Math.min(220, num($('calcHeight') ? $('calcHeight').value : p.heightCm) || p.heightCm));
       const age = Math.max(16, Math.min(90, num($('calcAge') ? $('calcAge').value : p.age) || p.age));
       const bmi = w / Math.pow(h / 100, 2);
-      const mb = Math.round(10 * w + 6.25 * h - 5 * age + (calcSt.sex === 'male' ? 5 : -161));
+      const mb = Math.round(10 * w + 6.25 * h - 5 * age + 5);
       const maint = Math.round(mb * (ACT_PAL[calcSt.act] || 1.2));
       const delta = calcSt.goal === 'cut' ? -(PACE_DEF[calcSt.pace] || 550) : calcSt.goal === 'bulk' ? 250 : 0;
       const rawTarget = maint + delta;
-      const floor = Math.max(mb, calcSt.sex === 'male' ? 2000 : 1500);
+      const floor = Math.max(mb, 2000);
       const clamped = calcSt.goal === 'cut' && rawTarget < floor;
       const avg = Math.min(KCAL_MAX, Math.round((clamped ? floor : rawTarget) / 25) * 25);
       const on = Math.min(KCAL_MAX, avg + 100);
@@ -1481,7 +1481,6 @@
       if ($('resetTargetsBtn')) $('resetTargetsBtn').hidden = !isCustom;
 
       const c = computeCalcKcal();
-      document.querySelectorAll('[data-calc-sex]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.calcSex === calcSt.sex)));
       document.querySelectorAll('[data-calc-act]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.calcAct === calcSt.act)));
       document.querySelectorAll('[data-calc-goal]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.calcGoal === calcSt.goal)));
       document.querySelectorAll('[data-calc-pace]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.calcPace === calcSt.pace)));
@@ -1693,10 +1692,6 @@
         return;
       } else if (t.id === 'timerSkip') {
         stopTimer();
-        return;
-      } else if (d.calcSex) {
-        calcSt.sex = d.calcSex;
-        renderKcal();
         return;
       } else if (d.calcAct) {
         calcSt.act = d.calcAct;
