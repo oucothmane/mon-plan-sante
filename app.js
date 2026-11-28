@@ -76,7 +76,8 @@
   const TITLES = {
     repas: 'Repas',
     seance: 'Split',
-    courses: 'Courses'
+    courses: 'Courses',
+    kcal: 'Objectif kcal'
   };
 
   // ==========================================================================
@@ -223,7 +224,7 @@
   // ==========================================================================
 
   const KEY = 'mon-plan-repas-v1';
-  const TABS = ['repas', 'seance', 'courses'];
+  const TABS = ['repas', 'seance', 'courses', 'kcal'];
 
   async function initApp() {
     await loadJsonConfigs();
@@ -355,7 +356,7 @@
 
     function customTarget(ph, d) {
       const v = Number(((st.targets || {})[ph] || {})[d]);
-      return isFinite(v) && v >= KCAL_MIN && v <= KCAL_MAX ? Math.round(v) : null;
+      return isFinite(v) && v >= 1400 && v <= KCAL_MAX ? Math.round(v) : null;
     }
 
     const defaultTarget = (ph, d) => (DEFAULT_TARGETS[ph] || DEFAULT_TARGETS.seche)[d];
@@ -586,28 +587,22 @@
     }
 
     function formatAllMeals() {
-      const lines = ['Plan repas complet (Cut & Maintien · Jours ON et OFF)'];
-      const phases = [
-        ['seche', 'CUT'],
-        ['maintien', 'MAINTIEN']
-      ];
+      const lines = ['Plan repas (Jours ON et OFF)'];
       const days = [
         ['on', 'Jour ON'],
         ['off', 'Jour OFF']
       ];
 
-      phases.forEach(([phaseKey, phaseLabel]) => {
-        days.forEach(([dayKey, dayLabel]) => {
-          const P = buildDay(phaseKey, dayKey);
-          const t = P.tot;
-          lines.push(
-            '',
-            `${phaseLabel} — ${dayLabel} (${Math.round(t.kcal)} / ${Math.round(P.target)} kcal · P ${Math.round(t.p)} g · G ${Math.round(t.g)} g · L ${Math.round(t.l)} g · Fibres ${Math.round(t.fib)} g)`
-          );
-          P.meals.forEach((m) => {
-            const itemsTxt = formatMealItems(m);
-            lines.push(`${m.num}. ${m.name} (${Math.round(m.kcal)} kcal) : ${itemsTxt}`);
-          });
+      days.forEach(([dayKey, dayLabel]) => {
+        const P = buildDay(st.phase, dayKey);
+        const t = P.tot;
+        lines.push(
+          '',
+          `${dayLabel} (${Math.round(t.kcal)} / ${Math.round(P.target)} kcal · P ${Math.round(t.p)} g · G ${Math.round(t.g)} g · L ${Math.round(t.l)} g · Fibres ${Math.round(t.fib)} g)`
+        );
+        P.meals.forEach((m) => {
+          const itemsTxt = formatMealItems(m);
+          lines.push(`${m.num}. ${m.name} (${Math.round(m.kcal)} kcal) : ${itemsTxt}`);
         });
       });
 
@@ -621,7 +616,7 @@
         alert('Copie impossible sur ce navigateur.');
         return;
       }
-      showToast('Tous les repas copiés (Cut & Maintien · ON/OFF) ✓');
+      showToast('Tous les repas copiés (ON/OFF) ✓');
       if (btn) {
         btn.classList.add('is-copied');
         const label = btn.querySelector('strong');
@@ -742,6 +737,8 @@
           return i.g > 0 ? '≈ ' + spoon(i.g / 5) + ' c. à café' : '0 c. à café';
         case 'creatine':
           return 'dans le shaker';
+        case 'berries':
+          return i.g > 0 ? 'dans le shaker' : 'option glucides';
         case 'banana':
           return i.g >= 200
             ? '≈ 2 bananes'
@@ -761,8 +758,10 @@
           const nb = Math.max(1, Math.round(i.g / bSize));
           return `≈ ${nb} biscuit${nb > 1 ? 's' : ''}`;
         }
-        case 'dark_choc':
-          return i.g > 0 ? Math.round(i.g / 5) + ' carrés' : '';
+        case 'dark_choc': {
+          const nc = Math.round(i.g / 5);
+          return i.g > 0 ? `le matin · ${nc} carré${nc > 1 ? 's' : ''}` : 'option le matin';
+        }
         case 'avocado':
           return i.g >= 85 ? '≈ ⅔ avocat' : i.g >= 55 ? '½ avocat moyen' : i.g > 0 ? '½ petit avocat' : '';
         default:
@@ -1445,8 +1444,62 @@
       if ($('resetFoods')) $('resetFoods').hidden = !any;
     }
 
+    let calcGoal = 'loss1';
+
+    function computeCalcKcal() {
+      const p = profile();
+      const w = Math.max(45, Math.min(200, num($('calcWeight') ? $('calcWeight').value : p.currentWeightKg) || p.currentWeightKg));
+      const h = Math.max(140, Math.min(220, num($('calcHeight') ? $('calcHeight').value : p.heightCm) || p.heightCm));
+      const age = Math.max(16, Math.min(90, num($('calcAge') ? $('calcAge').value : p.age) || p.age));
+      const bmr = 10 * w + 6.25 * h - 5 * age + 5;
+      const tdee = Math.round(bmr * 1.25);
+      const deficit = calcGoal === 'loss1' ? 1100 : calcGoal === 'loss05' ? 550 : 0;
+      const avg = Math.max(1400, Math.round((tdee - deficit) / 25) * 25);
+      const on = Math.min(KCAL_MAX, avg + 100);
+      const off = Math.max(1400, avg - 100);
+      return { w, h, age, tdee, deficit, avg, on, off };
+    }
+
+    function renderKcal() {
+      const onVal = tgt(st.phase, 'on');
+      const offVal = tgt(st.phase, 'off');
+      const isCustom = customTarget(st.phase, 'on') !== null || customTarget(st.phase, 'off') !== null;
+      if ($('myOnKcal')) {
+        if (document.activeElement !== $('myOnKcal')) $('myOnKcal').value = onVal;
+        $('myOnKcal').classList.toggle('is-custom', customTarget(st.phase, 'on') !== null);
+      }
+      if ($('myOffKcal')) {
+        if (document.activeElement !== $('myOffKcal')) $('myOffKcal').value = offVal;
+        $('myOffKcal').classList.toggle('is-custom', customTarget(st.phase, 'off') !== null);
+      }
+      if ($('resetTargetsBtn')) $('resetTargetsBtn').hidden = !isCustom;
+
+      const c = computeCalcKcal();
+      if ($('calcTdee')) $('calcTdee').textContent = `${fmt(c.tdee)} kcal/j`;
+      if ($('calcAvg')) $('calcAvg').textContent = `${fmt(c.avg)} kcal/j`;
+      if ($('calcDeficit')) {
+        $('calcDeficit').textContent =
+          c.deficit > 0 ? `Déficit −${fmt(c.deficit)} kcal/j` : 'Équilibre (0 déficit)';
+      }
+      if ($('calcSplit')) $('calcSplit').textContent = `${fmt(c.on)} ON / ${fmt(c.off)} OFF`;
+
+      document
+        .querySelectorAll('[data-calc-goal]')
+        .forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.calcGoal === calcGoal)));
+
+      if ($('calcWarn')) {
+        const rawAvg = c.tdee - c.deficit;
+        if (rawAvg < 1500) {
+          $('calcWarn').hidden = false;
+          $('calcWarn').textContent = `Attention : −1 kg/sem en sédentaire donne ~${fmt(Math.max(1200, rawAvg))} kcal/j (très bas pour garder tes muscles). Préfère −0,5 kg/sem ou ajoute des pas / du cardio.`;
+        } else {
+          $('calcWarn').hidden = true;
+        }
+      }
+    }
+
     function render() {
-      if (st.phase !== 'seche' && st.phase !== 'maintien') st.phase = 'maintien';
+      st.phase = 'seche';
       $('app').dataset.day = viewDay();
       const raw = new Date().toLocaleDateString('fr-FR', {
         weekday: 'long',
@@ -1456,13 +1509,7 @@
       $('date').textContent = raw.charAt(0).toUpperCase() + raw.slice(1);
       $('screenTitle').textContent = TITLES[st.tab] || 'Repas';
 
-      const phaseBtn = $('phaseToggleBtn');
-      if (phaseBtn) {
-        phaseBtn.hidden = st.tab === 'seance';
-        phaseBtn.textContent = st.phase === 'seche' ? 'Cut' : 'Maintien';
-      }
-
-      $('cycBar').hidden = st.tab === 'courses';
+      $('cycBar').hidden = st.tab === 'courses' || st.tab === 'kcal';
 
       TABS.forEach((t) => {
         if ($('view-' + t)) $('view-' + t).hidden = st.tab !== t;
@@ -1472,7 +1519,7 @@
         else b.removeAttribute('aria-current');
       });
 
-      if (st.tab !== 'courses') renderCycle();
+      if (st.tab !== 'courses' && st.tab !== 'kcal') renderCycle();
       if (st.tab === 'repas') {
         renderRepas();
         renderFoodRef();
@@ -1480,6 +1527,8 @@
         renderSeance();
       } else if (st.tab === 'courses') {
         renderCourses();
+      } else if (st.tab === 'kcal') {
+        renderKcal();
       }
     }
 
@@ -1629,9 +1678,26 @@
       } else if (t.id === 'timerSkip') {
         stopTimer();
         return;
-      } else if (t.id === 'phaseToggleBtn') {
-        st.phase = st.phase === 'seche' ? 'maintien' : 'seche';
-        showToast(st.phase === 'seche' ? 'Mode Cut activé' : 'Mode Maintien activé');
+      } else if (d.calcGoal) {
+        calcGoal = d.calcGoal;
+        renderKcal();
+        return;
+      } else if (t.id === 'applyCalcBtn') {
+        const c = computeCalcKcal();
+        st.targets = st.targets || {};
+        st.targets[st.phase] = { on: c.on, off: c.off };
+        syncTodayKcalLog();
+        save();
+        render();
+        showToast(`Objectif appliqué : ${fmt(c.on)} ON / ${fmt(c.off)} OFF ✓`);
+        return;
+      } else if (t.id === 'resetTargetsBtn') {
+        if (st.targets) delete st.targets[st.phase];
+        syncTodayKcalLog();
+        save();
+        render();
+        showToast('Objectif remis à 2 200 ON / 2 000 OFF ✓');
+        return;
       } else if (d.shop) {
         st.shopDays = Number(d.shop);
       } else if (d.swapOpen) {
@@ -1835,6 +1901,21 @@
         if (!Object.keys(o).length) delete st.foods[f];
         save();
         render();
+        return;
+      }
+      if (el.id === 'myOnKcal' || el.id === 'myOffKcal') {
+        const v = Math.round(num(el.value));
+        if (!isFinite(v) || v < 1400 || v > KCAL_MAX) return;
+        st.targets = st.targets || {};
+        st.targets[st.phase] = st.targets[st.phase] || {};
+        st.targets[st.phase][el.id === 'myOnKcal' ? 'on' : 'off'] = v;
+        syncTodayKcalLog();
+        save();
+        renderKcal();
+        return;
+      }
+      if (el.id === 'calcWeight' || el.id === 'calcHeight' || el.id === 'calcAge') {
+        renderKcal();
         return;
       }
       if (el.dataset.load) {

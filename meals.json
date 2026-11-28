@@ -5,9 +5,10 @@
       "num": "1",
       "name": "Midi",
       "sub": "Repas 1",
-      "supps": "Multivitamines · Oméga-3 (Nutri&Co)",
-      "suppNote": "Au milieu du repas",
+      "supps": "Oméga-3 (Nutri&Co) · Vitamine D3",
+      "suppNote": "Avec le repas du midi",
       "ensureFoods": [
+        "dark_choc",
         "olive_oil"
       ]
     },
@@ -17,11 +18,11 @@
       "nameOff": "Collation shaker",
       "subOn": "Après entraînement",
       "subOff": "Dans l’après-midi",
-      "supps": "Vitamine D3 1000 UI",
-      "suppNote": "Dans l’après-midi",
+      "supps": "Zinc (1 gélule) · Collagène (optionnel)",
+      "suppNote": "Autour de l’entraînement / shaker · Zinc espacé du café/thé",
       "ensureFoods": [
+        "berries",
         "banana",
-        "raisins",
         "walnuts"
       ]
     },

@@ -33,14 +33,14 @@
   "foodCaps": {
     "pasta": 120,
     "sweet_potato": 250,
-    "raisins": 50,
+    "raisins": 0,
     "banana": 240,
     "honey": 0,
     "belvita": 0,
     "olive_oil": 60,
     "avocado": 100,
     "walnuts": 35,
-    "dark_choc": 0
+    "dark_choc": 20
   },
   "mealBases": {
     "eggs": 170,
@@ -49,7 +49,8 @@
     "tomatoSauceMidi": 150,
     "whey": 30,
     "creatine": 5,
-    "dark_choc": 0,
+    "berries": 100,
+    "dark_choc": 10,
     "walnutsOn": 5,
     "walnutsOff": 15,
     "avocadoOn": 25,

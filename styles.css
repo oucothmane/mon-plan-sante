@@ -2856,7 +2856,7 @@ h1 {
   position: fixed;
   left: 50%;
   bottom: max(12px, env(safe-area-inset-bottom, 0px));
-  width: min(306px, calc(100% - 32px));
+  width: min(372px, calc(100% - 24px));
   z-index: 10;
   background: color-mix(in srgb, var(--surface) 84%, transparent);
   -webkit-backdrop-filter: saturate(200%) blur(28px);
@@ -2875,7 +2875,7 @@ h1 {
   margin: 0;
   padding: 5px 8px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 4px;
 }
 
@@ -2901,7 +2901,7 @@ h1 {
 }
 
 .tab .tab-ic {
-  width: 56px;
+  width: 48px;
   height: 30px;
   flex: none;
   border-radius: 999px;
