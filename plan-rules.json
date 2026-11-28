@@ -3,7 +3,7 @@
   "kcalMax": 4500,
   "defaultTargets": {
     "seche": { "on": 2200, "off": 2000 },
-    "maintien": { "on": 2200, "off": 2100 }
+    "maintien": { "on": 2300, "off": 2100 }
   },
   "profile": {
     "birthDate": "1994-06-09",
