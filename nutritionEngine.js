@@ -38,7 +38,7 @@
   const RULE_CONFIG = {
     kcalMin: 2000,
     kcalMax: 4500,
-    defaultTargets: { seche: { on: 2200, off: 2000 }, maintien: { on: 2400, off: 2200 } },
+    defaultTargets: { seche: { on: 2200, off: 2000 }, maintien: { on: 2200, off: 2100 } },
     profile: {
       proteinMaxG: 165,
       fatOnPerKg: 1.0,

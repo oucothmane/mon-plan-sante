@@ -227,8 +227,8 @@
     },
     "maintien": {
       "targetKcal": {
-        "on": 2400,
-        "off": 2200
+        "on": 2200,
+        "off": 2100
       },
       "on": {
         "totals": {
