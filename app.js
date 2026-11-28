@@ -76,7 +76,8 @@
   const TITLES = {
     repas: 'Repas',
     seance: 'Split',
-    courses: 'Courses'
+    courses: 'Courses',
+    kcal: 'Objectif'
   };
 
   // ==========================================================================
@@ -223,7 +224,7 @@
   // ==========================================================================
 
   const KEY = 'mon-plan-repas-v1';
-  const TABS = ['repas', 'seance', 'courses'];
+  const TABS = ['repas', 'seance', 'courses', 'kcal'];
 
   async function initApp() {
     await loadJsonConfigs();
@@ -1449,9 +1450,30 @@
       if ($('resetFoods')) $('resetFoods').hidden = !any;
     }
 
+    function renderKcal() {
+      document
+        .querySelectorAll('[data-set-phase]')
+        .forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.setPhase === st.phase)));
+      const onVal = tgt(st.phase, 'on');
+      const offVal = tgt(st.phase, 'off');
+      const isCustom = customTarget(st.phase, 'on') !== null || customTarget(st.phase, 'off') !== null;
+      if ($('kcalModeSub')) {
+        $('kcalModeSub').textContent =
+          st.phase === 'seche' ? 'Modifiables pour le mode Cut' : 'Modifiables pour le mode Maintien';
+      }
+      if ($('myOnKcal')) {
+        if (document.activeElement !== $('myOnKcal')) $('myOnKcal').value = onVal;
+        $('myOnKcal').classList.toggle('is-custom', customTarget(st.phase, 'on') !== null);
+      }
+      if ($('myOffKcal')) {
+        if (document.activeElement !== $('myOffKcal')) $('myOffKcal').value = offVal;
+        $('myOffKcal').classList.toggle('is-custom', customTarget(st.phase, 'off') !== null);
+      }
+      if ($('resetTargetsBtn')) $('resetTargetsBtn').hidden = !isCustom;
+    }
+
     function render() {
       if (st.phase !== 'seche' && st.phase !== 'maintien') st.phase = 'seche';
-      if (st.tab === 'kcal') st.tab = 'repas';
       $('app').dataset.day = viewDay();
       const raw = new Date().toLocaleDateString('fr-FR', {
         weekday: 'long',
@@ -1463,11 +1485,11 @@
 
       const phaseBtn = $('phaseToggleBtn');
       if (phaseBtn) {
-        phaseBtn.hidden = st.tab === 'seance';
+        phaseBtn.hidden = st.tab === 'seance' || st.tab === 'kcal';
         phaseBtn.textContent = st.phase === 'seche' ? 'Cut' : 'Maintien';
       }
 
-      $('cycBar').hidden = st.tab === 'courses';
+      $('cycBar').hidden = st.tab === 'courses' || st.tab === 'kcal';
 
       TABS.forEach((t) => {
         if ($('view-' + t)) $('view-' + t).hidden = st.tab !== t;
@@ -1477,7 +1499,7 @@
         else b.removeAttribute('aria-current');
       });
 
-      if (st.tab !== 'courses') renderCycle();
+      if (st.tab !== 'courses' && st.tab !== 'kcal') renderCycle();
       if (st.tab === 'repas') {
         renderRepas();
         renderFoodRef();
@@ -1485,6 +1507,8 @@
         renderSeance();
       } else if (st.tab === 'courses') {
         renderCourses();
+      } else if (st.tab === 'kcal') {
+        renderKcal();
       }
     }
 
@@ -1634,33 +1658,20 @@
       } else if (t.id === 'timerSkip') {
         stopTimer();
         return;
-      } else if (d.calcAct) {
-        calcSt.act = d.calcAct;
-        renderKcal();
-        return;
-      } else if (d.calcGoal) {
-        calcSt.goal = d.calcGoal;
-        renderKcal();
-        return;
-      } else if (d.calcPace) {
-        calcSt.pace = d.calcPace;
-        renderKcal();
-        return;
-      } else if (t.id === 'applyCalcBtn') {
-        const c = computeCalcKcal();
-        st.targets = st.targets || {};
-        st.targets[st.phase] = { on: c.on, off: c.off };
+      } else if (t.id === 'phaseToggleBtn') {
+        st.phase = st.phase === 'seche' ? 'maintien' : 'seche';
         syncTodayKcalLog();
-        save();
-        render();
-        showToast(`Objectif appliqué : ${fmt(c.on)} ON / ${fmt(c.off)} OFF ✓`);
-        return;
+        showToast(st.phase === 'seche' ? 'Mode Cut activé' : 'Mode Maintien activé');
+      } else if (d.setPhase) {
+        st.phase = d.setPhase === 'maintien' ? 'maintien' : 'seche';
+        syncTodayKcalLog();
+        showToast(st.phase === 'seche' ? 'Mode Cut activé' : 'Mode Maintien activé');
       } else if (t.id === 'resetTargetsBtn') {
         if (st.targets) delete st.targets[st.phase];
         syncTodayKcalLog();
         save();
         render();
-        showToast('Objectif remis à 2 200 ON / 2 000 OFF ✓');
+        showToast('Kcal remises par défaut ✓');
         return;
       } else if (d.shop) {
         st.shopDays = Number(d.shop);
@@ -1865,6 +1876,17 @@
         if (!Object.keys(o).length) delete st.foods[f];
         save();
         render();
+        return;
+      }
+      if (el.id === 'myOnKcal' || el.id === 'myOffKcal') {
+        const v = Math.round(num(el.value));
+        if (!isFinite(v) || v < 1400 || v > KCAL_MAX) return;
+        st.targets = st.targets || {};
+        st.targets[st.phase] = st.targets[st.phase] || {};
+        st.targets[st.phase][el.id === 'myOnKcal' ? 'on' : 'off'] = v;
+        syncTodayKcalLog();
+        save();
+        renderKcal();
         return;
       }
       if (el.dataset.load) {
