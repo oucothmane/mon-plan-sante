@@ -76,8 +76,7 @@
   const TITLES = {
     repas: 'Repas',
     seance: 'Split',
-    courses: 'Courses',
-    kcal: 'Objectif kcal'
+    courses: 'Courses'
   };
 
   // ==========================================================================
@@ -224,7 +223,7 @@
   // ==========================================================================
 
   const KEY = 'mon-plan-repas-v1';
-  const TABS = ['repas', 'seance', 'courses', 'kcal'];
+  const TABS = ['repas', 'seance', 'courses'];
 
   async function initApp() {
     await loadJsonConfigs();
@@ -587,22 +586,28 @@
     }
 
     function formatAllMeals() {
-      const lines = ['Plan repas (Jours ON et OFF)'];
+      const lines = ['Plan repas complet (Cut & Maintien · Jours ON et OFF)'];
+      const phases = [
+        ['seche', 'CUT'],
+        ['maintien', 'MAINTIEN']
+      ];
       const days = [
         ['on', 'Jour ON'],
         ['off', 'Jour OFF']
       ];
 
-      days.forEach(([dayKey, dayLabel]) => {
-        const P = buildDay(st.phase, dayKey);
-        const t = P.tot;
-        lines.push(
-          '',
-          `${dayLabel} (${Math.round(t.kcal)} / ${Math.round(P.target)} kcal · P ${Math.round(t.p)} g · G ${Math.round(t.g)} g · L ${Math.round(t.l)} g · Fibres ${Math.round(t.fib)} g)`
-        );
-        P.meals.forEach((m) => {
-          const itemsTxt = formatMealItems(m);
-          lines.push(`${m.num}. ${m.name} (${Math.round(m.kcal)} kcal) : ${itemsTxt}`);
+      phases.forEach(([phaseKey, phaseLabel]) => {
+        days.forEach(([dayKey, dayLabel]) => {
+          const P = buildDay(phaseKey, dayKey);
+          const t = P.tot;
+          lines.push(
+            '',
+            `${phaseLabel} — ${dayLabel} (${Math.round(t.kcal)} / ${Math.round(P.target)} kcal · P ${Math.round(t.p)} g · G ${Math.round(t.g)} g · L ${Math.round(t.l)} g · Fibres ${Math.round(t.fib)} g)`
+          );
+          P.meals.forEach((m) => {
+            const itemsTxt = formatMealItems(m);
+            lines.push(`${m.num}. ${m.name} (${Math.round(m.kcal)} kcal) : ${itemsTxt}`);
+          });
         });
       });
 
@@ -616,7 +621,7 @@
         alert('Copie impossible sur ce navigateur.');
         return;
       }
-      showToast('Tous les repas copiés (ON/OFF) ✓');
+      showToast('Tous les repas copiés (Cut & Maintien · ON/OFF) ✓');
       if (btn) {
         btn.classList.add('is-copied');
         const label = btn.querySelector('strong');
@@ -1444,77 +1449,9 @@
       if ($('resetFoods')) $('resetFoods').hidden = !any;
     }
 
-    const calcSt = { act: 'sedentary', goal: 'cut', pace: 'rec' };
-    const ACT_PAL = { sedentary: 1.2, moderate: 1.375, active: 1.55 };
-    const PACE_DEF = { mild: 400, rec: 550, fast: 880 };
-
-    function computeCalcKcal() {
-      const p = profile();
-      const w = Math.max(45, Math.min(200, num($('calcWeight') ? $('calcWeight').value : p.currentWeightKg) || p.currentWeightKg));
-      const h = Math.max(140, Math.min(220, num($('calcHeight') ? $('calcHeight').value : p.heightCm) || p.heightCm));
-      const age = Math.max(16, Math.min(90, num($('calcAge') ? $('calcAge').value : p.age) || p.age));
-      const bmi = w / Math.pow(h / 100, 2);
-      const mb = Math.round(10 * w + 6.25 * h - 5 * age + 5);
-      const maint = Math.round(mb * (ACT_PAL[calcSt.act] || 1.2));
-      const delta = calcSt.goal === 'cut' ? -(PACE_DEF[calcSt.pace] || 550) : calcSt.goal === 'bulk' ? 250 : 0;
-      const rawTarget = maint + delta;
-      const floor = Math.max(mb, 2000);
-      const clamped = calcSt.goal === 'cut' && rawTarget < floor;
-      const avg = Math.min(KCAL_MAX, Math.round((clamped ? floor : rawTarget) / 25) * 25);
-      const on = Math.min(KCAL_MAX, avg + 100);
-      const off = Math.max(clamped ? floor : 1400, avg - 100);
-      return { w, h, age, bmi, mb, maint, avg, on, off, clamped, floor };
-    }
-
-    function renderKcal() {
-      const onVal = tgt(st.phase, 'on');
-      const offVal = tgt(st.phase, 'off');
-      const isCustom = customTarget(st.phase, 'on') !== null || customTarget(st.phase, 'off') !== null;
-      if ($('myOnKcal')) {
-        if (document.activeElement !== $('myOnKcal')) $('myOnKcal').value = onVal;
-        $('myOnKcal').classList.toggle('is-custom', customTarget(st.phase, 'on') !== null);
-      }
-      if ($('myOffKcal')) {
-        if (document.activeElement !== $('myOffKcal')) $('myOffKcal').value = offVal;
-        $('myOffKcal').classList.toggle('is-custom', customTarget(st.phase, 'off') !== null);
-      }
-      if ($('resetTargetsBtn')) $('resetTargetsBtn').hidden = !isCustom;
-
-      const c = computeCalcKcal();
-      document.querySelectorAll('[data-calc-act]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.calcAct === calcSt.act)));
-      document.querySelectorAll('[data-calc-goal]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.calcGoal === calcSt.goal)));
-      document.querySelectorAll('[data-calc-pace]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.calcPace === calcSt.pace)));
-
-      if ($('calcPaceBox')) $('calcPaceBox').hidden = calcSt.goal !== 'cut';
-      const fastOk = c.bmi >= 27;
-      if ($('paceFastBtn')) $('paceFastBtn').disabled = !fastOk;
-      if ($('paceFastBadge')) $('paceFastBadge').textContent = fastOk ? 'Dispo (IMC ≥ 27)' : 'IMC ≥ 27 requis';
-      if (!fastOk && calcSt.pace === 'fast') {
-        calcSt.pace = 'rec';
-        return renderKcal();
-      }
-
-      if ($('calcMainVal')) $('calcMainVal').textContent = `${fmt(c.avg)} kcal / jour`;
-      if ($('calcWhy')) {
-        $('calcWhy').textContent =
-          calcSt.goal === 'cut'
-            ? 'C’est le niveau idéal pour perdre du gras régulièrement tout en gardant ton énergie et tes muscles.'
-            : calcSt.goal === 'bulk'
-            ? 'C’est le niveau idéal pour prendre du muscle progressivement sans accumuler trop de gras.'
-            : 'C’est le niveau idéal pour stabiliser ton poids tout en gardant ton énergie et tes performances.';
-      }
-      if ($('calcOnVal')) $('calcOnVal').textContent = `${fmt(c.on)} kcal`;
-      if ($('calcOffVal')) $('calcOffVal').textContent = `${fmt(c.off)} kcal`;
-      if ($('calcWarn')) {
-        $('calcWarn').hidden = !c.clamped;
-        if (c.clamped) {
-          $('calcWarn').textContent = 'Pour protéger tes muscles et ta santé, on ne descend pas plus bas : ajoute plutôt de la marche pour accélérer.';
-        }
-      }
-    }
-
     function render() {
-      st.phase = 'seche';
+      if (st.phase !== 'seche' && st.phase !== 'maintien') st.phase = 'seche';
+      if (st.tab === 'kcal') st.tab = 'repas';
       $('app').dataset.day = viewDay();
       const raw = new Date().toLocaleDateString('fr-FR', {
         weekday: 'long',
@@ -1524,7 +1461,13 @@
       $('date').textContent = raw.charAt(0).toUpperCase() + raw.slice(1);
       $('screenTitle').textContent = TITLES[st.tab] || 'Repas';
 
-      $('cycBar').hidden = st.tab === 'courses' || st.tab === 'kcal';
+      const phaseBtn = $('phaseToggleBtn');
+      if (phaseBtn) {
+        phaseBtn.hidden = st.tab === 'seance';
+        phaseBtn.textContent = st.phase === 'seche' ? 'Cut' : 'Maintien';
+      }
+
+      $('cycBar').hidden = st.tab === 'courses';
 
       TABS.forEach((t) => {
         if ($('view-' + t)) $('view-' + t).hidden = st.tab !== t;
@@ -1534,7 +1477,7 @@
         else b.removeAttribute('aria-current');
       });
 
-      if (st.tab !== 'courses' && st.tab !== 'kcal') renderCycle();
+      if (st.tab !== 'courses') renderCycle();
       if (st.tab === 'repas') {
         renderRepas();
         renderFoodRef();
@@ -1542,8 +1485,6 @@
         renderSeance();
       } else if (st.tab === 'courses') {
         renderCourses();
-      } else if (st.tab === 'kcal') {
-        renderKcal();
       }
     }
 
@@ -1924,21 +1865,6 @@
         if (!Object.keys(o).length) delete st.foods[f];
         save();
         render();
-        return;
-      }
-      if (el.id === 'myOnKcal' || el.id === 'myOffKcal') {
-        const v = Math.round(num(el.value));
-        if (!isFinite(v) || v < 1400 || v > KCAL_MAX) return;
-        st.targets = st.targets || {};
-        st.targets[st.phase] = st.targets[st.phase] || {};
-        st.targets[st.phase][el.id === 'myOnKcal' ? 'on' : 'off'] = v;
-        syncTodayKcalLog();
-        save();
-        renderKcal();
-        return;
-      }
-      if (el.id === 'calcWeight' || el.id === 'calcHeight' || el.id === 'calcAge') {
-        renderKcal();
         return;
       }
       if (el.dataset.load) {
