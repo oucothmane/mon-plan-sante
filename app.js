@@ -1444,22 +1444,6 @@
       if ($('resetFoods')) $('resetFoods').hidden = !any;
     }
 
-    let calcGoal = 'loss1';
-
-    function computeCalcKcal() {
-      const p = profile();
-      const w = Math.max(45, Math.min(200, num($('calcWeight') ? $('calcWeight').value : p.currentWeightKg) || p.currentWeightKg));
-      const h = Math.max(140, Math.min(220, num($('calcHeight') ? $('calcHeight').value : p.heightCm) || p.heightCm));
-      const age = Math.max(16, Math.min(90, num($('calcAge') ? $('calcAge').value : p.age) || p.age));
-      const bmr = 10 * w + 6.25 * h - 5 * age + 5;
-      const tdee = Math.round(bmr * 1.25);
-      const deficit = calcGoal === 'loss1' ? 1100 : calcGoal === 'loss05' ? 550 : 0;
-      const avg = Math.max(1400, Math.round((tdee - deficit) / 25) * 25);
-      const on = Math.min(KCAL_MAX, avg + 100);
-      const off = Math.max(1400, avg - 100);
-      return { w, h, age, tdee, deficit, avg, on, off };
-    }
-
     function renderKcal() {
       const onVal = tgt(st.phase, 'on');
       const offVal = tgt(st.phase, 'off');
@@ -1473,29 +1457,6 @@
         $('myOffKcal').classList.toggle('is-custom', customTarget(st.phase, 'off') !== null);
       }
       if ($('resetTargetsBtn')) $('resetTargetsBtn').hidden = !isCustom;
-
-      const c = computeCalcKcal();
-      if ($('calcTdee')) $('calcTdee').textContent = `${fmt(c.tdee)} kcal/j`;
-      if ($('calcAvg')) $('calcAvg').textContent = `${fmt(c.avg)} kcal/j`;
-      if ($('calcDeficit')) {
-        $('calcDeficit').textContent =
-          c.deficit > 0 ? `Déficit −${fmt(c.deficit)} kcal/j` : 'Équilibre (0 déficit)';
-      }
-      if ($('calcSplit')) $('calcSplit').textContent = `${fmt(c.on)} ON / ${fmt(c.off)} OFF`;
-
-      document
-        .querySelectorAll('[data-calc-goal]')
-        .forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.calcGoal === calcGoal)));
-
-      if ($('calcWarn')) {
-        const rawAvg = c.tdee - c.deficit;
-        if (rawAvg < 1500) {
-          $('calcWarn').hidden = false;
-          $('calcWarn').textContent = `Attention : −1 kg/sem en sédentaire donne ~${fmt(Math.max(1200, rawAvg))} kcal/j (très bas pour garder tes muscles). Préfère −0,5 kg/sem ou ajoute des pas / du cardio.`;
-        } else {
-          $('calcWarn').hidden = true;
-        }
-      }
     }
 
     function render() {
@@ -1677,19 +1638,6 @@
         return;
       } else if (t.id === 'timerSkip') {
         stopTimer();
-        return;
-      } else if (d.calcGoal) {
-        calcGoal = d.calcGoal;
-        renderKcal();
-        return;
-      } else if (t.id === 'applyCalcBtn') {
-        const c = computeCalcKcal();
-        st.targets = st.targets || {};
-        st.targets[st.phase] = { on: c.on, off: c.off };
-        syncTodayKcalLog();
-        save();
-        render();
-        showToast(`Objectif appliqué : ${fmt(c.on)} ON / ${fmt(c.off)} OFF ✓`);
         return;
       } else if (t.id === 'resetTargetsBtn') {
         if (st.targets) delete st.targets[st.phase];
@@ -1911,10 +1859,6 @@
         st.targets[st.phase][el.id === 'myOnKcal' ? 'on' : 'off'] = v;
         syncTodayKcalLog();
         save();
-        renderKcal();
-        return;
-      }
-      if (el.id === 'calcWeight' || el.id === 'calcHeight' || el.id === 'calcAge') {
         renderKcal();
         return;
       }
